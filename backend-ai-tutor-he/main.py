@@ -21754,6 +21754,56 @@ def check_score(body: CheckScoreRequest, authorization: str = Header(None)):
             "correct": sum(1 for r in results if r["correct"]), "total": len(results)}
 
 
+# בדיקות ומעקב read aloud (2026-09-24, user: the browser voice reads badly; save every reading so it is
+# paid for once). The lesson voice, cached in Storage like the live TTS, but keyed on the text as sent
+# (before the nikud pass, which may call a model and vary) and for texts up to 1,500 characters, so a
+# comprehension passage is synthesized once for every child.
+CHECK_TTS_MAX_CHARS = 1500
+
+
+class CheckTTSRequest(LimitedRequest):
+    kid_id: str
+    text: str = Field(..., max_length=CHECK_TTS_MAX_CHARS)
+
+
+def check_tts_key(text: str) -> str:
+    return tts_cache_key("check|" + text, None)
+
+
+@app.post("/api/tutor/checks/tts")
+async def check_tts(body: CheckTTSRequest, authorization: str = Header(None)):
+    user = await run_in_threadpool(lambda: authenticate_user(authorization))
+    await run_in_threadpool(lambda: get_child_by_id(user_id=user.id, kid_id=body.kid_id))
+    ai_context("check_tts", user, body)
+    text = lq.normalize_for_tts((body.text or "").strip())
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required")
+    key = check_tts_key(text)
+    headers = {"Cache-Control": "private, max-age=86400"}
+    cached = await run_in_threadpool(tts_cache_get, key)
+    if cached:
+        return Response(content=cached, media_type="audio/wav", headers={**headers, "X-TTS-Cache": "hit"})
+    inflight = _TTS_INFLIGHT.get(key)
+    if inflight is not None:
+        wav = await asyncio.shield(inflight)
+        return Response(content=wav, media_type="audio/wav", headers={**headers, "X-TTS-Cache": "inflight"})
+    fut = asyncio.get_running_loop().create_future()
+    _TTS_INFLIGHT[key] = fut
+    try:
+        spoken = await run_in_threadpool(vocalize_for_tts, text, None, None)
+        wav, dur = await run_in_threadpool(generate_tts_wav_bytes, spoken, None)
+        fut.set_result(wav)
+    except Exception as e:
+        fut.set_exception(e); fut.exception()          # waiters get the error; nothing left unretrieved
+        print("CHECK TTS FAILED:", {"key": key[:12], "text_length": len(text), "error": repr(e)[:160]})
+        raise HTTPException(status_code=502, detail="tts failed")
+    finally:
+        _TTS_INFLIGHT.pop(key, None)
+    await run_in_threadpool(tts_cache_put, key, wav)
+    print("CHECK TTS STORED:", {"key": key[:12], "seconds": round(dur, 1), "text_length": len(text)})
+    return Response(content=wav, media_type="audio/wav", headers={**headers, "X-TTS-Cache": "miss"})
+
+
 # =====================================================
 # הכנה למבחן בכיתה (2026-09-24): a practice set written by the strong model for the child's grade,
 # with the subject module. Answers and explanations stay on the server (in memory, 3 hours).

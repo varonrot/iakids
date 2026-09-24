@@ -23,7 +23,7 @@ Checks, per live prompt (the files main.py loads):
      make sure no {placeholder} survives unresolved
 Exit 0 = pass, 1 = fail (2 in --hook mode so Claude Code shows the reason).
 """
-import argparse, json, os, re, subprocess, sys
+import argparse, hashlib, json, os, re, subprocess, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -547,9 +547,14 @@ def diagnostics_checks() -> list:
     j = ws.find('<script id="IAKIDS_MY_FILES_STORAGE_FIX_0750">')
     if j >= 0 and "return;" not in ws[j:ws.find("const originalOpen", j) + 400]:
         bad.append("workspace: the browser storage fallback of הקבצים שלי is on again (storage rules make it return nothing)")
-    hub = DIAGNOSTICS / "index.html"
-    if "iakidsComingSoon('הכנה למבחן')" in ws or not hub.exists() or "הכנה למבחן" not in hub.read_text(encoding="utf-8"):
-        bad.append("'הכנה למבחן' is back in the sidebar or missing from the מבחנים ואבחונים hub (moved there 2026-09-24)")
+    # the old "coming soon" placeholder must not return; the real page opens from the main menu (user, 2026-09-24)
+    if "document.getElementById('iakidsExamPrepComingSoon')?.setAttribute('hidden','')" not in ws:
+        bad.append("opening בדיקות ומעקב no longer closes the old coming-soon screen: after it was seen once, the checks open behind it and the menu seems dead (2026-09-24, user report)")
+    k = ws.find('<script id="IAKIDS_EXAM_PREP_COMING_SOON_0751">')
+    if k >= 0 and "window.openDiagnosticsView('/he/diagnostics/exam/','examPrepSidebarBtn')" not in ws[k:ws.find("</script>", k)]:
+        bad.append("the old exam-prep click catcher opens the 'coming soon' screen again: the הכנה למבחן button shows בקרוב instead of the real page (2026-09-24, user report)")
+    if "iakidsComingSoon('הכנה למבחן')" in ws:
+        bad.append("the sidebar shows the 'הכנה למבחן' coming-soon placeholder again instead of the real exam prep")
     # בדיקות ומעקב rules (2026-09-24 research): every page and the shared shell, including checks added later
     CLINICAL = ("דיסלקציה", "לקות למידה", "ADHD", "הפרעת קשב", "אבחנה", "חשד ל")
     for f in sorted(list(DIAGNOSTICS.rglob("*.html")) + list(DIAGNOSTICS.rglob("*.js"))):
@@ -582,9 +587,20 @@ def diagnostics_checks() -> list:
     if ("window.IAKIDS_CHECK_BRIDGE = {" not in ws or 'return typeof CURRENT_KID !== "undefined" ? CURRENT_KID : null;' not in ws
             or "sb.auth.getSession()" not in ws):
         bad.append("he/workspace/index.html lost IAKIDS_CHECK_BRIDGE: CURRENT_KID and sb are let/const, so every check in the frame shows 'צריך להיכנס מתוך סביבת הלמידה' (2026-09-24)")
+    # 2026-09-24 (user): the browser voice read badly; checks read with the lesson voice through the shell
+    shs = shell.read_text(encoding="utf-8") if shell.exists() else ""
+    if 'request("/api/tutor/checks/tts"' not in shs or "browserSpeak(text)" not in shs:
+        bad.append("check shell: speak() no longer uses the lesson voice (/api/tutor/checks/tts) with the browser voice only as a fallback: the checks read in the robotic browser voice again (2026-09-24)")
+    for f in sorted(DIAGNOSTICS.glob("*/index.html")):
+        if f.parent.name != "reading-fluency" and "speechSynthesis" in f.read_text(encoding="utf-8"):
+            bad.append(f"{_rel(f)}: uses speechSynthesis directly: use C.speak()/C.hush() so the lesson voice reads and stops (2026-09-24)")
     # 2026-09-24 (user): the teacher is a real image, never an emoji icon
     if "/assets/diagnostics/teacher.webp" not in (shell.read_text(encoding="utf-8") if shell.exists() else "") or not (ROOT / "assets" / "diagnostics" / "teacher.webp").exists():
         bad.append("check shell: the teacher image is gone: the child sees an emoji icon instead of the teacher (2026-09-24)")
+    if "function autoTeacher()" not in shs or "new MutationObserver(add).observe(app" not in shs:
+        bad.append("check shell: the teacher no longer appears on every check screen (autoTeacher): the child sees screens without her (2026-09-24, user)")
+    if "main{max-width:95%" not in (DIAGNOSTICS / "check-shell.css").read_text(encoding="utf-8"):
+        bad.append("check-shell.css: check screens are no longer 95% wide: questions sit in a narrow column with empty screen around them (2026-09-24, user)")
     for f in [shell, DIAGNOSTICS / "index.html"] + sorted(DIAGNOSTICS.glob("*/index.html")):
         for img in set(re.findall(r"/assets/diagnostics/[\w.-]+", f.read_text(encoding="utf-8") if f.exists() else "")):
             if not (ROOT / img.lstrip("/")).exists():
@@ -592,12 +608,20 @@ def diagnostics_checks() -> list:
     for f in [shell] + sorted(DIAGNOSTICS.glob("*/index.html")):
         if f.exists() and re.search(r"ck-teacher'>[^<]", f.read_text(encoding="utf-8")):
             bad.append(f"{_rel(f)}: the teacher is an emoji icon again: use C.teacher() (2026-09-24)")
+    # the shell's address carries the build AND a hash of its content (tools/stamp_check_shell.py): nginx
+    # caches JS/CSS 4 h, so a shell change under the same address left buttons dead (2026-09-24, twice)
     bm = re.search(r'IAKIDS_BUILD_VERSION = "0\.7\.(\d+)"', ws)
-    want = f"check-shell.js?v=07{bm.group(1)}" if bm else None
+    wants = {}
+    if bm:
+        for name in ("check-shell.js", "check-shell.css"):
+            fp = DIAGNOSTICS / name
+            if fp.exists():
+                wants[name] = f"{name}?v=07{bm.group(1)}.{hashlib.sha1(fp.read_bytes()).hexdigest()[:8]}\""
     for f in [DIAGNOSTICS / "index.html"] + sorted(DIAGNOSTICS.glob("*/index.html")):
         t = f.read_text(encoding="utf-8") if f.exists() else ""
-        if want and "/he/diagnostics/check-shell.js" in t and want not in t:
-            bad.append(f"{_rel(f)}: loads check-shell.js without ?v= of the current build ({want}): browsers keep the old shell for 4 hours and the start button does nothing (2026-09-24)")
+        for name, want in wants.items():
+            if "/he/diagnostics/" + name in t and want not in t:
+                bad.append(f"{_rel(f)}: loads {name} with a stale ?v= (want {want[:-1]}): browsers keep the old shell for 4 hours and buttons do nothing. Run tools/stamp_check_shell.py (2026-09-24)")
     for f in sorted(DIAGNOSTICS.glob("*/index.html")):
         t = f.read_text(encoding="utf-8")
         if f.parent.name != "reading-fluency" and "/he/diagnostics/check-shell.js" not in t:
@@ -618,9 +642,14 @@ def diagnostics_checks() -> list:
             except FileNotFoundError:
                 print("note: node not installed, math check tests skipped")
     hub_src = (DIAGNOSTICS / "index.html").read_text(encoding="utf-8") if (DIAGNOSTICS / "index.html").exists() else ""
-    a, b = hub_src.find('<h2 class="section">בדיקות קצרות</h2>'), hub_src.find('<h2 class="section">תרגול לקראת')
-    if a < 0 or b < 0 or a > b or "<title>בדיקות ומעקב</title>" not in hub_src:
-        bad.append("the hub lost its structure: 'בדיקות ומעקב', short checks first, then practice that never feeds a report")
+    if '<h2 class="section">בדיקות קצרות</h2>' not in hub_src or "<title>בדיקות ומעקב</title>" not in hub_src:
+        bad.append("the hub lost its structure: 'בדיקות ומעקב' with the short checks")
+    # 2026-09-24 (user): exam prep and gifted are practice in the main menu, not under בדיקות ומעקב
+    if "/he/diagnostics/exam/" in hub_src or "/he/diagnostics/gifted/" in hub_src:
+        bad.append("the hub links to exam prep or gifted again: they belong in the main menu, not under בדיקות ומעקב (2026-09-24)")
+    for bid, path in (("examPrepSidebarBtn", "/he/diagnostics/exam/"), ("giftedSidebarBtn", "/he/diagnostics/gifted/")):
+        if f"openDiagnosticsView('{path}','{bid}')" not in ws:
+            bad.append(f"the workspace menu lost {bid}: the child cannot reach {path} from the main menu (2026-09-24)")
     if "ALIGN-START" not in src or "ALIGN-END" not in src:
         return bad + ["reading-fluency check lost its ALIGN-START/ALIGN-END markers: the comparison is no longer tested"]
     code = src[src.index("// ALIGN-START"):src.index("// ALIGN-END")] + _ALIGN_TESTS
@@ -879,6 +908,12 @@ def workspace_checks() -> list:
         return ["he/workspace/index.html is missing"]
     src = WORKSPACE.read_text(encoding="utf-8", errors="replace")
     bad = []
+
+    # 2026-09-24 (user): the menu text is too small; hovering an item enlarges it. The block must come after
+    # every other .side-item rule, or a later rule wins and the item stays small.
+    z = src.find('<style id="IAKIDS_MENU_HOVER_ZOOM">')
+    if z < 0 or ".side-item:hover .side-title" not in src[z:z + 1500] or src.rfind(".side-item{") > z:
+        bad.append("the menu no longer grows on hover (IAKIDS_MENU_HOVER_ZOOM missing or overridden by a later .side-item rule): the small menu text stays small (2026-09-24)")
 
     # 2026-09-17: the whole lesson layout is scoped to body.lesson-theme-science and
     # the class was added only for the subject "מדעים", so a Hebrew or maths lesson
@@ -1337,6 +1372,8 @@ def code_rule_checks(main_src: str) -> list:
         ('.select("id, file_name, file_type, storage_path', 1, "הקבצים שלי reads homework_sessions again, whose file name is never filled: the child's uploads do not show (2026-09-24)"),
         ('signed_url_cached("homework-uploads"', 1, "הקבצים שלי no longer signs the uploaded files: the open button is dead (2026-09-24)"),
         ("CHECK_PUBLIC_DROP = (\"answer\", \"explain\", \"why_wrong\", \"accept\", \"word\")", 1, "a check's answers or explanations would reach the browser before the child answers (2026-09-24)"),
+        ("key = check_tts_key(text)", 1, "a check's reading is keyed after the nikud pass (which may vary): the same sentence is paid for again and again (2026-09-24)"),
+        ("await run_in_threadpool(tts_cache_put, key, wav)", 1, "a check's reading is no longer stored: every child pays for the same sentence again (2026-09-24)"),
         ('if not k.startswith(CHECK_FIGURE_DROP)}', 1, "a gifted shape item would send its rule or formula to the browser: the answer is in the network tab (2026-09-24)"),
         ('CHECK_FIGURE_DROP = ("rule", "formula")', 1, "a gifted shape item would send its rule or formula to the browser: the answer is in the network tab (2026-09-24)"),
         ("if title_is_asked(pub[\"items\"]):", 1, "a comprehension check asks \"which title fits?\" with the story's title on the screen: the answer is given away (2026-09-24)"),

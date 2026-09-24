@@ -58,6 +58,34 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — exam prep and gifted in the main menu; menu grows on hover; "חדש" badges (build 0.7.147)
+- **Exam prep and gifted** (user: move them to the main menu, not under בדיקות ומעקב):
+  - They now have their own buttons in the workspace menu, "הכנה למבחן" and "מבחן המחוננים". Each opens its page in the same center view as the hub (`openDiagnosticsView(path, btnId)`, limited to `/he/diagnostics/…`) and highlights its own button.
+  - The hub no longer has the "תרגול לקראת…" section.
+  - On those two pages, "סיימתי להיום" closes the view (`C.leave`), and the back link to the hub is gone.
+- **"הכנה למבחן" opened a "coming soon" page, and then בדיקות ומעקב stopped working** (user report):
+  - *Cause 1*: an old script (`IAKIDS_EXAM_PREP_COMING_SOON_0751`) catches, in the capture phase, every click on anything whose text contains "הכנה למבחן" and opens a "coming soon" screen. It swallowed the new button's click.
+  - *Cause 2*: that screen sits above the checks view (z-index 248 against 246) and nothing closed it, so after seeing it once, בדיקות ומעקב opened behind it and the menu seemed dead.
+  - *Fix*: the old catcher now opens the real exam prep (the "coming soon" screen stays only as a fallback), and opening the checks view hides the old screen.
+  - *Gate*: both are pinned and negative-tested.
+  - *Verified* on the real workspace with all old scripts loaded: each of the three buttons opens its page, and with the old screen forced open, clicking בדיקות ומעקב puts the checks on top.
+- **Hub layout** (user: all 4 in one row, or 2 rows of 2): the four check cards sit in one row when the frame is wider than 1000px, 2×2 in the workspace center, and one column on a phone. Measured by card positions at 1200, 860 and 400px.
+- **Menu text too small** (user): on hover or keyboard focus, a menu item's title grows ×1.18 and its icon ×1.12, anchored on the right (`IAKIDS_MENU_HOVER_ZOOM`, declared after every other `.side-item` rule; respects reduced motion).
+- **Badges** (user: a "new" or "premium" tag):
+  - `<span class="side-badge new">חדש</span>`, a cyan-to-green pill with a soft pulse, now on בדיקות ומעקב, הכנה למבחן and מבחן המחוננים.
+  - `<span class="side-badge premium">פרימיום</span>`, a gold pill with ★, is ready but not placed on any item yet.
+  - Both are labels only; nothing is locked.
+- **Gate**:
+  - The hub must not link to exam prep or gifted, and the menu must keep both buttons with their paths.
+  - The hover block must exist and come after the last `.side-item{` rule.
+  - The earlier rule that required exam prep to be inside the hub now only forbids the old coming-soon placeholder.
+  - Each rule was negative-tested.
+- **Verified**:
+  - The real menu markup and view script were tested in headless Chromium: each button opens its page, highlights itself, and any other menu item closes the view.
+  - On the real workspace the computed hover transform is `matrix(1.18…)`.
+  - The badges were rendered and checked on screen.
+  - `prompt_gate --all` passes.
+
 ### 2026-09-24 — English Test Prep entry popup
 - **Symptom**: Start prep, its arrow, and navigation/mobile Test Prep links led to a missing page.
 - **Cause**: the English Test Prep entry flow had not been implemented.

@@ -41,3 +41,94 @@ table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
 td,th{border-bottom:1px solid var(--line);padding:6px;text-align:right}
 th{color:var(--muted);font-weight:500}
 @media (max-width:560px){.ck-card h1{font-size:22px}.ck-say{font-size:19px}}
+
+/* ===== FULL SCREEN, BIG TEXT (2026-09-24, user): every check screen, questions included, fills 95% of the
+   width and the height of the view, and the text is large and clear. `main` raises specificity above
+   each page's own sizes, so this block wins everywhere. ===== */
+body{font-size:20px}
+main{max-width:95%;width:95%;padding:10px 0 12px}
+main .ck-card{min-height:calc(100vh - 118px);display:flex;flex-direction:column;justify-content:center;padding:24px 32px;margin:6px 0}
+/* the teacher at the side of the question/title (right in RTL), so nothing is pushed down (user 2026-09-24) */
+main .ck-card.side-teacher{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:28px;align-content:center}
+main .ck-card.side-teacher > .ck-teacher{grid-column:1;grid-row:1 / span 30;align-self:start;margin:0}
+main .ck-card.side-teacher > :not(.ck-teacher){grid-column:2}
+main .ck-card.side-teacher > .ck-tag{justify-self:start}
+main .ck-card > *{max-width:100%}
+main .ck-back{font-size:18px}
+main .ck-tag{font-size:15px;padding:4px 12px;align-self:flex-start}
+main .ck-child .ck-tag{align-self:center}
+main .ck-card h1{font-size:min(38px,4.8vh);line-height:1.3}
+main .ck-card h2{font-size:27px}
+main .ck-facts{font-size:22px;line-height:1.8}
+main .ck-note,main .ck-not-dx{font-size:19px;line-height:1.7}
+main .ck-say{font-size:min(32px,4vh);line-height:1.55;max-width:1000px}
+main .ck-teacher{width:150px;height:150px}
+main .ck-teacher.ck-teacher-sm{width:104px;height:104px;margin-bottom:12px;flex:0 0 auto}
+main .ck-btn{font-size:21px;padding:16px 26px;border-radius:16px}
+main .ck-child .ck-btn{min-height:min(88px,10vh);min-width:180px;font-size:min(25px,3.2vh)}
+main .ck-choice button{font-size:23px;padding:14px 22px;min-width:64px}
+main .ck-path{margin:4px 0 8px}
+main .ck-dot{width:18px;height:18px}
+main table{font-size:18px}
+main td,main th{padding:10px 8px}
+main summary{font-size:20px}
+main .ck-end .ck-star{width:min(440px,100%)}
+/* the parent report in two columns: what went well / what to strengthen | practice, next check, details */
+main .ck-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:44px;align-items:start}
+main .ck-cols h2:first-child{margin-top:4px}
+main .ck-report ul{margin:4px 0 8px;padding-inline-start:22px;line-height:1.5;font-size:19px}
+main .ck-report h1{font-size:min(32px,4.2vh);margin:0 0 4px}
+main .ck-report h2{font-size:22px;margin:10px 0 4px}
+main .ck-report .ck-btn{font-size:18px;padding:10px 16px}
+main .ck-report .ck-row{margin-top:6px}
+main .ck-report .ck-not-dx,main .ck-report .ck-note{font-size:16px;line-height:1.55}
+main .ck-report details{margin-top:6px}
+main .ck-report p{margin:6px 0}
+/* a long passage reads in two columns on a wide screen */
+main .text.long{columns:2;column-gap:44px;column-rule:1px solid var(--line);font-size:min(23px,2.75vh);line-height:1.68;padding:10px 18px;margin:6px 0}
+main .ck-card:has(.text.long) h1{font-size:min(30px,3.8vh);margin:0}
+main .ck-card:has(.text.long) > .ck-teacher{width:84px;height:84px}
+main .ck-card:has(.text.long){padding-top:12px;padding-bottom:12px}
+main .ck-card:has(.text.long) .text-head .ck-btn{padding:10px 22px;min-height:0}
+/* questions and answers */
+main .qbig{font-size:min(36px,4.4vh);line-height:1.5;margin:4px 0 16px}
+main .opts{gap:16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+main .opts button{font-size:min(29px,3.6vh);min-height:min(96px,11vh);padding:12px 22px;border-radius:20px}
+main .feedback{font-size:24px;line-height:1.7}
+main .text{font-size:min(31px,3.6vh);line-height:1.9}
+main .sent{font-size:34px}
+main .topic{font-size:24px;width:min(640px,100%);padding:14px}
+main .secs{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+main .secs button{min-height:120px;padding:20px}
+main .secs button b{font-size:26px}
+main .secs button span{font-size:18px}
+main .expr{font-size:min(84px,10vh);margin:0}
+main .qtext{font-size:30px}
+main .answer{font-size:min(64px,8vh);min-height:min(92px,10vh);max-width:340px;margin:6px auto}
+main .pad{grid-template-columns:repeat(3,minmax(96px,150px));gap:min(14px,1.4vh)}
+main .pad button{font-size:min(42px,5vh);min-height:min(100px,10.5vh)}
+main .thanks{font-size:28px}
+main .built{font-size:min(64px,7.5vh);min-height:min(100px,11vh);max-width:640px}
+main .tiles{gap:14px}
+main .tiles button{font-size:min(46px,5.5vh);min-width:min(100px,11vh);min-height:min(100px,11vh)}
+main .type{font-size:46px;width:min(640px,100%)}
+main .words{font-size:min(38px,4.4vh)}
+main .passage-text{font-size:min(36px,4.2vh)}
+@media (max-width:700px){
+  main{max-width:100%;width:100%;padding:10px 12px 30px}
+  main .ck-card{min-height:auto;padding:20px 16px}
+  main .ck-card.side-teacher{grid-template-columns:1fr}
+  main .ck-card.side-teacher > .ck-teacher{grid-row:auto;justify-self:center;margin-bottom:8px}
+  main .ck-card.side-teacher > :not(.ck-teacher){grid-column:1}
+  main .ck-card h1{font-size:28px}
+  main .ck-say{font-size:24px}
+  main .qbig{font-size:26px}
+  main .opts{grid-template-columns:1fr}
+  main .ck-cols{grid-template-columns:1fr}
+  main .text.long{columns:1}
+  main .opts button{font-size:23px;min-height:72px}
+  main .text{font-size:24px}
+  main .expr{font-size:60px}
+  main .words{font-size:26px}
+  main .passage-text{font-size:25px}
+}

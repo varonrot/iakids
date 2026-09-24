@@ -13107,6 +13107,28 @@ window.iakidsAvatarUrl = function(key){
           בדיקות ומעקב
         </span>
       </div>
+      <span class="side-badge new">חדש</span>
+    </button>
+
+    <!-- 2026-09-24 (user): exam prep and the gifted familiarisation are practice, so they sit in the main menu, not under בדיקות ומעקב -->
+    <button class="side-item" id="examPrepSidebarBtn" type="button" onclick="window.openDiagnosticsView ? window.openDiagnosticsView('/he/diagnostics/exam/','examPrepSidebarBtn') : (window.location.href='/he/diagnostics/exam/')">
+      <i class="fa-solid fa-bullseye"></i>
+      <div class="side-text">
+        <span class="side-title">
+          הכנה למבחן
+        </span>
+      </div>
+      <span class="side-badge new">חדש</span>
+    </button>
+
+    <button class="side-item" id="giftedSidebarBtn" type="button" onclick="window.openDiagnosticsView ? window.openDiagnosticsView('/he/diagnostics/gifted/','giftedSidebarBtn') : (window.location.href='/he/diagnostics/gifted/')">
+      <i class="fa-solid fa-lightbulb"></i>
+      <div class="side-text">
+        <span class="side-title">
+          מבחן המחוננים
+        </span>
+      </div>
+      <span class="side-badge new">חדש</span>
     </button>
 
 
@@ -53969,7 +53991,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07146"></script>
+<script src="/he/workspace/lesson-completion.js?v=07147"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54143,12 +54165,29 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.146</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.146";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.147</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.147";</script>
 
 <!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
      "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
      loaded here in a frame (no second copy of the page); the frame may use the microphone. -->
+<style id="IAKIDS_MENU_HOVER_ZOOM">
+/* 2026-09-24 (user): the menu text is small; on hover (or keyboard focus) the item's title and icon grow.
+   Declared after every other .side-item rule so it wins; anchored on the right (RTL) next to the icon. */
+.side-item .side-title{display:inline-block;transform-origin:right center;transition:transform .18s ease}
+.side-item i{transition:transform .18s ease,background .18s ease,color .18s ease}
+.side-item:hover .side-title,.side-item:focus-visible .side-title{transform:scale(1.18)}
+.side-item:hover i,.side-item:focus-visible i{transform:scale(1.12)}
+@media (prefers-reduced-motion:reduce){.side-item .side-title,.side-item i{transition:none}}
+/* Menu badges (2026-09-24, user): <span class="side-badge new">חדש</span> or <span class="side-badge premium">פרימיום</span>
+   inside a .side-item, after .side-text. A label only: it does not lock anything. */
+.side-item .side-badge{margin-inline-start:auto;flex:0 0 auto;font-size:11px;font-weight:900;line-height:1;padding:4px 8px;border-radius:999px;letter-spacing:.2px;white-space:nowrap}
+.side-badge.new{color:#04131f;background:linear-gradient(90deg,#28d7ff,#38e56c);box-shadow:0 0 12px rgba(40,215,255,.45);animation:sideBadgePulse 2.4s ease-in-out infinite}
+.side-badge.premium{color:#3a2500;background:linear-gradient(90deg,#ffd76a,#ffb03a);box-shadow:0 0 12px rgba(255,176,58,.45)}
+.side-badge.premium::before{content:"★ "}
+@keyframes sideBadgePulse{0%,100%{box-shadow:0 0 6px rgba(40,215,255,.35)}50%{box-shadow:0 0 16px rgba(40,215,255,.75)}}
+@media (prefers-reduced-motion:reduce){.side-badge.new{animation:none}}
+</style>
 <style id="IAKIDS_DIAGNOSTICS_VIEW">
 .iakids-diagnostics-view{position:absolute;inset:12px;z-index:246;display:flex;flex-direction:column;direction:rtl;border:1px solid rgba(67,137,218,.26);border-radius:24px;background:linear-gradient(180deg,#06162d 0%,#041125 100%);color:#eef6ff;box-shadow:0 24px 70px rgba(0,0,0,.38);font-family:"Heebo",Arial,sans-serif;overflow:hidden}
 .iakids-diagnostics-view[hidden]{display:none!important}
@@ -54176,24 +54215,30 @@ window.IAKIDS_CHECK_BRIDGE = {
     view.querySelector('.idg-close').addEventListener('click', close);
     main.appendChild(view); return view;
   }
-  function open(){
-    const el=ensureView(); if(!el){ window.location.href='/he/diagnostics/'; return; }
+  // the hub, or a practice page from the main menu (exam prep, gifted) in the same center frame
+  const VIEW_BTNS=['diagnosticsSidebarBtn','examPrepSidebarBtn','giftedSidebarBtn'];
+  function open(path, btnId){
+    path=(typeof path==='string' && path.indexOf('/he/diagnostics/')===0) ? path : '/he/diagnostics/';
+    const el=ensureView(); if(!el){ window.location.href=path; return; }
+    // the old exam-prep "coming soon" screen sits above this view (z 248 > 246): close it, or the
+    // checks open behind it and the menu seems dead (user report 2026-09-24)
+    try{ document.getElementById('iakidsExamPrepComingSoon')?.setAttribute('hidden',''); }catch(_e){}
     const frame=el.querySelector('.idg-frame');
-    frame.src='/he/diagnostics/';            // always open on the hub, not on the last check
+    frame.src=path;                          // always open fresh, not on the last screen
     el.hidden=false;
     document.querySelectorAll('.kid-actions .side-item').forEach(x=>x.classList.remove('active'));
-    document.getElementById('diagnosticsSidebarBtn')?.classList.add('active');
+    document.getElementById(VIEW_BTNS.includes(btnId) ? btnId : 'diagnosticsSidebarBtn')?.classList.add('active');
   }
   function close(){
     if(!view) return;
     view.hidden=true;
     const frame=view.querySelector('.idg-frame'); if(frame) frame.src='about:blank';   // stops the microphone
-    document.getElementById('diagnosticsSidebarBtn')?.classList.remove('active');
+    VIEW_BTNS.forEach(id=>document.getElementById(id)?.classList.remove('active'));
   }
   // any other menu button closes it, like the other center views
   document.addEventListener('click',e=>{
     const item=e.target?.closest?.('.kid-actions .side-item, .sidebar-bottom .manage-btn, .new-task');
-    if(item && item.id!=='diagnosticsSidebarBtn' && view && !view.hidden) close();
+    if(item && !VIEW_BTNS.includes(item.id) && view && !view.hidden) close();
   },true);
   window.openDiagnosticsView=open; window.closeDiagnosticsView=close;
 })();
@@ -55317,8 +55362,10 @@ document.addEventListener('click',function(event){const item=event.target?.close
   function ensureView(){if(view?.isConnected)return view;const main=document.querySelector('.main');if(!main)return null;view=document.createElement('section');view.id='iakidsExamPrepComingSoon';view.className='iakids-exam-soon';view.hidden=true;view.innerHTML=`<div class="ies-shell"><div class="ies-head"><div class="ies-title"><h1>הכנה למבחן</h1><p>סביבת הכנה חכמה למבחנים</p></div><button type="button" class="ies-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div><div class="ies-card"><div><div class="ies-icon"><i class="fa-solid fa-bullseye"></i></div><h2>עולה בקרוב</h2><p>אנחנו בונים עבורך סביבת הכנה חכמה למבחנים עם תרגול מותאם אישית, חיזוק נושאים וסימולציות.</p><span class="ies-badge"><i class="fa-solid fa-sparkles"></i> בקרוב ב-IAKIDS</span></div></div></div>`;document.querySelector('.main')?.appendChild(view);view.querySelector('.ies-close')?.addEventListener('click',closeView);return view}
   function closeView(){const el=ensureView();if(el)el.hidden=true;document.querySelectorAll('.side-item').forEach(x=>{if((x.textContent||'').includes('הכנה למבחן'))x.classList.remove('active')})}
   function openView(item){try{window.closeWorkspaceAchievements?.()}catch(_e){}try{window.closeLearningProgress?.()}catch(_e){}try{window.closeMyLessonsInternal?.()}catch(_e){}try{window.closeMyFilesInternal?.()}catch(_e){}const dash=document.getElementById('iakidsLearningDashboard');if(dash)dash.hidden=true;const el=ensureView();if(!el)return;el.hidden=false;document.querySelectorAll('.side-item').forEach(x=>x.classList.remove('active'));item?.classList.add('active')}
-  document.addEventListener('click',event=>{const item=event.target?.closest?.('a,button,.side-item');if(!item)return;const text=(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('הכנה למבחן'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();openView(item)},true);
-  window.openExamPrepComingSoon=openView;window.closeExamPrepComingSoon=closeView;
+  document.addEventListener('click',event=>{const item=event.target?.closest?.('a,button,.side-item');if(!item)return;const text=(item.textContent||'').replace(/\s+/g,' ').trim();if(!text.includes('הכנה למבחן'))return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();realOrSoon(item)},true);
+  /* 2026-09-24: exam prep exists now: every 'הכנה למבחן' click opens the real page (the coming-soon screen stays only as a fallback) */
+  function realOrSoon(item){if(window.openDiagnosticsView){closeView();window.openDiagnosticsView('/he/diagnostics/exam/','examPrepSidebarBtn');return}openView(item)}
+  window.openExamPrepComingSoon=realOrSoon;window.closeExamPrepComingSoon=closeView;
 })();
 </script>
 
@@ -55806,7 +55853,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07146"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07147"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example

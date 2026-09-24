@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07146">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07147.86d85871">
 <!--
   בדיקות ומעקב (2026-09-24, from the diagnostics research). Named "בדיקות", not "אבחונים": to Israeli
   parents "אבחון" means a formal learning-disability evaluation, and "מבחן" means an exam.
@@ -22,26 +22,34 @@
 .back{color:var(--muted);text-decoration:none;font-size:14px}
 .embedded .back{display:none}
 .embedded main{padding-top:4px}
-h1.page{font-size:28px;margin:10px 0 2px}
-.sub{color:var(--muted);margin:0 0 16px}
+/* the hub uses the whole width of the center view (user 2026-09-24); the checks themselves keep 980px */
+main{max-width:95%;width:95%;padding-left:0;padding-right:0}
+/* the teacher greets the parent on the hub too (user 2026-09-24) */
+.hub-head{display:flex;align-items:center;gap:16px;margin-top:6px}
+.hub-teacher{width:80px;height:80px;border-radius:50%;box-shadow:0 0 0 4px rgba(40,215,255,.25),0 10px 30px rgba(0,0,0,.35);flex:0 0 auto}
+h1.page{font-size:34px;margin:10px 0 2px}
+.sub{color:var(--muted);margin:0 0 16px;font-size:18px}
 .strip{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-bottom:16px}
-.strip h2{font-size:16px;margin:0 0 8px;color:#cfe3ff}
-.strip-row{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:15px}
+.strip h2{font-size:19px;margin:0 0 8px;color:#cfe3ff}
+.strip-row{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:17px}
 .state{font-weight:800;border-radius:999px;padding:2px 10px;font-size:13px}
 .state.start{background:rgba(40,215,255,.12);color:var(--cyan)}
 .state.up,.state.stable,.state.baseline{background:rgba(56,229,108,.14);color:var(--green)}
 .state.down{background:rgba(255,176,58,.14);color:var(--orange)}
-h2.section{font-size:19px;margin:22px 0 4px}
-.section-note{color:var(--muted);font-size:14px;margin:0 0 10px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+h2.section{font-size:23px;margin:22px 0 4px}
+.section-note{color:var(--muted);font-size:17px;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+/* 4 checks: one row when wide, 2×2 in the workspace center, one column on a phone (user 2026-09-24) */
+@media (max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
 .card{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;color:var(--text);text-decoration:none;min-height:180px}
 a.card:hover{border-color:var(--cyan)}
-.photo{display:block;width:calc(100% + 36px);height:auto;margin:-18px -18px 6px;aspect-ratio:16/10;object-fit:cover;border-radius:18px 18px 0 0;background:var(--panel2)}
-.card h3{font-size:18px;margin:0}
-.card p{color:var(--muted);font-size:14px;line-height:1.55;margin:0;flex:1}
+.photo{display:block;width:calc(100% + 36px);height:auto;margin:-18px -18px 6px;aspect-ratio:16/9;object-fit:cover;border-radius:18px 18px 0 0;background:var(--panel2)}
+.card h3{font-size:23px;margin:0}
+.card p{color:#b9cae4;font-size:17px;line-height:1.6;margin:0;flex:1}
 .meta{display:flex;flex-wrap:wrap;gap:6px}
-.meta span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:#b9c9e3}
-.tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px}
+.meta span{font-size:14px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:#b9c9e3}
+.tag{align-self:flex-start;font-size:14px;font-weight:700;border-radius:999px;padding:3px 10px}
 .card-checks{grid-template-columns:repeat(4,minmax(0,1fr))}
 .card-checks .card{gap:10px;padding:0 0 14px;min-width:0;min-height:0;overflow:hidden;border-radius:20px;background:linear-gradient(160deg,#132946,#0b1b31);transition:transform .2s,border-color .2s,box-shadow .2s}
 .card-checks a.card:hover{transform:translateY(-3px);border-color:var(--card-accent);box-shadow:0 14px 30px rgba(0,0,0,.22)}
@@ -60,19 +68,20 @@ a.card:hover{border-color:var(--cyan)}
 .card-checks .card:nth-child(2){--card-accent:#75e6cd}
 .card-checks .card:nth-child(3){--card-accent:#c7a3ff}
 .card-checks .card:nth-child(4){--card-accent:#ff9faf}
-@media(max-width:1100px){.card-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.card-checks .photo{height:clamp(140px,20vw,210px)}}
-@media(max-width:560px){.card-checks{grid-template-columns:1fr}.card-checks .photo{height:180px}}
+@media(max-width:1000px){.card-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.card-checks .photo{height:clamp(140px,20vw,210px)}}
+@media(max-width:520px){.card-checks{grid-template-columns:1fr}.card-checks .photo{height:180px}}
 .live{background:rgba(56,229,108,.16);color:var(--green)}
 .soon{background:rgba(143,165,196,.14);color:var(--muted)}
 .card.disabled{opacity:.72}
 details.how{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-top:22px}
-details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
+details.how p{color:#c6d4ea;line-height:1.7;font-size:17px}
+details.how summary{font-size:18px;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
 <main>
   <a class="back" href="/he/workspace/">→ חזרה לעולם הלמידה</a>
-  <h1 class="page">בדיקות ומעקב</h1>
+  <div class="hub-head"><img class="hub-teacher" src="/assets/diagnostics/teacher.webp" alt="המורה" width="96" height="96"><h1 class="page">בדיקות ומעקב</h1></div>
   <p class="sub">בואו נראה מה כבר למדנו. בדיקות קצרות שעושים יחד עם הורה, ובסופן יודעים מה לתרגל.</p>
 
   <section class="strip" id="strip" hidden>
@@ -113,25 +122,6 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
     </a>
   </div>
 
-  <h2 class="section">תרגול לקראת…</h2>
-  <p class="section-note">תרגול בלבד. לא נכנס לדוח ולא למעקב.</p>
-  <div class="grid">
-    <a class="card" href="/he/diagnostics/exam/">
-      <img class="photo" src="/assets/diagnostics/exam.webp" alt="ילד לומד לקראת מבחן" loading="lazy" width="640" height="400">
-      <h3>הכנה למבחן בכיתה</h3>
-      <p>תרגול לפי המקצוע והנושא של המבחן, עם שאלות בסגנון המבחן והסבר על כל תשובה.</p>
-      <div class="meta"><span>כיתות א–ו</span><span>8 שאלות</span></div>
-      <span class="tag live">פעיל</span>
-    </a>
-    <a class="card" href="/he/diagnostics/gifted/">
-      <img class="photo" src="/assets/diagnostics/gifted.webp" alt="ילד פותר חידה" loading="lazy" width="640" height="400">
-      <h3>היכרות עם מבחן האיתור (מחוננים)</h3>
-      <p>היכרות עם סוגי השאלות, בשאלות מקוריות שלנו. משרד החינוך מציין שאין צורך בהכנה למבחן, ולכן זו היכרות בלבד, בלי ציון.</p>
-      <div class="meta"><span>כיתות ב–ג</span><span>5 סוגי שאלות</span></div>
-      <span class="tag live">פעיל</span>
-    </a>
-  </div>
-
   <details class="how">
     <summary>איך זה עובד</summary>
     <p><b>למה בודקים:</b> כדי לדעת מה לתרגל. בדיקה אחת היא תמונת מצב של יום אחד, ולכן מגמה מוצגת רק אחרי 3 בדיקות, והילד מושווה רק לעצמו.</p>
@@ -140,7 +130,7 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
     <p class="ck-note"><a href="/he/diagnostics/reading-fluency/" style="color:var(--muted)">לצוות: בדיקת הדיוק של זיהוי הקול</a></p>
   </details>
 </main>
-<script src="/he/diagnostics/check-shell.js?v=07146"></script>
+<script src="/he/diagnostics/check-shell.js?v=07147.1d74a3b0"></script>
 <script>
 (function(){
   // Parent strip: only after a first check. Per skill: last date, a one-word state, next check date.

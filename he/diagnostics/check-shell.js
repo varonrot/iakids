@@ -56,15 +56,16 @@
       return client.auth.getSession().then(function(r){ return (r && r.data && r.data.session && r.data.session.access_token) || null; });
     } catch (e) { return Promise.resolve(null); }
   }
-  function api(path, body){
+  function request(path, body, asBlob){
     if (!API_PATHS.some(function(p){ return path.indexOf(p) === 0; })) return Promise.reject(new Error("not a check route"));
     return authToken().then(function(token){
       if (!token) throw new Error("signed-out");
       var opts = {headers: {Authorization: "Bearer " + token}};
       if (body){ opts.method = "POST"; opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
-      return fetch(apiBase() + path, opts).then(function(r){ if (!r.ok) throw new Error("api " + r.status); return r.json(); });
+      return fetch(apiBase() + path, opts).then(function(r){ if (!r.ok) throw new Error("api " + r.status); return asBlob ? r.blob() : r.json(); });
     });
   }
+  function api(path, body){ return request(path, body, false); }
   function signedOut(root){
     root.innerHTML = "<section class='ck-card ck-parent'><h1>צריך להיכנס מתוך סביבת הלמידה</h1>" +
       "<p class='ck-note'>הבדיקה הזו פועלת כשפותחים אותה מהתפריט \"בדיקות ומעקב\" בתוך סביבת הלמידה, עם הילד שנבחר.</p></section>";
@@ -83,15 +84,47 @@
     kids: function(){ return Object.keys(readAll()); }
   };
 
-  // Spoken instructions in the browser's Hebrew voice when there is one; the text is always on screen too.
-  function speak(text){
+  // Read aloud with the lesson voice (2026-09-24, user: the browser voice reads badly). The server caches
+  // every text, so each sentence is paid for once; this tab also keeps the audio for instant replay.
+  // Without a signed-in child, or if the server fails, the browser's Hebrew voice reads it instead.
+  // The text is always on screen too.
+  var voiceCache = {}, voicePlayer = null, voiceTurn = 0;
+  function browserSpeak(text){
     try {
       if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(String(text || ""));
+      var u = new SpeechSynthesisUtterance(text);
       u.lang = "he-IL"; u.rate = 0.95;
       window.speechSynthesis.speak(u);
     } catch (e) {}
+  }
+  function hush(){
+    voiceTurn++;
+    try { if (voicePlayer){ voicePlayer.pause(); voicePlayer = null; } } catch (e) {}
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+  }
+  function voiceUrl(text, kidId){
+    if (!voiceCache[text]) voiceCache[text] = request("/api/tutor/checks/tts", {kid_id: kidId, text: text}, true)
+      .then(function(b){ return URL.createObjectURL(b); })
+      .catch(function(e){ delete voiceCache[text]; throw e; });
+    return voiceCache[text];
+  }
+  function speak(text){
+    text = String(text || "").trim().slice(0, 1500);
+    hush();
+    if (!text) return;
+    var kid = currentKid(), turn = voiceTurn;
+    if (kid.id === "local"){ browserSpeak(text); return; }
+    voiceUrl(text, kid.id).then(function(url){
+      if (turn !== voiceTurn) return;              // the child moved on while it loaded
+      voicePlayer = new Audio(url);
+      return voicePlayer.play();
+    }).catch(function(){ if (turn === voiceTurn) browserSpeak(text); });
+  }
+  // Load the next texts in the background so they play at once (and are cached on the server).
+  function preload(texts){
+    var kid = currentKid(); if (kid.id === "local") return;
+    (texts || []).forEach(function(t){ t = String(t || "").trim().slice(0, 1500); if (t) voiceUrl(t, kid.id).catch(function(){}); });
   }
 
   // A soft sound that tells the PARENT the time is up; nothing about time is shown to the child.
@@ -157,10 +190,36 @@
 
   // The same teacher the child meets in the lessons (a photo-real image we own), never an icon.
   function teacher(){ return "<img class='ck-teacher' src='/assets/diagnostics/teacher.webp' alt='המורה' width='112' height='112'>"; }
+  // The teacher on every screen (user 2026-09-24: "I liked seeing the teacher; put her on every screen"):
+  // any card a page renders into #app that has no teacher gets a smaller one at the top.
+  function autoTeacher(){
+    if (typeof document === "undefined") return;
+    var app = document.getElementById("app"); if (!app || !window.MutationObserver) return;
+    // beside the question or title, not above it (user: no scrolling, the teacher at the side)
+    var add = function(){
+      var card = app.querySelector("section.ck-card");
+      if (!card || card.classList.contains("side-teacher")) return;
+      var t = card.querySelector(":scope > .ck-teacher");
+      if (t) card.removeChild(t);
+      card.insertAdjacentHTML("afterbegin", teacher().replace("class='ck-teacher'", "class='ck-teacher ck-teacher-sm'"));
+      card.classList.add("side-teacher");
+    };
+    new MutationObserver(add).observe(app, {childList: true}); add();
+  }
+  if (typeof document !== "undefined"){
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", autoTeacher); else autoTeacher();
+  }
+
   // Waiting on the server: the teacher, what she is doing, and moving dots so the child sees it is working.
   function busy(root, text){
     root.innerHTML = "<section class='ck-card ck-child ck-busy'>" + teacher() + "<p class='ck-say'>" + esc(text) +
       "</p><div class='ck-dots' aria-label='טוען'><span></span><span></span><span></span></div></section>";
+  }
+
+  // "סיימתי להיום" on a page opened from the main menu: close the center view; standalone: the workspace
+  function leave(){
+    try { if (window.parent !== window && window.parent.closeDiagnosticsView){ window.parent.closeDiagnosticsView(); return; } } catch (e) {}
+    location.href = "/he/workspace/";
   }
 
   function childIntro(root, text, onNext){
@@ -173,7 +232,7 @@
       "</section>";
     speak(text);
     root.querySelector("[data-replay]").addEventListener("click", function(){ speak(text); });
-    root.querySelector("[data-next]").addEventListener("click", function(){ try { speechSynthesis.cancel(); } catch (e) {} onNext(); });
+    root.querySelector("[data-next]").addEventListener("click", function(){ hush(); onNext(); });
   }
 
   // Effort only: no score, no percent, no time, no comparison. The same for every child who finishes.
@@ -207,8 +266,10 @@
         "<h1>" + esc(r.title) + "</h1>" +
         "<p class='ck-note'>" + esc(r.when) + "</p>" +
         (r.partial ? "<p class='ck-warn'>הבדיקה לא הושלמה, ולכן היא לא נכנסת למעקב.</p>" : "") +
+        "<div class='ck-cols'><div>" +
         "<h2>מה הולך טוב</h2><ul>" + (r.strengths || []).map(function(x){ return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" +
         "<h2>מה כדאי לחזק</h2><ul>" + (r.toStrengthen || []).map(function(x){ return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" +
+        "</div><div>" +
         "<h2>איך מתרגלים</h2><div class='ck-row'>" + (r.practice || []).map(function(p){
           return "<a class='ck-btn' href='" + esc(p.href) + "' target='_top'>" + esc(p.label) + "</a>"; }).join("") + "</div>" +
         "<p><b>בדיקה חוזרת מומלצת:</b> " + esc(r.nextCheck) + "</p>" +
@@ -221,6 +282,7 @@
           "<button class='ck-link' type='button' data-delete>מחיקת כל התוצאות של הילד מהמכשיר</button>" +
         "</div>" +
         "<p class='ck-note'>התוצאות נשמרות רק במכשיר הזה. לא נשמרת הקלטה.</p>" +
+        "</div></div>" +
       "</section>";
     root.querySelector("[data-again]").addEventListener("click", function(){ r.onAgain && r.onAgain(); });
     root.querySelector("[data-delete]").addEventListener("click", function(){
@@ -229,6 +291,8 @@
   }
 
   window.IAKidsCheck = {
+    hush: hush, preload: preload,
+    leave: leave,
     teacher: teacher, busy: busy,
     gradeLetter: gradeLetter,
     api: api, signedOut: signedOut,

@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07146">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07147.86d85871">
 <!--
   היכרות עם מבחן המחוננים (2026-09-24): FAMILIARISATION, not a check and not a prediction. Five
   sections in the style of the first-stage screening (word pairs, missing words, word problems, numbers
@@ -39,19 +39,41 @@
 .paper svg{max-width:100%;height:auto}
 .row-shapes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;direction:rtl}
 .mx{display:grid;grid-template-columns:repeat(3,auto);gap:6px;direction:rtl}
-.cellq{width:90px;height:90px;border:2px dashed #999;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#e08a00}
+.cellq{width:130px;height:130px;border:2px dashed #999;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#e08a00}
 .opt-shape{background:#fff;border-radius:12px;display:inline-flex}
 .feedback{margin-top:12px;font-size:18px;line-height:1.7;color:#dbe7fb}
 .example{border:1px dashed var(--cyan);border-radius:16px;padding:12px;margin-top:10px}
+/* two columns on a wide screen: question + figure | answers (intro: explanation | worked example) */
+main .gq{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:32px;align-items:center;text-align:right}
+main .gq .paper{margin-bottom:6px}
+main .gq .example{margin-top:0}
+main .example .qbig{font-size:min(26px,3.2vh);margin-bottom:8px}
+main .example .opts{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+main .example .opts button{min-height:0;padding:6px;font-size:min(22px,2.8vh)}
+main .example .feedback{font-size:min(19px,2.5vh);margin:8px 0 0}
+main .example .paper svg{max-height:34vh;width:auto}
+main .example .row-shapes{flex-wrap:nowrap}
+main .example .row-shapes svg,main .example .mx svg{max-height:10vh;height:auto;width:auto;max-width:100%}
+main .example .cellq{width:10vh;height:10vh;font-size:5vh}
+main .opts .opt-shape{max-width:100%}
+main .opts .opt-shape svg{max-width:100%;height:auto}
+main .example .opt-shape svg{max-height:8vh;width:auto}
+main .gq-q .paper svg{max-height:52vh;width:auto}
+main .gq-q .mx svg,main .gq-q .row-shapes svg{max-height:15vh}
+main .gq-q .cellq{width:15vh;height:15vh;max-width:130px;max-height:130px}
+main .opts.grid4 button{min-height:0;padding:6px}
+main .gq-a .feedback{font-size:min(21px,2.55vh);line-height:1.5;margin-top:10px}
+main .gq-a .ck-row{margin-top:8px}
+main .gq-a .opts{gap:10px}
+@media (max-width:700px){main .gq{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <main>
-  <a class="ck-back" href="/he/diagnostics/">→ בדיקות ומעקב</a>
   <div class="ck-path" id="path"></div>
   <div id="app"></div>
 </main>
-<script src="/he/diagnostics/check-shell.js?v=07146"></script>
+<script src="/he/diagnostics/check-shell.js?v=07147.1d74a3b0"></script>
 <script>
 (function(){
   var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
@@ -66,7 +88,8 @@
   var unit = null, queue = [], done = 0, right = 0, uid = 0;
 
   // ---------- drawing (black on white, like a test booklet) ----------
-  function svg(w, h, inner){ return "<svg viewBox='0 0 " + w + " " + h + "' width='" + w + "' height='" + h + "' role='img' aria-label='ציור'>" + inner + "</svg>"; }
+  var FIG_SCALE = 1.45;   // drawn at booklet size, shown large (user: big and clear)
+  function svg(w, h, inner){ return "<svg viewBox='0 0 " + w + " " + h + "' width='" + Math.round(w * FIG_SCALE) + "' height='" + Math.round(h * FIG_SCALE) + "' role='img' aria-label='ציור'>" + inner + "</svg>"; }
   function num(x, y, v, size){
     var q = v === null || v === undefined;
     return "<text x='" + x + "' y='" + y + "' text-anchor='middle' dominant-baseline='central' font-family='Heebo,Arial' font-weight='800' font-size='" + (size || 22) +
@@ -170,7 +193,7 @@
     return "<p class='qbig'>" + q + "</p>" + (it.text ? "<p class='sent'>" + C.esc(it.text).replace(/_{3,}/g, "<span class='blank'></span>") + "</p>" : "") + figureHtml(it);
   }
   function optHtml(o){
-    if (o && typeof o === "object" && !Array.isArray(o)) return "<span class='opt-shape'>" + shape(o, 100) + "</span>";
+    if (o && typeof o === "object" && !Array.isArray(o)) return "<span class='opt-shape'>" + shape(o, 68) + "</span>";
     return C.esc(Array.isArray(o) ? o.join(" … ") : String(o));
   }
   function optsClass(it){ return it.options.some(function(o){ return o && typeof o === "object" && !Array.isArray(o); }) || typeof it.options[0] === "number" ? "opts grid4" : "opts"; }
@@ -215,23 +238,25 @@
 
   function intro(){
     var ex = unit.example;
-    $app.innerHTML = "<section class='ck-card ck-child'>" + C.teacher() + "<h1>" + C.esc(unit.title || "") + "</h1>" +
+    $app.innerHTML = "<section class='ck-card ck-child'>" + C.teacher() + "<div class='gq'><div class='gq-intro'><h1>" + C.esc(unit.title || "") + "</h1>" +
       "<p class='ck-say'>" + C.esc(unit.intro || "") + "</p>" +
+      "<div class='ck-row' style='justify-content:center'><button class='ck-btn ck-primary' type='button' id='go'>עכשיו אני מנסה</button></div></div>" +
       (ex ? "<div class='example'><div class='ck-tag'>דוגמה פתורה</div>" + qHtml(ex) + "<div class='" + optsClass(ex) + "'>" +
         ex.options.map(function(o, k){ return "<button type='button' disabled" + (k === ex.answer ? " class='right'" : "") + ">" + optHtml(o) + "</button>"; }).join("") +
         "</div><p class='feedback'>" + C.esc(ex.explain || "") + "</p></div>" : "") +
-      "<div class='ck-row' style='justify-content:center'><button class='ck-btn ck-primary' type='button' id='go'>עכשיו אני מנסה</button></div></section>";
+      "</div></section>";
     C.speak(unit.intro || "");
-    document.getElementById("go").addEventListener("click", function(){ try { speechSynthesis.cancel(); } catch (e) {} ask(0); });
+    document.getElementById("go").addEventListener("click", function(){ C.hush(); ask(0); });
   }
 
   function ask(i){
     if (i >= queue.length){ finish(); return; }
     C.progressPath(document.getElementById("path"), queue.length, i);
     var it = queue[i];
-    $app.innerHTML = "<section class='ck-card'>" + qHtml(it) + "<div class='" + optsClass(it) + "'>" +
+    // question and figure | answers and explanation, side by side: no scrolling (user 2026-09-24)
+    $app.innerHTML = "<section class='ck-card'><div class='gq'><div class='gq-q'>" + qHtml(it) + "</div><div class='gq-a'><div class='" + optsClass(it) + "'>" +
       it.options.map(function(o, k){ return "<button type='button' data-k='" + k + "'>" + optHtml(o) + "</button>"; }).join("") +
-      "</div><div class='feedback' id='fb'></div><div class='ck-row'><button class='ck-btn' type='button' id='hear'>🔊 לשמוע את השאלה</button><span id='nextRow'></span></div></section>";
+      "</div><div class='feedback' id='fb'></div><div class='ck-row'><button class='ck-btn' type='button' id='hear'>🔊 לשמוע את השאלה</button><span id='nextRow'></span></div></div></div></section>";
     document.getElementById("hear").addEventListener("click", function(){ C.speak(speakable(it)); });
     var locked = false;
     $app.querySelectorAll(".opts button").forEach(function(b){
@@ -248,7 +273,7 @@
           document.getElementById("fb").innerHTML = (r.correct ? "<b>נכון!</b> " : "<b>כמעט. התשובה המתאימה מסומנת.</b> ") +
             (r.why_wrong ? C.esc(r.why_wrong) + "<br>" : "") + C.esc(r.explain || "");
           document.getElementById("nextRow").innerHTML = "<button class='ck-btn ck-primary' type='button' id='nx'>" + (i + 1 < queue.length ? "לשאלה הבאה" : "סיום") + "</button>";
-          document.getElementById("nx").addEventListener("click", function(){ try { speechSynthesis.cancel(); } catch (e) {} ask(i + 1); });
+          document.getElementById("nx").addEventListener("click", function(){ C.hush(); ask(i + 1); });
         }).catch(function(){ locked = false; b.classList.remove("picked"); document.getElementById("fb").textContent = "לא הצלחתי לבדוק כרגע. נסו לבחור שוב."; });
       });
     });
@@ -257,7 +282,7 @@
   function finish(){
     C.store.save(kid.id, CHECK_ID, {when: new Date().toISOString(), section: unit.id, seen: queue.map(function(q){ return q.id; })});
     C.childEnd($app, {effortLine: "תרגלת " + done + " שאלות מסוג חדש!", strategyLine: "קראת כל הסבר עד הסוף. ככה מבינים איך חושבים על שאלה כזו.",
-      onDone: function(){ location.href = "/he/diagnostics/"; }, onReport: parentNote});
+      onDone: C.leave, onReport: parentNote});
     var link = $app.querySelector("[data-report]"); if (link) link.textContent = "להורה: מה תרגלנו";
   }
 
