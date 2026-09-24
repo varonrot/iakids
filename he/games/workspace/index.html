@@ -12492,7 +12492,7 @@ body.games-workspace .notification-btn,
             שליחה
           </button>
 
-          <input
+          <input maxlength="1500"
             placeholder="כתבו הודעה למורה AI..."
           >
 
@@ -32907,4 +32907,14 @@ document.addEventListener(
 >
 
 <script src="/assets/js/iakids-dictation.js?v=1"></script>
+
+<!-- 2026-09-24 user report: the user menu (name in the top bar) opened BEHIND the homework panel,
+     the learning world and the center views. The top bar was at z-index 20 inside .app, while the
+     center views sit at 240-247 (dashboard, my files, my lessons, achievements, diagnostics) and the
+     worlds at 40-100. The top bar goes above all of them and below modals (9999+). -->
+<style id="IAKIDS_TOPBAR_STACKING">
+.topbar{position:relative;z-index:400}
+.user-popover{z-index:1000}
+@media(max-width:760px){.topbar{position:fixed;z-index:400}.hamburger{z-index:410}}
+</style>
 </body></html>

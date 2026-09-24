@@ -26,6 +26,8 @@ workspace/            main app workspace (ES)
 games/                100 educational mini-games — catalog + interface spec in games/GAMES.md, shared SDK in games/game-sdk.js
 admin/dashboard/      admin dashboard
 he/admin/lessons-review/  admin-only lesson quality review (Google sign-in; backend enforces ADMIN_EMAILS)
+he/diagnostics/       "מבחנים ואבחונים" hub, opened in the workspace center (frame); reading-fluency check (browser only, no server)
+backend-ai-tutor-he/prompts/homework/  homework coach, pedagogy, planner prompts + subjects/ (one module per subject, per grade)
 parent-dashboard/     parent dashboard
 backend/              core FastAPI (chat, payments)
 backend-ai-tutor-he/  Hebrew tutor FastAPI (many main_vN.py versions — main.py is current)
@@ -103,6 +105,23 @@ blog/ privacy/ terms/ coppa/ refunds/ support/ ...  content & legal pages
 - **Starting point, measured 2026-09-17**: 178 direct database calls in 53 files. `kids_profiles` alone appears in about 30 of them, most through one helper in `games/game-sdk.js`. Inventory and order in `docs/MIGRATION_TO_BACKEND.md`.
 - **Until a table's last browser caller is gone** it keeps its grant; the moment it is gone, revoke it (`supabase/migrations/*_revoke_*`) and the gate keeps it closed.
 - **New code**: never add a `.from("...")` call in a browser file. Add an endpoint.
+
+## Rule: chat security, for every route and every prompt (decided 2026-09-24)
+
+- **Models get no tools.** No `tools=`, `functions=` or `tool_choice` in any model call: the model can reach no database, file or system, so a prompt injection can only leak what the prompt itself holds. Adding tools is the user's decision, never a side effect. The gate fails on it.
+- **Every request body inherits `LimitedRequest`**, never a plain `BaseModel`. Strings and lists over `REQUEST_FIELD_LIMITS` are rejected before the route runs: 1,500 characters for a message or answer, 20,000 for homework source text, 300 for ids and short fields. Browser chat inputs carry `maxlength="1500"`.
+- **Browser history is never trusted**: `clip_chat_history()` keeps the last 12 user/assistant turns of at most 2,000 characters each, and drops any "system" turn.
+- **Every prompt that takes a child's or a parent's text carries `PROMPT_SECURITY_RULES`**, through `hebrew_child_prompt_block()`, `HEBREW_WRITING_RULES` users or explicitly. **Every reply goes through `reply_leaks_internal()` or `guard_reply_payload()`**, which replace a reply holding internal markers, table names or key-like tokens.
+- The gate scans every function that sends a user's text to a model, including ones written later, and fails on a missing security block or a missing reply check. It also fails on a route body that is not a `LimitedRequest`. `tutor_tts` is the only exemption: it reads text aloud and writes no reply.
+- **Red-team checks are extraction-only** and run in dev with a dummy DB key; never a write or delete attempt. 2026-09-24: 12 attacks on the homework coach (ignore rules, reveal the prompt, plan or answer, "debug mode", SQL, other children, forged history, HTML, gematria) got nothing out, and a 5,000-character message was rejected.
+
+### Checklist: a new prompt or a new model route
+1. Prompt file under `backend-ai-tutor-he/prompts/` (subfolders allowed), loaded by a literal `"prompts/…"` path in `main.py`; old versions go to `V<N>_BACKUP/`, never as siblings.
+2. A `REQUIRED` entry in `tools/prompt_gate.py` that pins at least one placeholder or section. An entry that pins nothing fails.
+3. Child-facing: `hebrew_child_prompt_block(child)` (gender, Hebrew correctness, security). Parent-facing: `PROMPT_SECURITY_RULES`.
+4. Request body `class XRequest(LimitedRequest)`, with a limit in `REQUEST_FIELD_LIMITS` for any new long text field.
+5. The reply goes through `reply_leaks_internal()` (text) or `guard_reply_payload()` (structured).
+6. A gate rule for the feature's own behaviour, with a negative test.
 
 ## Rule: every migration ships with its rollback
 

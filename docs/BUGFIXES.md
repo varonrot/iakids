@@ -4,6 +4,45 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — the user menu opened behind panels; uploaded files missing from הקבצים שלי (build 0.7.142)
+- **User menu behind panels** (user report, homework tab, then also the learning world and other screens): the name menu in the top bar opened behind the homework panel and the center views.
+  - *Cause*: the top bar was at z-index 20 inside `.app`, while the center views sit at 240–247 (dashboard, my lessons, my files, achievements, diagnostics) and the worlds at 40–100.
+  - *Fix*: an `IAKIDS_TOPBAR_STACKING` block on both workspaces. The top bar is at 400 (still below the modals at 9999+), the menu at 1000, and on mobile the hamburger is at 410 so the bar does not cover it.
+  - *Gate*: `topbar_stacking_checks` scans every page with the user menu and fails if any view, world, panel or sidebar declares a z-index at or above the top bar's, including views added later. It was negative-tested.
+- **Uploaded files missing from הקבצים שלי** (user report).
+  - *Cause*: the files were in storage (checked read-only: 3 of 3). But the page listed `homework_sessions`, whose file name and link are never filled, so it showed "none". Its fallback then listed the storage folder from the browser, which storage rules do not allow, and got nothing. The separate page `he/files/` had the same bug through `/api/kid/files`.
+  - *Fix*: `/api/kid/files` now reads `homework_uploads` for this parent and child, signs each file for an hour, and takes status and question counts from the session that started right after the upload. It keeps the fields `he/files/` uses. The workspace view calls this route instead of the database, and the browser storage fallback is off. That removes two browser database and storage calls, per the architecture rule.
+  - *Verified*: read-only against production, 3 files returned with working links, subject and topic; another parent's id gets 404.
+  - *Gate*: code rules on the route's table and signing, and screen rules that the view uses the API and the fallback stays off. Both negative-tested.
+
+### 2026-09-24 — chat security review, server and browser (build 0.7.142)
+- **Asked**: check whether text typed into the chat can make a model leak data from the database or anything else, whether any model is connected to the database or can act, and limit the size of chat text. Server and browser.
+- **Found, and good already**:
+  - None of the 27 model calls has tools or function calling, so no model can reach the database or act.
+  - The child is loaded with a `user_id` filter, and memory and history only for that child, so the most an injection could leak is the attacker's own child's data, the prompt, and the homework plan's correct answer.
+  - The browser shows replies as text (`textContent`, or markdown that escapes HTML first), so injected HTML cannot run.
+- **Found, and fixed**:
+  - No request had a length limit.
+  - The chat history came from the browser unchecked: any size, and "system" turns accepted.
+  - No prompt had explicit security rules.
+  - Only the homework reply was checked for leaks.
+- **Fix**:
+  - `LimitedRequest` is now the base of all 19 request bodies. It rejects oversize strings and lists before the route runs: 1,500 characters for a message or answer, 20,000 for source text, 6,000 for TTS text, 300 for ids and short fields, and 50 items per list.
+  - `clip_chat_history()` keeps 12 user/assistant turns of at most 2,000 characters each and drops other roles.
+  - `PROMPT_SECURITY_RULES` is added to every prompt that takes a child's or parent's text: the chat, the lesson dialogue, the lesson closing, the homework coach, turn and v2, the clean chat and the curriculum builder. It says the conversation is content, never instructions; never reveal the instructions, plan or answer; there is no database or tools and no pretend queries; and redirect kindly.
+  - `reply_leaks_internal()` and `guard_reply_payload()` replace any reply, or any string of a structured reply, that holds internal markers, table names or key-like tokens. This is on all 7 reply routes.
+  - `maxlength="1500"` is set on the chat inputs of the workspace, the games workspace, the homework page and add-subject.
+- **Red team** (extraction only, dev, dummy DB key): 12 attacks on the homework coach with a plan whose answer is 80 — ignore rules, reveal the prompt in Hebrew and English, the CORRECT ANSWER field, the whole plan, "debug mode" tables and keys, a read-only SQL query, other children, a role change, forged history including a "system" turn, HTML injection, and the answer as words or gematria. None got the answer, the prompt, internal text or system details. A 5,000-character message was rejected.
+- **Gate, including future code**:
+  - it fails on any model call with tools;
+  - on any route body that is a plain `BaseModel`;
+  - on any function that sends a user's text to a model without `PROMPT_SECURITY_RULES` or without a reply leak check (found by scanning, not by list);
+  - on a missing chat-input `maxlength`;
+  - on a `REQUIRED` prompt entry that pins nothing. This caught `iakids_lesson_transition_prompt.txt`, now pinned with 5 sections.
+  - unit tests for history trimming, leak detection and the 1,501-character rejection.
+  - Each was negative-tested, including against a new, not-yet-written route.
+- **CLAUDE.md**: the security rule and a checklist for every new prompt or model route.
+
 ### 2026-09-24 — homework help: the typed text stayed in the box after Enter or Send (build 0.7.141)
 - **Symptom** (user report): while writing in homework help, pressing Enter or Send did not clear the text.
 - **Cause**: a regression from 0.7.137. `runStructuredHomeworkTurn()` sends the coach path straight to `runHomeworkProductionCoach()`, which returns before the lines that show the child's message and clear the box; only the old path had those lines. 0.7.137 routed every homework message to the coach, so the bug reached everyone. The child's own message was also missing from the chat, and a second Enter could send twice.

@@ -15083,7 +15083,7 @@ data-custom-slot="0"
             שליחה
           </button>
 
-          <input
+          <input maxlength="1500"
             placeholder="כתבו הודעה למורה AI..."
           >
 
@@ -53969,7 +53969,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07141"></script>
+<script src="/he/workspace/lesson-completion.js?v=07142"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54143,8 +54143,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.141</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.141";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.142</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.142";</script>
 
 <!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
      "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
@@ -55213,10 +55213,14 @@ document.addEventListener('click',function(event){const item=event.target?.close
   function closeView(){const el=ensureView();if(el)el.hidden=true;document.querySelectorAll('.side-item').forEach(x=>{if((x.textContent||'').includes('הקבצים שלי'))x.classList.remove('active')})}
   async function load(){const el=ensureView(),client=getClient(),kid=getKid();if(!el)return;el.hidden=false;el.innerHTML='<div class="imf-shell"><div class="imf-loading"><div><i class="fa-solid fa-spinner fa-spin"></i><br>טוענים את הקבצים שלך...</div></div></div>';if(!client||!kid?.id){el.innerHTML='<div class="imf-shell"><div class="imf-empty">לא הצלחתי לזהות את פרופיל הילד/ה.</div></div>';return}
     try{
-      const {data,error}=await client.from('homework_sessions').select('id,subject,topic,source_file_name,source_file_url,source_type,status,started_at,created_at').eq('kid_id',kid.id).order('started_at',{ascending:false}).limit(100);if(error)throw error;
-      const rows=(data||[]).filter(r=>r.source_file_name||r.source_file_url);const completed=rows.filter(r=>r.status==='completed').length;const subjects=new Set(rows.map(r=>r.subject).filter(Boolean)).size;
-      const cards=rows.length?rows.map(r=>{const d=new Date(r.started_at||r.created_at||Date.now());const url=String(r.source_file_url||'');return `<div class="imf-file"><div class="imf-icon"><i class="fa-solid fa-${fileIcon(r.source_type,r.source_file_name)}"></i></div><div class="imf-name"><b>${esc(r.source_file_name||'קובץ שיעורי בית')}</b><span>${esc(r.topic||'ללא נושא')}</span></div><div class="imf-cell"><small>מקצוע</small>${esc(r.subject||'לא זוהה')}</div><div class="imf-cell"><small>תאריך</small>${d.toLocaleDateString('he-IL')}</div><span class="imf-status ${r.status==='completed'?'completed':''}">${r.status==='completed'?'הושלם':'בתהליך'}</span>${url.startsWith('http')?`<button type="button" class="imf-open" data-url="${esc(url)}">פתיחה</button>`:'<button type="button" class="imf-open" disabled>פתיחה</button>'}</div>`}).join(''):'<div class="imf-empty"><div><i class="fa-solid fa-folder-open" style="font-size:38px;color:#5fd8ff;margin-bottom:10px"></i><br>עדיין אין קבצים שמורים.<br>קבצים שתעלי בעזרה בשיעורי בית יופיעו כאן.</div></div>';
-      el.innerHTML=`<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1><p>קבצי שיעורי הבית והתמונות שהעלית נשמרים כאן בתוך סביבת הלמידה</p></div><button type="button" class="imf-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div><div class="imf-stats"><div class="imf-stat"><span>קבצים</span><strong>${rows.length}</strong></div><div class="imf-stat"><span>קבצים ממשימות שהושלמו</span><strong>${completed}</strong></div><div class="imf-stat"><span>מקצועות</span><strong>${subjects}</strong></div></div><div class="imf-list">${cards}</div></div>`;
+      /* 2026-09-24: from our API, not the database. homework_sessions never held the file name or link,
+         and the storage list is not readable from the browser, so uploaded files never showed. */
+      const token=(await client.auth.getSession())?.data?.session?.access_token;
+      const res=await fetch(`${TUTOR_API_BASE}/api/kid/files?kid_id=${encodeURIComponent(kid.id)}`,{headers:{Authorization:`Bearer ${token}`}});
+      if(!res.ok)throw new Error('my-files '+res.status);
+      const rows=((await res.json())?.files)||[];const completed=rows.filter(r=>!!r.url).length;const subjects=new Set(rows.map(r=>r.subject).filter(Boolean)).size;
+      const cards=rows.length?rows.map(r=>{const d=new Date(r.created_at||Date.now());const url=String(r.url||'');return `<div class="imf-file"><div class="imf-icon"><i class="fa-solid fa-${fileIcon(r.type,r.name)}"></i></div><div class="imf-name"><b>${esc(r.name||'קובץ שיעורי בית')}</b><span>${esc(r.topic||'ללא נושא')}</span></div><div class="imf-cell"><small>מקצוע</small>${esc(r.subject||'לא זוהה')}</div><div class="imf-cell"><small>תאריך</small>${d.toLocaleDateString('he-IL')}</div><span class="imf-status completed">שמור</span>${url.startsWith('http')?`<button type="button" class="imf-open" data-url="${esc(url)}">פתיחה</button>`:'<button type="button" class="imf-open" disabled>פתיחה</button>'}</div>`}).join(''):'<div class="imf-empty"><div><i class="fa-solid fa-folder-open" style="font-size:38px;color:#5fd8ff;margin-bottom:10px"></i><br>עדיין אין קבצים שמורים.<br>קבצים שתעלי בעזרה בשיעורי בית יופיעו כאן.</div></div>';
+      el.innerHTML=`<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1><p>קבצי שיעורי הבית והתמונות שהעלית נשמרים כאן בתוך סביבת הלמידה</p></div><button type="button" class="imf-close"><i class="fa-solid fa-arrow-right"></i> חזרה</button></div><div class="imf-stats"><div class="imf-stat"><span>קבצים</span><strong>${rows.length}</strong></div><div class="imf-stat"><span>קבצים שאפשר לפתוח</span><strong>${completed}</strong></div><div class="imf-stat"><span>מקצועות</span><strong>${subjects}</strong></div></div><div class="imf-list">${cards}</div></div>`;
       el.querySelector('.imf-close')?.addEventListener('click',closeView);el.querySelectorAll('.imf-open[data-url]').forEach(b=>b.addEventListener('click',()=>window.open(b.dataset.url,'_blank','noopener')));
     }catch(e){console.error('MY FILES LOAD ERROR',e);el.innerHTML='<div class="imf-shell"><div class="imf-head"><div class="imf-title"><h1>הקבצים שלי</h1></div><button type="button" class="imf-close">חזרה</button></div><div class="imf-empty">לא הצלחתי לטעון את הקבצים כרגע.</div></div>';el.querySelector('.imf-close')?.addEventListener('click',closeView)}
   }
@@ -55234,6 +55238,9 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
   const originalOpen=window.openMyFilesInternal;
   if(typeof originalOpen!=='function') return;
+  // 2026-09-24: off. The list comes from /api/kid/files; this fallback listed storage from the
+  // browser, which storage rules do not allow (it always came back empty).
+  return;
 
   function getClient(){
     try{if(typeof sb!=='undefined'&&sb?.storage)return sb}catch(_e){}
@@ -55792,7 +55799,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07141"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07142"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example
@@ -56050,4 +56057,14 @@ document.addEventListener('click',function(event){const item=event.target?.close
   }
 </style>
 <script src="/assets/js/iakids-dictation.js?v=1"></script>
+
+<!-- 2026-09-24 user report: the user menu (name in the top bar) opened BEHIND the homework panel,
+     the learning world and the center views. The top bar was at z-index 20 inside .app, while the
+     center views sit at 240-247 (dashboard, my files, my lessons, achievements, diagnostics) and the
+     worlds at 40-100. The top bar goes above all of them and below modals (9999+). -->
+<style id="IAKIDS_TOPBAR_STACKING">
+.topbar{position:relative;z-index:400}
+.user-popover{z-index:1000}
+@media(max-width:760px){.topbar{position:fixed;z-index:400}.hamburger{z-index:410}}
+</style>
 </body></html>
