@@ -2252,3 +2252,27 @@ img{max-width:100%;display:block}
  .mobile-tool-arrow{width:29px;height:29px}
  .mobile-subject-grid{gap:6px}
 }
+
+/* Keep full-bleed artwork within the layout width, excluding the scrollbar. */
+html{overflow-x:clip}
+body{overflow-x:clip}
+@media(min-width:721px){
+ .page-shell{--page-gutter:28px}
+ .page-shell > .hero{
+  left:auto;transform:none;
+  width:calc(100% + var(--page-gutter) + var(--page-gutter));
+  margin-left:calc(-1 * var(--page-gutter));margin-right:calc(-1 * var(--page-gutter));
+ }
+}
+@media(min-width:721px) and (max-width:1280px){
+ .page-shell{--page-gutter:20px}
+}
+@media(max-width:720px){
+ html,body{min-width:0;max-width:100%}
+ .topbar{width:100%;min-width:0}
+ .topbar .main-nav:not(.mobile-open){display:none}
+ .page-shell,.mobile-dashboard,.mobile-tools,.mobile-subjects,.mobile-subject-grid{min-width:0;max-width:100%}
+ .mobile-tool,.mobile-tool-copy,.mobile-subject,.mobile-daily-goal{min-width:0}
+ .mobile-tool-copy,.mobile-subject strong{overflow-wrap:anywhere}
+ .mobile-bottom-nav{width:auto;max-width:100%;min-width:0}
+}
