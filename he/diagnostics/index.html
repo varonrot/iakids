@@ -42,6 +42,26 @@ a.card:hover{border-color:var(--cyan)}
 .meta{display:flex;flex-wrap:wrap;gap:6px}
 .meta span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:#b9c9e3}
 .tag{align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px}
+.card-checks{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card-checks .card{gap:10px;padding:0 0 14px;min-width:0;min-height:0;overflow:hidden;border-radius:20px;background:linear-gradient(160deg,#132946,#0b1b31);transition:transform .2s,border-color .2s,box-shadow .2s}
+.card-checks a.card:hover{transform:translateY(-3px);border-color:var(--card-accent);box-shadow:0 14px 30px rgba(0,0,0,.22)}
+.card-checks a.card:focus-visible{outline:3px solid var(--card-accent);outline-offset:3px}
+.card-checks .photo{width:100%;height:clamp(125px,11vw,180px);margin:0;aspect-ratio:auto;flex:none;background-image:url('/assets/diagnostics/skill-cards.webp');background-size:200% 200%;background-repeat:no-repeat}
+.card-checks .photo-fluency{background-position:100% 100%}
+.card-checks .photo-math{background-position:100% 0}
+.card-checks .photo-comprehension{background-position:0 100%}
+.card-checks .photo-dictation{background-position:0 0}
+.card-checks h3{font-size:19px;line-height:1.25;margin:4px 16px 0}
+.card-checks p{color:#cad7e9;font-size:13px;line-height:1.45;margin:0 16px}
+.card-checks .meta{margin:0 16px}
+.card-checks .card-cta{display:flex;align-items:center;justify-content:center;min-height:40px;margin:2px 16px 0;border-radius:12px;background:var(--card-accent);color:#07182c;font-size:14px;font-weight:800}
+.card-checks .card-cta::after{content:' ←';white-space:pre}
+.card-checks .card:nth-child(1){--card-accent:#83cfff}
+.card-checks .card:nth-child(2){--card-accent:#75e6cd}
+.card-checks .card:nth-child(3){--card-accent:#c7a3ff}
+.card-checks .card:nth-child(4){--card-accent:#ff9faf}
+@media(max-width:1100px){.card-checks{grid-template-columns:repeat(2,minmax(0,1fr))}.card-checks .photo{height:clamp(140px,20vw,210px)}}
+@media(max-width:560px){.card-checks{grid-template-columns:1fr}.card-checks .photo{height:180px}}
 .live{background:rgba(56,229,108,.16);color:var(--green)}
 .soon{background:rgba(143,165,196,.14);color:var(--muted)}
 .card.disabled{opacity:.72}
@@ -62,34 +82,34 @@ details.how p{color:#c6d4ea;line-height:1.65;font-size:14px}
 
   <h2 class="section">בדיקות קצרות</h2>
   <p class="section-note">3–10 דקות, יחד עם הורה. הילד לא רואה ציון או שעון.</p>
-  <div class="grid">
+  <div class="grid card-checks">
     <a class="card" href="/he/diagnostics/fluency/">
-      <img class="photo" src="/assets/diagnostics/fluency.webp" alt="ילד קורא בקול" loading="lazy" width="640" height="400">
-      <h3>בדיקת שטף קריאה</h3>
-      <p>רשימת מילים מנוקדות וסיפור קצר, כמו בבדיקה שבית הספר עושה. ההורה מקשיב ומסמן.</p>
-      <div class="meta"><span>כיתות ב–ג</span><span>כ־5 דקות</span><span>עם הורה</span><span>בלי מיקרופון</span></div>
-      <span class="tag live">פעיל</span>
+      <span class="photo editorial-photo photo-fluency" role="img" aria-label="צילום סביבת לימוד עבור שטף קריאה"></span>
+      <h3>שטף קריאה</h3>
+      <p>רשימת מילים וסיפור קצר. ההורה מקשיב ומסמן.</p>
+      <div class="meta"><span>כיתות ב–ג</span><span>כ־5 דקות</span><span>עם הורה</span></div>
+      <span class="card-cta">מתחילים</span>
     </a>
     <a class="card" href="/he/diagnostics/math/">
-      <img class="photo" src="/assets/diagnostics/math.webp" alt="ילד פותר תרגילי חשבון" loading="lazy" width="640" height="400">
-      <h3>בדיקת חשבון בעל פה</h3>
-      <p>תרגילים קצרים לפי מה שנלמד בכיתה: מספרים, חיבור וחיסור, לוח הכפל, חלק של כמות ואחוזים. מתחילים מעט מתחת לרמת הכיתה.</p>
-      <div class="meta"><span>כיתות א–ו</span><span>כ־5–8 דקות</span><span>עם הורה</span><span>בלי מיקרופון</span></div>
-      <span class="tag live">פעיל</span>
+      <span class="photo editorial-photo photo-math" role="img" aria-label="צילום סביבת לימוד עבור חוש מספרי"></span>
+      <h3>חוש מספרי</h3>
+      <p>תרגילי חשבון קצרים שמותאמים לרמת הכיתה.</p>
+      <div class="meta"><span>כיתות א–ו</span><span>כ־5–8 דקות</span><span>עם הורה</span></div>
+      <span class="card-cta">מתחילים</span>
     </a>
     <a class="card" href="/he/diagnostics/comprehension/">
-      <img class="photo" src="/assets/diagnostics/comprehension.webp" alt="ילד קורא ספר" loading="lazy" width="640" height="400">
-      <h3>בדיקת הבנה</h3>
-      <p>הבנת הנשמע בכיתות א–ב והבנת הנקרא בכיתות ג–ו: איתור מידע, היסק, פירוש והערכה.</p>
+      <span class="photo editorial-photo photo-comprehension" role="img" aria-label="צילום סביבת לימוד עבור הבנת הנקרא"></span>
+      <h3>הבנת הנקרא</h3>
+      <p>בודקים איך מבינים טקסט, מסיקים ומפרשים.</p>
       <div class="meta"><span>כיתות א–ו</span><span>כ־8 דקות</span><span>עם הורה</span></div>
-      <span class="tag live">פעיל</span>
+      <span class="card-cta">מתחילים</span>
     </a>
     <a class="card" href="/he/diagnostics/dictation/">
-      <img class="photo" src="/assets/diagnostics/dictation.webp" alt="ילד כותב במחברת" loading="lazy" width="640" height="400">
-      <h3>בדיקת הכתבה וכתיב</h3>
-      <p>המורה מקריאה מילים, והילד כותב או מרכיב מאותיות. אותיות שנשמעות אותו דבר, סופיות וכתיב מלא.</p>
+      <span class="photo editorial-photo photo-dictation" role="img" aria-label="צילום סביבת לימוד עבור כתיבה וכתיב"></span>
+      <h3>כתיבה וכתיב</h3>
+      <p>מקשיבים למילים וכותבים אותן נכון.</p>
       <div class="meta"><span>כיתות א–ו</span><span>כ־6 דקות</span><span>עם הורה</span></div>
-      <span class="tag live">פעיל</span>
+      <span class="card-cta">מתחילים</span>
     </a>
   </div>
 
