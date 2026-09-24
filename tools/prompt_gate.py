@@ -508,6 +508,10 @@ if(C.shouldStop([true,false,true,false,true])) bad.push("the strand stopped too 
 if(C.trend([30,31]).state!=="start") bad.push("a trend is shown before 3 checks");
 if(C.trend([30,31,32,31,32,33],4).state!=="stable") bad.push("a small change is shown as a rise or a drop");
 if(C.trend([30,31,32,20,21,22],4).state!=="down") bad.push("a clear drop is not shown");
+window.parent={IAKIDS_CHECK_BRIDGE:{kid:()=>({id:"k9",child_name:"x",grade:3})}};
+var ck=C.currentKid(); if(ck.id!=="k9") bad.push("the check does not find the child through the workspace bridge: every check shows 'צריך להיכנס מתוך סביבת הלמידה' (2026-09-24)");
+if(ck.grade!=="ג") bad.push("the profile grade 3 does not become כיתה ג: every child is checked at the wrong grade (2026-09-24)");
+window.parent=undefined;
 C.store.save("k","x",{a:1}); C.store.removeAll("k"); if(C.store.list("k","x").length) bad.push("delete did not delete the child's results");
 console.log(bad.length?bad.join("\n"):"SHELL_OK");
 """
@@ -574,6 +578,16 @@ def diagnostics_checks() -> list:
                 bad += ["check shell: " + l for l in out.splitlines()[:5]]
         except FileNotFoundError:
             print("note: node not installed, check-shell tests skipped")
+    ws = WORKSPACE.read_text(encoding="utf-8") if WORKSPACE.exists() else ""
+    if ("window.IAKIDS_CHECK_BRIDGE = {" not in ws or 'return typeof CURRENT_KID !== "undefined" ? CURRENT_KID : null;' not in ws
+            or "sb.auth.getSession()" not in ws):
+        bad.append("he/workspace/index.html lost IAKIDS_CHECK_BRIDGE: CURRENT_KID and sb are let/const, so every check in the frame shows 'צריך להיכנס מתוך סביבת הלמידה' (2026-09-24)")
+    bm = re.search(r'IAKIDS_BUILD_VERSION = "0\.7\.(\d+)"', ws)
+    want = f"check-shell.js?v=07{bm.group(1)}" if bm else None
+    for f in [DIAGNOSTICS / "index.html"] + sorted(DIAGNOSTICS.glob("*/index.html")):
+        t = f.read_text(encoding="utf-8") if f.exists() else ""
+        if want and "/he/diagnostics/check-shell.js" in t and want not in t:
+            bad.append(f"{_rel(f)}: loads check-shell.js without ?v= of the current build ({want}): browsers keep the old shell for 4 hours and the start button does nothing (2026-09-24)")
     for f in sorted(DIAGNOSTICS.glob("*/index.html")):
         t = f.read_text(encoding="utf-8")
         if f.parent.name != "reading-fluency" and "/he/diagnostics/check-shell.js" not in t:

@@ -4,6 +4,19 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — every check said "צריך להיכנס מתוך סביבת הלמידה" inside the workspace (build 0.7.145)
+- **Symptom** (user report): opening any check from "בדיקות ומעקב" in the workspace showed "צריך להיכנס מתוך סביבת הלמידה" instead of starting. The hub's tracking strip also stayed empty.
+- **Cause**: the check pages run in a frame and looked for `parent.CURRENT_KID` and `parent.sb`. In the workspace, both are declared as top-level `let` and `const`, which never become `window` properties, so the frame saw no child and no session.
+  - A second bug sat behind the first: the profile stores the grade as a number (1–6), while the checks expect a letter, so every child would have started at grade ב.
+- **Fix**:
+  - The workspace exposes `window.IAKIDS_CHECK_BRIDGE` with `kid()` and `session()`, next to the diagnostics view.
+  - `check-shell.js` reads the child and the token through the bridge first, and maps grade 1–6 to א–ו with `gradeLetter()`.
+- **Same build, second report** (user: "picked grade ב, the comprehension check doesn't advance"; "exam prep, fractions: nothing happens, no sign anything is running"): nginx caches JS for 4 hours, and the check pages loaded `check-shell.js` without a version. Browsers kept the 0.7.143 shell, which has no `api()` or `signedOut()`, so the start button threw an error and nothing happened. Every check page now loads `check-shell.js?v=07N` and `.css?v=07N` with the build number.
+- **Gate**: the workspace must keep the bridge, and a node test checks that the shell finds the child through the bridge and turns grade 3 into ג. Every page that loads the shell must carry `?v=` of the current build. All three were negative-tested.
+- **Verified**: headless Chromium with a parent page that declares `let CURRENT_KID` and `const sb`, the way the workspace does:
+  - without the bridge, the old "sign in" screen and grade ב;
+  - with the bridge, the child is found, grade ה is selected and the question set is requested.
+
 ### 2026-09-24 — "בדיקות ומעקב" complete: math, comprehension, dictation, exam practice, gifted familiarisation (build 0.7.144)
 - **Why**: the user asked for every check and practice in the hub to be ready, including the gifted familiarisation. All six hub cards are now active.
 - **Mental math** (`he/diagnostics/math/`), grades א–ו, adaptive, no bank needed (generators). Built from Israeli sources:

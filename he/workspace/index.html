@@ -53969,7 +53969,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07144"></script>
+<script src="/he/workspace/lesson-completion.js?v=07145"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54143,8 +54143,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.144</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.144";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.145</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.145";</script>
 
 <!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
      "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
@@ -54158,6 +54158,13 @@ function(audio){
 .idg-frame{flex:1;width:100%;border:0;background:transparent}
 </style>
 <script>
+/* בדיקות ומעקב bridge (2026-09-24): CURRENT_KID and sb are top-level let/const, which never become
+   window properties, so the check pages in the frame could not see the child or the session and showed
+   "צריך להיכנס מתוך סביבת הלמידה". The frame reads them only through this bridge. */
+window.IAKIDS_CHECK_BRIDGE = {
+  kid: function(){ return typeof CURRENT_KID !== "undefined" ? CURRENT_KID : null; },
+  session: function(){ return typeof sb !== "undefined" && sb && sb.auth ? sb.auth.getSession() : Promise.resolve(null); }
+};
 (function(){
   let view=null;
   function ensureView(){
@@ -55799,7 +55806,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07144"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07145"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example

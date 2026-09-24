@@ -21,12 +21,20 @@
     });
   }
 
+  // The profile stores the grade as 1–6; the checks work in letters.
+  function gradeLetter(g){
+    var n = parseInt(g, 10);
+    if (n >= 1 && n <= 6) return "אבגדהו".charAt(n - 1);
+    return String(g || "").replace(/[^אבגדהו]/g, "").charAt(0);
+  }
+
   // The child's id when the page runs inside the workspace frame; otherwise a local label.
   function currentKid(){
     try {
       var p = window.parent && window.parent !== window ? window.parent : null;
-      var k = p && (p.CURRENT_KID || p.SELECTED_KID || p.currentKid);
-      if (k && k.id) return {id: String(k.id), name: String(k.child_name || k.name || ""), grade: k.grade || ""};
+      var b = p && p.IAKIDS_CHECK_BRIDGE;   // the workspace's CURRENT_KID is a let: only the bridge can reach it
+      var k = p && ((b && b.kid && b.kid()) || p.CURRENT_KID || p.SELECTED_KID || p.currentKid);
+      if (k && k.id) return {id: String(k.id), name: String(k.child_name || k.name || ""), grade: gradeLetter(k.grade)};
     } catch (e) {}
     return {id: "local", name: "", grade: ""};
   }
@@ -40,6 +48,9 @@
   function authToken(){
     try {
       var p = window.parent && window.parent !== window ? window.parent : window;
+      if (p.IAKIDS_CHECK_BRIDGE && p.IAKIDS_CHECK_BRIDGE.session){
+        return p.IAKIDS_CHECK_BRIDGE.session().then(function(r){ return (r && r.data && r.data.session && r.data.session.access_token) || null; });
+      }
       var client = p.sb || p.supabaseClient;
       if (!client || !client.auth) return Promise.resolve(null);
       return client.auth.getSession().then(function(r){ return (r && r.data && r.data.session && r.data.session.access_token) || null; });
@@ -210,6 +221,7 @@
   }
 
   window.IAKidsCheck = {
+    gradeLetter: gradeLetter,
     api: api, signedOut: signedOut,
     NOT_DIAGNOSIS: NOT_DIAGNOSIS, esc: esc, currentKid: currentKid, store: store, speak: speak, chime: chime,
     shouldStop: shouldStop, trend: trend, addWeeks: addWeeks, heDate: heDate, progressPath: progressPath,
