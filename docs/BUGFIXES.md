@@ -4,6 +4,12 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — Complete Hebrew gifted-tests content cluster
+- **Need**: one sample post lacked a complete linked topic cluster.
+- **Change**: add 11 pages (hub plus 10 supporting articles), integrate the existing grade-2 article, add the cluster to the Hebrew blog, add two optimised hero assets, and GA4 interaction events on all 12 cluster pages.
+- **Verification**: original questions/solutions reviewed; all page titles, H1s, IDs, JSON-LD, local images, cluster links, anchors, single GA config and JS syntax checked; analytics event handlers exercised locally. Live verification follows publication.
+- **Build**: SEO gifted-cluster-20260924; Hebrew workspace build unchanged (content addition only).
+
 ### 2026-09-24 — Tablet lower panels left an empty column
 - **Symptom**: at 1180px, Continue Learning and My Subjects used only two-thirds of the row, with cramped text and a blank third column.
 - **Cause**: desktop three-column override combined with the <=1280 full-row Recent Progress placement.
