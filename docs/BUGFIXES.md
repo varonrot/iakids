@@ -3,6 +3,14 @@
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
 
+## 2026-09-24 — Hebrew reading comprehension SEO cluster
+
+- Need: dedicated reading comprehension coverage beyond the existing test-preparation article.
+- Change: eight linked pages, 24 original exercises with hints/solutions, original reading passages, generated hero, Heebo and printable worksheets. Added blog discovery cards and contextual link from Hebrew test preparation.
+- SEO/analytics: unique metadata, canonical and structured data, GA4 G-DKPPTPCDW8 with reading_comprehension_he event grouping. Existing sitemap workflow picks up eight new index pages.
+- Verification: HTML, internal links, IDs, metadata, JSON-LD and inline JS syntax checked. Event harness verifies view, CTA placements, link, hint, solution, practice and print paths. Live rendering and sitemap checked after deployment; Analytics report ingestion not asserted.
+- Build: blog content only; workspace build unchanged. Image prompt and implementation details in docs/SEO-READING-COMPREHENSION.md.
+
 ## 2026-09-24 — English Google parent sign-in (eng-auth-1)
 
 - Need: Start prep should open parent Google sign-in before selecting or uploading study material.
