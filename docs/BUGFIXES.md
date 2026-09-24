@@ -4,6 +4,13 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 
 ## 2026-09-24
 
+### 2026-09-24 — Publish IA KIDS ENG at /eng/
+- **Symptom**: the English dashboard was available only on iakids-eng.onrender.com; iakids.app/eng/ returned 404.
+- **Cause**: main held only a few English images, without the English pages and styles.
+- **Fix**: publish only eng/ from english-app commit 378e6b0083017f671926026bd57a8e8a86abf842. Preserve all other application directories and deployment configuration. Relative asset and Homework Help links support /eng/.
+- **Verification**: checked source paths and exact English subtree; production HTTP checks follow deployment. Remaining menu destinations are existing unfinished screens, not part of this migration.
+- **Build**: English release 378e6b0; Hebrew workspace build unchanged (English-only publication).
+
 ### 2026-09-24 — every check said "צריך להיכנס מתוך סביבת הלמידה" inside the workspace (build 0.7.145)
 - **Symptom** (user report): opening any check from "בדיקות ומעקב" in the workspace showed "צריך להיכנס מתוך סביבת הלמידה" instead of starting. The hub's tracking strip also stayed empty.
 - **Cause**: the check pages run in a frame and looked for `parent.CURRENT_KID` and `parent.sb`. In the workspace, both are declared as top-level `let` and `const`, which never become `window` properties, so the frame saw no child and no session.

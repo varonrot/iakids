@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#effafa"><title>Homework Help · IA KIDS ENG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/dashboard.css?v=no-horizontal-overflow-20260924"><link rel="stylesheet" href="./homework.css?v=wide-20260924"></head>
+<body class="homework-page"><header class="topbar">
+    <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open menu">☰</button>
+
+    <a class="brand" href="../" aria-label="IA KIDS ENG home">
+      <img class="brand-logo" src="../assets/brand/iakids-eng-mark.png" alt="" aria-hidden="true">
+      <span class="brand-name">IA KIDS <em>ENG</em></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Main navigation">
+      <a class="nav-link" href="../">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2"/><path d="M5.5 10.2V20h13v-9.8"/><path d="M9.3 20v-5.6h5.4V20"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-link active" aria-current="page" href="./">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-5 3v-3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="M8 11h.01M12 11h.01M16 11h.01"/></svg>
+        <span>Homework Help</span>
+      </a>
+      <a class="nav-link" href="../test-prep/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6"/><path d="M9 3h6v4H9z"/><path d="M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z"/><path d="M8 11h8M8 15h8"/></svg>
+        <span>Test Prep</span>
+      </a>
+      <a class="nav-link" href="../learning/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5c3.2-.8 6.1-.1 8.5 2v12c-2.4-2.1-5.3-2.8-8.5-2V5.5Z"/><path d="M20.5 5.5c-3.2-.8-6.1-.1-8.5 2v12c2.4-2.1 5.3-2.8 8.5-2V5.5Z"/></svg>
+        <span>My Learning System</span>
+      </a>
+      <a class="nav-link" href="../practice/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M10 20V6M15 20V13M20 20V3"/></svg>
+        <span>Practice</span>
+      </a>
+      <a class="nav-link" href="../progress/">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v3a4 4 0 0 1-8 0V4Z"/><path d="M8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4M12 11v5M8 20h8M9 16h6"/></svg>
+        <span>Progress</span>
+      </a>
+    </nav>
+
+    <div class="top-actions">
+      <label class="search-wrap">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        <input class="search" type="search" aria-label="Search" placeholder="Search lessons, subjects, or questions...">
+      </label>
+      <button class="bell" type="button" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+      </button>
+      <div class="profile">
+        <div class="avatar">ES</div>
+        <div class="profile-copy"><strong>Emma S.</strong><small>Grade 4</small></div>
+        <span class="profile-chevron">⌄</span>
+      </div>
+    </div>
+  </header>
+<main class="hw-shell">
+<section class="hw-hero"><div><p>Hello Emma!</p><h1>Homework Help</h1><p class="hw-subtitle">Upload your homework or work through a question step by step.</p></div><img src="../assets/hero/dashboard-hero-optimized.webp" alt="" aria-hidden="true"></section>
+<div class="hw-workspace"><section class="hw-left" aria-label="Your homework">
+<div class="upload-options">
+<button type="button" id="photoBtn"><span class="upload-icon">▣</span><span><strong>Upload a photo</strong><small>Take or upload a picture</small></span></button>
+<button type="button" id="fileBtn"><span class="upload-icon blue">▤</span><span><strong>Upload a file</strong><small>PDF, image or text file</small></span></button>
+<button type="button" id="typeBtn"><span class="upload-icon">✎</span><span><strong>Type your question</strong><small>Write or paste your question</small></span></button>
+</div>
+<input type="file" id="photoInput" accept="image/*" hidden><input type="file" id="fileInput" accept="image/*,application/pdf,text/plain,.txt" hidden>
+<div class="document-panel">
+<div class="document-breadcrumb"><a href="../" aria-label="Dashboard">⌂</a><span>›</span><span>Homework</span><span>›</span><strong id="documentLabel">Fractions practice</strong><span class="demo-tag" id="demoTag">Example</span></div>
+<div class="document-toolbar"><div><button id="zoomOut" aria-label="Zoom out">−</button><output id="zoomValue">100%</output><button id="zoomIn" aria-label="Zoom in">+</button></div><span id="questionCount">Question 3 of 8</span><button id="resetDemo" type="button">Example ↺</button></div>
+<div class="document-stage" id="documentStage">
+<article class="worksheet" id="worksheet"><div class="paper-top">Riverside Elementary School <span>Name: ____________</span></div><h2>Fractions Practice</h2><p>Add or subtract the fractions. Show your work.</p><div id="exerciseGrid" class="exercise-grid"></div><div class="paper-footer"><strong>Take your time.</strong><p>Draw a picture or use equal parts to explain your answer.</p><div class="paper-lines"></div></div></article>
+</div>
+<div class="document-caption" id="fileStatus" role="status">Choose a question on the example worksheet to try the guided practice.</div>
+</div></section>
+<aside class="coach-panel" aria-label="Learning coach">
+<div class="coach-heading"><span class="robot-icon">▣</span><div><h2 id="coachTitle">Let’s work it out!</h2><p id="coachTopic">Math · Fractions</p></div><span class="demo-tag" id="coachDemo">Example</span></div>
+<p class="coach-intro" id="coachIntro">Learn how to add fractions with different denominators.</p>
+<div class="help-modes" role="group" aria-label="Choose how to get help">
+<button data-mode="understand" aria-pressed="false"><span class="mode-icon">▥</span><span><strong>Help me understand the question</strong><small>Explain what the question is asking.</small></span><b>›</b></button>
+<button data-mode="explain" aria-pressed="false"><span class="mode-icon">◇</span><span><strong>Explain the topic</strong><small>Teach me what I need to know.</small></span><b>›</b></button>
+<button data-mode="solve" aria-pressed="true"><span class="mode-icon">⚙</span><span><strong>Solve it with me</strong><small>Guide me step by step.</small></span><b>✓</b></button>
+<button data-mode="check" aria-pressed="false"><span class="mode-icon">✓</span><span><strong>Check my answer</strong><small>I already tried — help me check.</small></span><b>›</b></button>
+</div>
+<div class="coach-content"><div class="coach-message" id="coachMessage" aria-live="polite"></div><div id="fractionVisual" class="fraction-visual"></div><div id="answerOptions" class="answer-options"></div>
+<form id="answerForm" class="answer-form" hidden><label for="answerInput">Your answer</label><div><input id="answerInput" placeholder="e.g. 3/4" autocomplete="off"><button class="primary" type="submit">Check →</button></div></form>
+<div class="feedback" id="feedback" role="status"></div>
+<form class="ask-form" id="askForm"><label for="askInput">Ask about this example</label><div><input id="askInput" placeholder="What would you like help with?" autocomplete="off"><button type="submit" aria-label="Send question">➤</button></div></form>
+</div>
+<div class="coach-footer"><button id="previousQuestion" type="button">← Previous question</button><button id="nextQuestion" class="primary" type="button">Next question →</button></div>
+</aside></div></main>
+<dialog id="questionDialog"><form id="questionForm"><div class="dialog-title"><h2>Type your question</h2><button type="button" id="closeDialog" aria-label="Close">×</button></div><label for="typedQuestion">What are you working on?</label><textarea id="typedQuestion" rows="6" required maxlength="10000" placeholder="Write or paste your homework question here…"></textarea><p>Your question will appear in the workspace. AI help for your own homework is not connected yet.</p><button class="primary" type="submit">Open question →</button></form></dialog>
+<script src="../js/dashboard.js"></script><script src="./homework.js"></script></body></html>
