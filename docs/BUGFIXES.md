@@ -2,6 +2,14 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-24 — Hebrew school test preparation SEO cluster
+
+- Need: expand Hebrew SEO coverage from gifted testing to ordinary elementary school test preparation.
+- Change: nine new pages and integration of the existing overview (10-page cluster), 21 original exercises with hints/explanations, planning and review tables, two generated WebP heroes, Heebo, internal links and blog discovery cards. Existing overview canonical preserved; one stale learning-gap link repaired.
+- SEO/measurement: unique metadata and structured data; GA4 G-DKPPTPCDW8 and cluster interaction events. Existing sitemap workflow discovers the new index pages.
+- Verification: parsed all 11 changed HTML files and structured data, checked inline JavaScript syntax, IDs, canonical URLs and images. Event harness passed view, all three CTA placements, cluster link, practice start, hint, solution and print. Live delivery and sitemap checked after deployment; GA reporting ingestion is not asserted.
+- Build: content-only blog addition; workspace build unchanged. Details and image prompts: docs/SEO-TEST-PREPARATION.md.
+
 ## 2026-09-24 — English Test Prep mobile layout (prep-mobile-20260924)
 
 - Symptom: the mobile banner shrank into a corner, cards felt compact, and Cancel sat beside the footer note with excess empty space below.
