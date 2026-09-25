@@ -1,12 +1,15 @@
-Warning: truncated output (original token count: 12204)
-Total output lines: 341
-
-Warning: truncated output (original token count: 27919)
-Total output lines: 657
-
 # BUGFIXES — what each commit fixed
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
+
+
+## 2026-09-25 — Restore complete English dashboard CSS and bugfix history (eng-dashboard-5)
+
+- Symptom: dashboard feature images were placeholders and the Recent Progress book icon filled its panel after the logo size fix.
+- Cause: a previous file upload captured truncated command output, inserting truncation warnings into the CSS and this changelog and omitting large sections.
+- Fix: reconstruct both files from the last complete versions, preserve later changes, and refresh the dashboard CSS cache key.
+- Verification: original CSS rules and later additions are present, no truncation markers remain, and uploaded Git blobs match local blob hashes exactly. Check the desktop and tablet dashboard layout after deployment.
+- Build: eng-dashboard-5, English dashboard and changelog only.
 
 
 ## 2026-09-25 — Constrain the English dashboard logo at every viewport (eng-dashboard-4)
@@ -17,6 +20,14 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 - Verification: confirmed the base sizing rule applies across the missing 721–1100px range and narrower/wider breakpoint rules override it as intended; `git diff --check`.
 - Build: eng-dashboard-4, English dashboard only.
 
+
+## 2026-09-24 — Claude Code project settings were invalid JSON; gate hooks never ran (build 0.7.148)
+
+- Symptom: Claude Code reported "Settings (.claude/settings.json): Expected object, but received undefined", and the PreToolUse/PostToolUse prompt-gate hooks (pre-edit backup, post-edit gate, the Bash guard on bare `systemctl restart`) were silently skipped.
+- Cause: the three hook `command` strings contained unescaped double quotes around `${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py`, so the file stopped parsing at line 9 (since e320959d).
+- Fix: escaped the inner quotes (`\"`). The commands are unchanged once parsed.
+- Verification: `json.load` parses the file and prints the three commands as intended; `prompt_gate --all` passes.
+- Build: 0.7.148.
 
 ## 2026-09-24 — Complete Recent Progress empty state (eng-dashboard-3)
 
@@ -69,6 +80,34 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 - Build: English CSS cache version prep-mobile-20260924; Hebrew workspace unchanged.
 
 ## 2026-09-24
+
+### 2026-09-24 — exam prep and gifted in the main menu; menu grows on hover; "חדש" badges (build 0.7.147)
+- **Exam prep and gifted** (user: move them to the main menu, not under בדיקות ומעקב):
+  - They now have their own buttons in the workspace menu, "הכנה למבחן" and "מבחן המחוננים". Each opens its page in the same center view as the hub (`openDiagnosticsView(path, btnId)`, limited to `/he/diagnostics/…`) and highlights its own button.
+  - The hub no longer has the "תרגול לקראת…" section.
+  - On those two pages, "סיימתי להיום" closes the view (`C.leave`), and the back link to the hub is gone.
+- **"הכנה למבחן" opened a "coming soon" page, and then בדיקות ומעקב stopped working** (user report):
+  - *Cause 1*: an old script (`IAKIDS_EXAM_PREP_COMING_SOON_0751`) catches, in the capture phase, every click on anything whose text contains "הכנה למבחן" and opens a "coming soon" screen. It swallowed the new button's click.
+  - *Cause 2*: that screen sits above the checks view (z-index 248 against 246) and nothing closed it, so after seeing it once, בדיקות ומעקב opened behind it and the menu seemed dead.
+  - *Fix*: the old catcher now opens the real exam prep (the "coming soon" screen stays only as a fallback), and opening the checks view hides the old screen.
+  - *Gate*: both are pinned and negative-tested.
+  - *Verified* on the real workspace with all old scripts loaded: each of the three buttons opens its page, and with the old screen forced open, clicking בדיקות ומעקב puts the checks on top.
+- **Hub layout** (user: all 4 in one row, or 2 rows of 2): the four check cards sit in one row when the frame is wider than 1000px, 2×2 in the workspace center, and one column on a phone. Measured by card positions at 1200, 860 and 400px.
+- **Menu text too small** (user): on hover or keyboard focus, a menu item's title grows ×1.18 and its icon ×1.12, anchored on the right (`IAKIDS_MENU_HOVER_ZOOM`, declared after every other `.side-item` rule; respects reduced motion).
+- **Badges** (user: a "new" or "premium" tag):
+  - `<span class="side-badge new">חדש</span>`, a cyan-to-green pill with a soft pulse, now on בדיקות ומעקב, הכנה למבחן and מבחן המחוננים.
+  - `<span class="side-badge premium">פרימיום</span>`, a gold pill with ★, is ready but not placed on any item yet.
+  - Both are labels only; nothing is locked.
+- **Gate**:
+  - The hub must not link to exam prep or gifted, and the menu must keep both buttons with their paths.
+  - The hover block must exist and come after the last `.side-item{` rule.
+  - The earlier rule that required exam prep to be inside the hub now only forbids the old coming-soon placeholder.
+  - Each rule was negative-tested.
+- **Verified**:
+  - The real menu markup and view script were tested in headless Chromium: each button opens its page, highlights itself, and any other menu item closes the view.
+  - On the real workspace the computed hover transform is `matrix(1.18…)`.
+  - The badges were rendered and checked on screen.
+  - `prompt_gate --all` passes.
 
 ### 2026-09-24 — English Test Prep entry popup
 - **Symptom**: Start prep, its arrow, and navigation/mobile Test Prep links led to a missing page.
@@ -191,7 +230,341 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
   - *Cause*: the files were in storage (checked read-only: 3 of 3). But the page listed `homework_sessions`, whose file name and link are never filled, so it showed "none". Its fallback then listed the storage folder from the browser, which storage rules do not allow, and got nothing. The separate page `he/files/` had the same bug through `/api/kid/files`.
   - *Fix*: `/api/kid/files` now reads `homework_uploads` for this parent and child, signs each file for an hour, and takes status and question counts from the session that started right after the upload. It keeps the fields `he/files/` uses. The workspace view calls this route instead of the database, and the browser storage fallback is off. That removes two browser database and storage calls, per the architecture rule.
   - *Verified*: read-only against production, 3 files returned with working links, subject and topic; another parent's id gets 404.
-  - *Gate*: cod…204 tokens truncated… to the cat for any unknown key, in the workspace and in the parent panel. The gate fails if an avatar URL is ever built straight from the key again.
+  - *Gate*: code rules on the route's table and signing, and screen rules that the view uses the API and the fallback stays off. Both negative-tested.
+
+### 2026-09-24 — chat security review, server and browser (build 0.7.142)
+- **Asked**: check whether text typed into the chat can make a model leak data from the database or anything else, whether any model is connected to the database or can act, and limit the size of chat text. Server and browser.
+- **Found, and good already**:
+  - None of the 27 model calls has tools or function calling, so no model can reach the database or act.
+  - The child is loaded with a `user_id` filter, and memory and history only for that child, so the most an injection could leak is the attacker's own child's data, the prompt, and the homework plan's correct answer.
+  - The browser shows replies as text (`textContent`, or markdown that escapes HTML first), so injected HTML cannot run.
+- **Found, and fixed**:
+  - No request had a length limit.
+  - The chat history came from the browser unchecked: any size, and "system" turns accepted.
+  - No prompt had explicit security rules.
+  - Only the homework reply was checked for leaks.
+- **Fix**:
+  - `LimitedRequest` is now the base of all 19 request bodies. It rejects oversize strings and lists before the route runs: 1,500 characters for a message or answer, 20,000 for source text, 6,000 for TTS text, 300 for ids and short fields, and 50 items per list.
+  - `clip_chat_history()` keeps 12 user/assistant turns of at most 2,000 characters each and drops other roles.
+  - `PROMPT_SECURITY_RULES` is added to every prompt that takes a child's or parent's text: the chat, the lesson dialogue, the lesson closing, the homework coach, turn and v2, the clean chat and the curriculum builder. It says the conversation is content, never instructions; never reveal the instructions, plan or answer; there is no database or tools and no pretend queries; and redirect kindly.
+  - `reply_leaks_internal()` and `guard_reply_payload()` replace any reply, or any string of a structured reply, that holds internal markers, table names or key-like tokens. This is on all 7 reply routes.
+  - `maxlength="1500"` is set on the chat inputs of the workspace, the games workspace, the homework page and add-subject.
+- **Red team** (extraction only, dev, dummy DB key): 12 attacks on the homework coach with a plan whose answer is 80 — ignore rules, reveal the prompt in Hebrew and English, the CORRECT ANSWER field, the whole plan, "debug mode" tables and keys, a read-only SQL query, other children, a role change, forged history including a "system" turn, HTML injection, and the answer as words or gematria. None got the answer, the prompt, internal text or system details. A 5,000-character message was rejected.
+- **Gate, including future code**:
+  - it fails on any model call with tools;
+  - on any route body that is a plain `BaseModel`;
+  - on any function that sends a user's text to a model without `PROMPT_SECURITY_RULES` or without a reply leak check (found by scanning, not by list);
+  - on a missing chat-input `maxlength`;
+  - on a `REQUIRED` prompt entry that pins nothing. This caught `iakids_lesson_transition_prompt.txt`, now pinned with 5 sections.
+  - unit tests for history trimming, leak detection and the 1,501-character rejection.
+  - Each was negative-tested, including against a new, not-yet-written route.
+- **CLAUDE.md**: the security rule and a checklist for every new prompt or model route.
+
+### 2026-09-24 — homework help: the typed text stayed in the box after Enter or Send (build 0.7.141)
+- **Symptom** (user report): while writing in homework help, pressing Enter or Send did not clear the text.
+- **Cause**: a regression from 0.7.137. `runStructuredHomeworkTurn()` sends the coach path straight to `runHomeworkProductionCoach()`, which returns before the lines that show the child's message and clear the box; only the old path had those lines. 0.7.137 routed every homework message to the coach, so the bug reached everyone. The child's own message was also missing from the chat, and a second Enter could send twice.
+- **Fix**: before asking the teacher, the coach path shows the child's message, clears the box and disables Send. Send is re-enabled with focus returned, and on a failure the child sees "לא הצלחתי לענות כרגע…" instead of silence.
+- **Gate**: `homework_checks` fails if the coach path in `runStructuredHomeworkTurn` asks the teacher before showing the message, clearing the box and disabling Send. It was negative-tested.
+- **Verified**: `node --check` passes, and the function itself ran under node with a stub box and button: the box clears, the message shows, Send is disabled while waiting and re-enabled after, an empty message is not sent, and a failure shows the message without leaving Send disabled.
+
+### 2026-09-24 — "מבחנים ואבחונים" hub and the reading-fluency check (build 0.7.141)
+- **Why**: stage 0 of the reading-fluency plan. Before building a practice tool, we need to measure whether the browser's speech recognition hears children reading Hebrew well enough. A tool that tells a child who read correctly that he made a mistake does more harm than good.
+- **New**: `he/diagnostics/` is a hub of checks with a card per check. Reading fluency is live; comprehension, dictation, mental math and gifted-test prep are marked "בקרוב". `he/diagnostics/reading-fluency/` is the check itself, for a parent to run with a child: grade א–ג passages (grade ג has one vocalised, one with partial nikud and one without), the browser's recognition (`he-IL`, continuous), the parent marking the words the child really misread, and a comparison. It reports false alarms (the machine said wrong, the parent heard right), misses, and words correct per minute by parent and by machine. Results can be copied as text and stay on the device.
+- **No server, no database, no model, no recording.** In Chrome the recognition itself runs at Google; the page says so.
+- **The comparison**: word-level alignment that ignores nikud, punctuation, and ו/י after the first letter. The passages are כתיב חסר (שֻׁלְחָן) and recognition returns כתיב מלא (שולחן), so a naive comparison would mark correct reading as wrong. Words after the point where the child stopped are not errors.
+- **Menu**: a "מבחנים ואבחונים" item in the workspace sidebar. It opens in the center of the workspace like the dashboard and "הקבצים שלי": a view with a "חזרה" button that loads `/he/diagnostics/` in a frame allowed to use the microphone, so there is no second copy of the page. The first version navigated away, and the user said it opened "as if it does not belong to the system". Inside the frame the pages drop their own background and back link, any other menu button closes the view, and closing it stops the microphone. "הכנה למבחן" moved from the sidebar into the hub as a card, still "בקרוב".
+- **Gate**: both pages load the log switch first; the check page may not contain fetch, XMLHttpRequest, supabase, .from(, sendBeacon or WebSocket; the menu item must exist; and the comparison runs under node on known cases (כתיב מלא against חסר, substitution, omission, stopping midway, an extra word). Each was negative-tested.
+- **Verified**: the comparison tests pass under node, the page script passes `node --check`, and `prompt_gate.py --all` passes. Not yet run with a real child: that is the check itself.
+- **To proofread**: the passages and their nikud were written for this check and need one human read before children use them.
+
+## 2026-09-23
+
+### 2026-09-23 — grades 1–2: a correct short answer is enough (build 0.7.140)
+- **Symptom** (live test with the subject modules): a grade-1 child answered "ג'וני" to "איך קוראים לתלמיד החדש?". The teacher said it was correct, then asked for the answer again as a full sentence. The question stayed open.
+- **Cause**: the Hebrew module's answer rule (standalone and not 3–4 words) comes from the grade-4 national test scoring guide, and it applied to every grade.
+- **Fix**: the rule now applies from grade ג. The grade א and ב sections say that a correct answer of one word or a few words is enough unless the page asks for a full sentence, and that a correct answer is not sent back to be rewritten.
+- **Gate**: two REQUIRED sections in the Hebrew module, plus unit tests that a grade-1 child gets the rule and a grade-4 child does not. Both were negative-tested.
+- **Verified live** on the same grade-1 page: the plan's criteria say "מילה אחת מספיקה", and "ג'וני" gets "נָכוֹן, לַתַּלְמִיד הֶחָדָשׁ קוֹרְאִים ג'וֹנִי." with the question complete.
+
+### 2026-09-23 — homework help knows the school curriculum per subject and grade (build 0.7.139)
+- **Why**: the teacher prompt was general. It had no way to know that a grade-2 child has learned only the ×2/4/5/10 tables, that fractions start in ד, that grade ג reads with vowel marks until about mid-year, or that רש"י is not taught in the ממלכתי stream.
+- **Research**: the official Ministry of Education documents: ארגון הלמידה ביסודי תשפ"ז (weekly hours; which subject exists in which grade), the math programs (the new program for א–ג, the 2006 program for ד–ו, both in force this year), חינוך לשוני עברית (2003 and 2026), English Curriculum 2020 and its grammar and lexis bands, תנ"ך ממלכתי, מדע וטכנולוגיה (the תשפ"ז content specs), היסטוריה (new from תשפ"ז) and מולדת/גאוגרפיה. Cells no official source confirmed are phrased as "ask the child whether this was taught".
+- **Modules**: `prompts/homework/subjects/{math,hebrew,english,tanakh,science,history,geography}.txt`. Each has a general part (terms, methods, what is never taught in elementary school) and one section per grade (what was learned, what is taught this year, what is not taught yet). לשון, קריאה, הבנת הנקרא, ספרות and הבעה are one subject in the curriculum, so they share the Hebrew module.
+- **How it is used**: the subject comes from the stored page reading (`homework_subject_key`). The teacher (`homework-coach`, `homework-turn`) and the planner get the general part plus the child's grade section only, about 1,650 characters (a whole module is about 4,800). With an unknown grade, they get every grade. Every module opens with "כללי הליבה גוברים תמיד".
+- **Gate**: REQUIRED sections for every module (core line, source, every grade, "לא נלמד"); a scan that fails if a module loosens the core ("מותר לתת את התשובה"); the slash-form scan now covers the subfolder; code rules for the wiring to teacher, turn and planner; unit tests for subject detection (13 cases), grade normalisation (11 cases) and grade slicing. Each was negative-tested.
+- **Menu**: the test buttons "OpenAI נקי" and "עזרה בשיעורי בית V2" are now deleted from the sidebar of `he/workspace/index.html`; in 0.7.137 they were only hidden. "עזרה בשיעורי בית" is the only homework link. The server routes are unchanged. The gate fails if either button id comes back, even hidden.
+- **Verified offline** (no model calls; credit is low): on the 41 saved worksheet pages, subject detection matched 38. The three misses: "טבע ומולדת" (fixed by adding טבע), a page the reader labelled "מולדת" (geography, acceptable), and "מורשת" (no module yet, an open question).
+
+### 2026-09-23 — every model is an env var with a default (build 0.7.138)
+- **Symptom**: changing a model meant editing `main.py` and deploying. The homework coach, the clean chat, the planner, direct Gemini TTS, lesson images and the transition video all had the model name written into the call (`model="gpt-5.6-sol"` appeared 7 times).
+- **Fix**: each one reads an env var, with the current model as its default. Nothing changes when the variable is missing from `.env` or the service unit. New variables: `CHAT_MODEL`, `LESSON_MODEL`, `HOMEWORK_COACH_MODEL`, `HOMEWORK_PLANNER_MODEL`, `CLEAN_CHAT_MODEL`, `GEMINI_TTS_MODEL`, `LESSON_IMAGE_MODEL`, `LESSON_TRANSITION_VIDEO_MODEL`. `HOMEWORK_VISION_MODEL`, `OPENROUTER_TTS_MODEL`, `NIKUD_MODEL`, `STT_MODEL` and `IMAGE_TEXT_CHECK_MODEL` already worked this way. The `[config]` startup line prints the resolved models. The session row records the real chat and TTS models instead of fixed strings.
+- **Gate**: `model_config_checks` fails on a versioned model name written into a call and on a missing env read. A unit test checks the defaults when nothing is set. Both were negative-tested.
+- **Verified**: `prompt_gate.py --all` passes. With `HOMEWORK_COACH_MODEL=test-model` set, the coach model resolves to `openai/test-model` and the others keep their defaults.
+- **Also in this build: the grade-1 picture page was unclear.** Live report: the topic showed as "Addition and Subtraction with Visual Aids" and the teacher said only a blank and an equals sign were visible. *Cause 1*: the server was not yet deployed, so the old reader (gpt-4o-mini, no Hebrew or picture rules) was still running. *Cause 2*, which remains in the new reader: it put the picture description in `refers_to` and left the text as `____ - ____ = ____`, and it paraphrased the printed instruction. *Fix*: `normalize_homework_exercises()` puts the description into a text that has only blanks and signs ("קבוצה גדולה של המבורגרים - קבוצה קטנה של המבורגרים: ____ - ____ = ____"), and the prompt says instructions are copied word for word, with nikud. *Gate*: a code rule, three unit tests and two REQUIRED sections, each negative-tested.
+
+### 2026-09-23 — homework help: one route, a page read like a teacher reads it, a private plan per question (build 0.7.137)
+- **An addition page was taught with multiplication.** Live test: after the page was read, the child's messages went to `/api/tutor/chat`, the general chat, which knows nothing about the page. The teacher drifted to "הכפלות של 80" and "8 פעמים 10". *Cause*: only a help button turned on homework routing, and four of the five buttons (understand, explain, hint, check) built their prompt **in the browser** and sent it to the general chat. *Fix*: every button, and anything typed after the page is read, now goes to `/api/tutor/homework-coach` with `help_mode`, using the server-side mode prompts that already existed (`HOMEWORK_HELP_MODE_PROMPTS`).
+- **A page with no numbering became one question: the instruction line.** "35+40 = ___" has no "1." and no "?", so the screen's regex took "פתרו את התרגילים הבאים:" as the only question. *Fix*: both screens (`lesson-completion-core.js`, `frontend-v2/homework.js`) use the reader's `exercises[]`; the regex is only the fallback.
+- **The topic showed as "addition" on a Hebrew page.** *Fix*: the reader writes subject and topic in the page's language (English pages: "זמן עתיד (future tense)"), with a code fallback to the page title and a subject map (Math → חשבון).
+- **Reading the page (stage 1).** The prompt now reads the title and headings, gives each exercise its heading and punctuation word for word, copies tables in full, and marks picture-counting exercises. Model: `HOMEWORK_VISION_MODEL`, default `google/gemini-3.1-flash-lite` on OpenRouter. Measured on two real pages, 2 interleaved runs each: gpt-4o-mini read **10 of 20** exercises both times and none of the pictures; flash-lite read 20/20 and every sign in 3–5 s; gpt-5.6-sol read them too but took 25–92 s. A reply that is not valid JSON is read once more instead of showing the child an empty page.
+- **Nobody counts drawn objects reliably.** Checked against the answer key of the grade-1 page (20−4, 12+5, …): 0–1 of 10 exact for every model. Picture exercises now carry no numbers, and the teacher never says a count: the child counts, and the teacher checks the arithmetic on the child's own counts.
+- **The teaching plan (stage 2).** After the page is read, `gpt-5.6-sol` plans every question in the background (what is asked, where the information is, 2–5 steps, typical mistakes, answer criteria, correct answer). The plan lives in `homework_uploads.analysis_json`, and only the server adds it to the teacher's prompt, so the browser never sees it. Question 1 is planned alone, then the rest in parallel batches of 4, and each batch is stored as it lands. Result: 148 s for a 20-exercise page became 37 s, with question 1 ready in about 12 s. The teacher waits up to 15 s for it.
+- **Teacher rules added**: teach in curriculum order (never the simple with the advanced); a correct answer is never rejected mid-steps (the child said "80" and was told it "does not fit the step"); an example never reuses an item of the answer, and for a message or lesson question it teaches a different message (the teacher's "different" example for כבשת הרש had the same moral); no slash forms. In code, a reply that contains an answer item is rewritten once.
+- **Prompts**: the homework coach prompt moved to `prompts/homework/`, and the pedagogy prompt used by `homework-turn` moved too and was rewritten without הילד/ה and אומר/ת. The `חפש/י בטקסט` line appended in code became neutral. The voice now gets `kid_id` from the homework page.
+- **Hidden from children**: the test buttons "OpenAI נקי" and "עזרה בשיעורי בית V2" (hidden, not removed).
+- **Cache**: `lesson-completion.js` and `lesson-completion-core.js` were still `?v=07131`, so browsers would have kept the old homework code. Both now follow the build.
+- **Gate**: new REQUIRED sections for all four homework prompts, a slash-form scan of `prompts/homework/`, code rules (planner started, plan reaches coach and turn, help mode used, batching, reply check, vision retry, vision model knob), screen rules (routing, `upload_id`, exercises first, test buttons hidden, cache-busters), and unit tests (question matching, answer-leak check, Hebrew topic, JSON parsing, reply check). Each one was broken in a scratch copy and the gate failed.
+- **Verified**: `prompt_gate.py --all` passes. End to end on 41 real worksheet pages (5 per subject: math, reading, English, Tanakh, science, history, game topics) in dev, running the real `homework_coach` route with a stubbed login. Addressing matched the child's gender on every page; no answer leaked into a reply; no multiplication on an addition page. The pages that failed were fixed and re-run.
+- **Not changed, noted**: homework that spans two pages (a text on page 1, questions on page 2). One image is uploaded, and the teacher asks for the missing page. `homework-coach-v2` and `openai-clean-chat` remain in `main.py` behind the hidden buttons.
+- **Cost note**: `.env.dev` and `.env.prod` share one OpenRouter key; the test run spent production credit. Balance after testing: $2.90 of $10. One test call got 402 (in-flight credit reservation).
+
+## 2026-09-17
+
+### 2026-09-17 — evening sweep: payments, Render, the closing summary
+- **The lesson closing has never run in production yet** — no lesson has been completed since it was deployed — so the store path was exercised directly: an insert with `session_id = null` succeeds and the cache lookup finds it. Not a bug; simply untested by a real child so far.
+- **Render is on today's code.** Every route added today answers there, admin and kid routes included.
+- **The payment webhook is healthy in production.** A request with a bogus signature gets 403, which proves the secret is set on Render. The empty `LEMON_*` keys in the local `backend/.env` are a local artefact, and the note about them in `docs/SECURITY.md` is stale on that point.
+- **The plan label is chosen by the browser.** `index.html` builds the checkout URL with `checkout[custom][plan]=…`, and the webhook records whatever arrives in `custom_data.plan`. A user can open the monthly variant with `plan=annual`. **Not exploitable today**: nothing treats annual differently from monthly — both are just "paid" — and `expires_at` comes from LemonSqueezy's real `renews_at`. It becomes exploitable the day annual grants anything extra. The plan should derive from `variant_id` on the server. *Recommended, not changed*: the core backend deploys through Render and cannot be verified from here.
+- **A replayed webhook refills the month.** `subscription_created` upserts `messages_used: 0` with no check that the `lemon_subscription_id` was already seen, so a re-delivered event resets the quota. Small, code-only, in the core backend. *Recommended, not changed*, same reason.
+- **Two read-then-act checks added today** — the child limit and the monthly lesson quota — could be beaten by two simultaneous requests. At two accounts generating lessons this is theoretical; the chat quota was moved into a locked SQL function for exactly this, and these can follow it if volume ever warrants.
+
+### 2026-09-17 — the coach session hole is closed, and the rest of the schema was audited
+- **Closed and verified from the server, both directions**: a stranger's account now reads **0** coach sessions where it read 10, and an account with a child reads **exactly 1** — its own. A policy that also locks out the owner is not a fix, so both halves were tested.
+- **My sweep query was wrong and I corrected it.** For an INSERT policy the condition lives in `with_check`, not `qual`, so the first version flagged every INSERT policy in the schema for nothing and sent a long list of false positives to be read. Sorry for the noise.
+- **Six tables are readable by any signed-in account, and all six are meant to be**: exam pages, exam questions, the games catalogue, the nikud dictionary, the lesson catalogue and lesson content. Shared content, decided in the 2026-09-10 audit. The dangerous columns of `lesson_units_content` were closed separately this morning with column grants. So the `debug_` policy was the only unintended open read.
+- **Every write policy checks ownership — tested live, not read.** An anonymous client and a signed-in account writing under another account's id were both refused on `kids_profiles`, `homework_sessions`, `homework_uploads`, `support_tickets`, `kids_memory` and `subscriptions`. That last one includes an account trying to **give itself a paid plan**, which was the 2026-09-10 finding: it is genuinely closed.
+- **The `public` role on several policies looks alarming and is not**: the check is `auth.uid() = user_id`, and for an anonymous caller `auth.uid()` is null, so the comparison is never true.
+- **Found a way to close `app_admins` after all.** It had to stay open this morning because a policy on `support_tickets` reads it. The sweep shows that policy calls `is_admin(auth.uid())`, so the function exists and runs as the caller. Making it `SECURITY DEFINER` lets the table close while the support pages keep working. Written into `RUN_NOW.sql` as optional, commented out, with the order to run it in.
+- **Housekeeping, no rush**: `learning_lessons` carries two identical read policies and `kids_profiles` four overlapping INSERT policies. Harmless in themselves, but four policies on one action is exactly how the `debug_` one stayed invisible.
+
+### 2026-09-17 — a policy left over from debugging was keeping the table open
+- **The correct policy was added and changed nothing.** A fresh account still read every coach session. `pg_policies` showed why:
+
+| policy | permissive | roles | cmd | condition |
+|---|---|---|---|---|
+| `debug_select_learning_coach_sessions` | PERMISSIVE | authenticated | SELECT | `true` |
+| `lcs_select_own` | PERMISSIVE | authenticated | SELECT | `kid_id in (...)` |
+
+- **Postgres combines permissive policies with OR.** One policy saying "any signed-in account, all rows" makes every restrictive policy beside it pointless. The new one was never going to help while that one existed — it has to be dropped.
+- **My mistake in the first attempt**: I wrote a policy without listing what was already on the table. Adding a rule to a table is not the same as knowing what the table allows.
+- **Worth more than this one table**: a `debug_` policy sat in production, invisible until someone looked. `RUN_NOW.sql` now ends with a sweep that lists every permissive SELECT policy in the schema whose condition is just `true` — every table any signed-in account can read in full. There is no reason to assume this was the only one.
+
+### 2026-09-17 — `supabase/migrations/RUN_NOW.sql`: what is actually left to run
+- Every migration in the folder was checked against the live project by looking for the object it creates. **Sixteen are applied. One is not**: the policy that stops every signed-in account reading other children's coach sessions.
+- The file holds that one block between paste markers, the reason it matters, what keeps working after it, and how to verify — plus the two things still open that are not database changes: `APP_ENV=prod` on Render, which is why 37 routes and 21 schemas are public there while the box answers 404, and the six security headers on iakids.app that the mirror already sends.
+- Not reachable from the web: the whole `supabase/` folder is blocked, as is every `.sql`.
+
+### 2026-09-17 — three things in the question mechanism that worked against the child
+Reviewed end to end and checked against a real transcript. ארבל answered "המורה, ארנב, תלמידה" — the complete correct answer — and was told **"איבדת את המילה שהכי חשובה במשפט"**. She repeated the same answer. She was told she had missed an animal. She repeated it a third time. She was told a word "with a trace of an animal" was missing. The round limit then ended the dialogue at 60 and the lesson moved on **without ever telling her she had been right**. The root cause, a coach with no answer key, was fixed this morning; the transcript exposed three more.
+
+**1. The score the child sees was arithmetically unfair.** `calculate_lesson_coach_mastery` divided by the *total* number of parts and counted a part not yet reached as zero. The gauge is refreshed after every coach turn and is labelled "הבנה כללית", so:
+
+| parts | score on part 1 | what the child saw |
+|---|---|---|
+| 2 | 90 | 45% |
+| 3 | 90 | 30% |
+| 4 | 100 | 25% |
+
+A child doing well was shown a number that reads as failure. The average is now over the parts actually attempted. Verified on real data: a child with 40 on part 1 sees 40, and a finished lesson still reports 76 exactly as before, because at the end every part has a score.
+
+**2. Nobody noticed a child repeating themselves.** An identical answer is the clearest signal a child can send that the hint is not working. `repeated_answer` is now computed from the dialogue and forces the closing behaviour: no fourth hint, say the answer, explain it in a sentence, confirm what the child did get right, move on. A fourth hint to a stuck child is not teaching, it is attrition.
+
+**3. The wording opened with what was missing.** The prompt banned judgemental phrasing only in the final round. It now bans it everywhere and requires the first sentence to be what the child *did* say, with the verbs of loss and failure — איבדת, פספסת, טעית, שכחת, לא ענית — forbidden outright. "מצאת שניים. יש עוד אחד שמחכה" instead of "לא ענית על כל שמות העצם".
+
+**Gates**: the mastery divisor, the repeat detection and all three new prompt sections are pinned. Backup taken in `V14_BACKUP` before the prompt changed.
+
+**Deliberately left alone**: the mastery threshold of 90 does not block a child from continuing, the round limit gives a struggling child *more* turns rather than fewer, and the no-response timer is off during the dialogue. Those three are sound.
+
+### build 0.7.136 — a line that threw on every kid load, on both workspaces
+- **`document.getElementById("heroAvatar").src = avatarUrl;`** — that element is not in the page. `getElementById` returned null, the assignment threw, and **everything after it in the function stopped**, including `window.ACTIVE_KID_ID = kid.id`, which other code reads. The same block was written out twice, so the second copy never ran either. Both the Hebrew workspace and the games workspace carried it, identically.
+- **Why it hid**: the dashboard fields a few lines above are all null-checked, so the page looked fine. Only the tail of the function was missing, silently.
+- **Fix**: the four writes go through a helper that checks the element first, so a missing one is skipped instead of stopping the function. **New gate rule**: writing to an element that is not in the page fails the build, verified by restoring the exact line.
+
+### 2026-09-17 — a child's understanding scores were readable by any signed-in account
+- **How it was found**: signing in as a brand new account with no data of its own and reading every table the browser still touches. Twenty-two came back empty, correctly isolated. `learning_coach_sessions` came back with other accounts' rows.
+- **What was exposed**: `kid_id`, the lesson, the understanding score the teacher gave at the start and the end, how many rounds the dialogue took, and the timestamps — another child's performance, lesson by lesson. Their actual words were not exposed; `kid_lesson_history` is properly isolated.
+- **Cause**: the table had row level security enabled with no policy restricting rows, which in practice means every signed-in account.
+- **Migration written, not yet applied**: a policy matching `kid_unit_lesson_progress` — a row is visible when the child belongs to the caller. The two screens that read it already filter by `kid_id`, so the policy should be invisible to them.
+- **Checked and sound in the same sweep**: the games question bank is not directly readable while the RPC still serves questions, media jobs have no stuck or failed rows, and no table has an orphan row pointing at a deleted child or lesson.
+
+### 2026-09-17 — nothing was capped; now two things are
+- **There was no limit on the number of children.** Not in the browser, not in the server, nowhere. One account already holds nine. The endpoint written this morning had no check either.
+- **The Hebrew tutor had no quota of any kind.** The only quota in the whole product is the monthly chat message count, and it is enforced in the *core* backend, the Spanish chat. Lesson generation, images and voice — the expensive half, about $0.87 a lesson — were open to any signed-in account. 178 of 180 accounts are on the free plan.
+- **Two limits now exist, both server-side.** Children per account, checked when one is created. New lessons per month, checked **before** the first model call of a fresh generation, so a child is told before anything starts rather than half way through a lesson. A lesson served from cache costs nothing and is never counted.
+- **The numbers are deliberately far above real use**: three children free and ten paid, thirty new lessons a month free and two hundred paid. Measured the same day: only two accounts have ever generated a lesson, ten and six in a month. These are a ceiling against a runaway loop or an abusive account, not a paywall — that is a product decision, and all four are environment variables (`FREE_MAX_KIDS`, `PAID_MAX_KIDS`, `FREE_MONTHLY_LESSONS`, `PAID_MONTHLY_LESSONS`). `LESSON_QUOTA_ENFORCE=0` measures without blocking.
+- **A subscription lookup that fails never blocks a child**: it falls back to treating the account as free rather than refusing.
+- **Verified end to end** on a real account: three children created, the fourth refused with 403 and a Hebrew explanation. The paid account resolves as paid, the free one as free, and the lesson counts match what the cost table shows.
+- **The parent sees the reason**: the API module was turning a structured error into "[object Object]". It now surfaces the server's own message.
+
+### 2026-09-17 — "הישגים" and "הקבצים שלי" exist now, and the sidebar is whole
+- Two more buttons that had pointed at nothing since the workspace was written.
+- **`GET /api/kid/achievements`** counts what the child actually did: lessons opened and finished, the best and average understanding score, the subjects, games played and finished, and the number of distinct days they studied. **A number that cannot be computed is left out rather than shown as a zero**, because a zero reads as failure to a child. Six badges, earned or locked, drawn from those same numbers.
+- **`GET /api/kid/files`** lists the homework pages the child photographed, with how many questions were answered. An account with nothing uploaded gets a sentence and a button to the workspace, not an empty screen.
+- Both pages share the design of `/he/my-lessons/` and neither touches the database.
+- **Verified against real data**: nine lessons opened and one finished, best understanding 76%, two subjects, ten games with one finished, three active days.
+
+### 2026-09-17 — the queries asking for columns that do not exist are fixed, and gated
+- **`/games/progress/` is repaired.** It asked `kids_profiles` for `avatar_url` and `grade`, which are `avatar_key` and `age`, and embedded `games_catalog` with `icon_path` and `game_url`, which are `icon` and `route_path`. PostgREST answered 42703 to both and the call sites swallowed it, so the page drew an empty report and looked merely unused. The avatar now goes through the same known-avatar helper as the rest of the site.
+- **All 65 distinct browser queries now run clean** against the real schema.
+- **New gate rule** with the column list recorded in `tools/browser_query_columns.json`: a query asking for a column the table does not have fails the build. It compares shapes and never touches the database, so the gate stays offline. Verified by restoring the exact bug that was live.
+
+- The same class as the `parent_lesson` bug. Every distinct database query in the browser, 65 of them, was run against the real schema. Two fail, both on `/games/progress/`: `kids_profiles` is asked for `avatar_url` and `grade` (the columns are `avatar_key` and `age`), and `kid_game_sessions` embeds `games_catalog` with column names it does not have. Both sit behind `if(!error)`, so the page silently shows nothing. **Found, not yet fixed.**
+- The pattern that hides them is everywhere: eight sites assign query results only `if(!r.error)`, and 33 empty `catch` blocks in the workspace alone. Most disappear with the move to the backend; the rest need to say something when they fail.
+
+### 2026-09-17 — "השיעורים שלי" exists now
+- **The page behind the sidebar button was never built.** It has been there since the workspace was written, and every child who pressed it got a server error. The data was always there: the progress row joined to the lesson and its subject.
+- **`GET /api/kid/lessons`** returns every lesson the child has opened, newest activity first, with the subject, the unit, the progress, the understanding score and the dates. The kid is resolved against the caller's account first, so one parent cannot read another's child. It is registered before `/api/kid/{kid_id}` so "lessons" is not swallowed as an id.
+- **The page reads nothing from the database**, in keeping with the rule taken today. It groups by subject, because a child thinks in subjects and not in dates, shows a progress bar per lesson, filters by in-progress or completed, and opens a lesson back in the workspace. An account with no child, and a child with no lessons, each get a sentence rather than an empty screen.
+- **Verified against the real data**: ארבל has nine lessons opened across two subjects with one completed, and every row resolves to its subject, unit and lesson name.
+
+### 2026-09-17 — internal documents were readable on the web; every menu link audited
+- **The documents are now closed.** The site root is the repo, so every `.md` in it was public. `SECURITY.md` — "what was found, what was fixed, what is still open" — was the worst of them: a list of open security findings, served to anyone. `BUGFIXES.md`, `MIGRATION_TO_BACKEND.md`, `PERFORMANCE.md`, `HANDOFF.md`, `TODO.md` and the deploy script were all readable too. They now live in `docs/`, which nginx refuses, and a rule blocks `.md`, `.sql`, `.sh` and similar anywhere on the site, so the game specs are covered in place. Verified: the documents answer 404 and the site, its assets and the games still answer 200.
+- **Every internal link on the site was checked**, 38 of them across all pages. Seven were broken. Three were simply pointing at the wrong path and are fixed:
+  - `/chat/` — **the Spanish onboarding sent every new account there when it finished**, and the page does not exist. It goes to `/workspace/` now. This one was breaking sign-up.
+  - `/pt/support/` — the Portuguese workspace's support button; support is one page for all languages.
+  - `/workspace/u1` — a placeholder path left in a marketing page, in two places, with a comment saying to change it.
+- **Four pages in the Hebrew sidebar were never built**: "השיעורים שלי", "הכנה למבחן", "הישגים", "הקבצים שלי". Until they exist the buttons say so instead of dropping the child on a server error.
+
+### 2026-09-17 — bug sweep from the real logs
+- **Every documentation file in the repo is readable on the web.** The site root is the repo itself, and nginx blocks `.git`, the backend folders, `supabase` and `CLAUDE.md` — but not markdown. `/BUGFIXES.md`, `/MIGRATION_TO_BACKEND.md`, `/PERFORMANCE.md`, `/handoff_perfromance.md` and `/tools/deploy_tutor.sh` all answer 200 right now. This file alone describes every bug and every security hole we have closed, with table names, column names and route names, and the migration document is a table-by-table map of the database. Three of those files were written today, so the exposure was made worse by the work itself. **A tested nginx fix is ready and waiting for approval**; it is a production config change.
+- **The missing video poster**: `/assets/backgrounds/video-poster.webp`, asked for on every load of the Hebrew landing page, 58 times in the log and never there. The hero video showed nothing until it buffered. A real frame was pulled from the demo video itself and saved at 1280px, 57 KB.
+- **The avatar bug was in three more screens**, untouched: the Spanish workspace, the Portuguese workspace and the games workspace all built the image path straight from `avatar_key`. Fixed with the same known-avatar helper, eight call sites in all.
+- **The gate was only scanning part of the site.** That is why the avatar bug survived in those three. It now covers every folder that serves a page, and the first thing that showed is that the count of direct database calls in the browser is **230**, not the 178 first measured. The ratchet holds the true figure.
+- **Not a bug: the "144 empty lessons".** Of 206 lesson rows, 15 have been generated and the rest are `empty` because lessons are generated when a child opens them. The row's own `status` column is not read by any live screen.
+- **The backend itself is clean**: one transient metrics timeout in the last three hours, nothing else. The errors filling the earlier log were the corrupted key and the missing images, both fixed today.
+
+### 2026-09-17 — the longest call in the lesson pipeline was taking the slow way round
+- **Where the child's wait goes**: the Visual Director is one call of 2000 to 3300 output tokens, measured between 14 and 46 seconds, while the whole rest of the lesson text takes 6 to 22 seconds a part. The child waits through all of it before a single word appears.
+- **Measured properly, not guessed**: the same prompt sent three times to each provider, interleaved, same SDK (openai 3.10.0) and same server. Direct won every single run.
+
+| run | direct | openrouter |
+|---|---|---|
+| 1 | 17.9 s | 28.0 s |
+| 2 | 22.5 s | 31.3 s |
+| 3 | 15.5 s | 27.7 s |
+
+- **Fix**: this one call goes straight to OpenAI. Everything else stays on OpenRouter, because the reason the service runs through it is the voice quota, which this call never touches. `VISUAL_DIRECTOR_PROVIDER=openrouter` puts it back without a deploy.
+- **Caveat worth keeping**: this is true for this model, this request shape and this server. Another project measured the opposite, which is entirely possible — for models OpenRouter routes to a faster provider, or from a different region, the extra hop can pay for itself. The knob exists so the answer can be re-measured rather than argued.
+- **Bug caught while testing**: `DEFAULT_OPENAI_MODEL` is rebound to the prefixed `openai/gpt-4o-mini` at import time when the service runs on OpenRouter, so the first version of this change handed a prefixed id to the direct API, which does not know it. The selector strips the prefix.
+
+### 2026-09-17 — cost reporting: a missing price and a view that counted almost nothing
+- **The missing price**: `gemini-3.1-flash-lite` was not in `MODEL_PRICING_USD`, and it is the model behind the image text checks and the nikud pass. Of the last thousand recorded calls, 134 had no price at all and landed in the reports as "unknown". Added at the published rate. Verified that all five pricing paths now resolve: text for both providers, images per image, and voice by audio seconds.
+- **Applied and verified**: media and text now add up to the total exactly (lesson 12: 2.8977 + 0.166 = 3.0637), and the picture it finally shows is that **media is about 95% of what a lesson costs**. The first attempt was rejected with `42P16: cannot change name of view column`, because `create or replace view` may only append columns — putting the new one in the middle reads as renaming `cost_usd`. The new column sits last.
+- **The view**: `ai_costs_per_lesson.media_cost_usd` counted `purpose in ('tts','image','video','lesson')`, but the worker — which generates every image, every voice line and every intro video — tags its calls `media`. In the last five thousand calls that is 634 rows, the largest group, and none of them counted. `tts_live` and `intro` were missed too, while `lesson`, which is text, was counted as media. The per-lesson media figure has been wrong since the view was written, and wrong in the direction that matters: it under-reported the expensive half. Migration written, **not yet applied**, adding `text_cost_usd` alongside so the two halves add up to the total and any gap is visible.
+- **Closed on its own**: the OpenRouter voice rows that were stuck at `cost_source='pending'` are all resolved — zero pending rows remain, so the generation-id lookup is working.
+- **Cannot be fixed by a price table**: a few `gpt-5.6-sol` rows carry no token counts at all, because the response reported no usage. They stay unpriced and visible as "unknown", which is the honest outcome.
+
+### 2026-09-17 — the parent's picture was a 404 on five pages
+- **Symptom**: `/assets/default-parent.png` was requested on every load of the workspace (Hebrew, Spanish, Portuguese and games) and the add-subject page, and the file did not exist. A parent whose account has no picture from Google got a broken image in the top bar, and the site log filled with 404s.
+- **Fix**: the file now exists — a deliberately generic illustrated figure, not a recognisable person, in the calm palette the app uses, 256 pixels and under 50 KB because it loads on every page. No code changed: the five references were already correct.
+
+### 2026-09-17 — the games leaderboard was writing to tables that do not exist
+- **Symptom in the code**: every completed game called `IAKidsCloud.recordWin()`, which inserted into `game_wins`. That table is not in the database, and neither is `game_achievements`. Each write failed inside its own try/catch, so nothing ever surfaced and nothing was ever recorded. The SQL file the comment pointed at, `games/games-tables.sql`, does not exist either.
+- **Nothing read them**: `recordAchievement` and `topWins` have no callers anywhere on the site, and no leaderboard is drawn from them.
+- **Not fixed by creating the tables**, for two reasons. The design keyed rows on an email the browser supplied, and its own comment admitted that could not be verified — anyone could post a score under any name. And the UI no longer talks to the database at all. A leaderboard, if it is wanted, is a backend endpoint scoring against the signed-in account.
+- **Fix**: the object is an honest no-op stub with the whole story written above it, so existing call sites keep working and nobody believes scores are being saved. Four more direct database calls gone from the browser.
+
+### build 0.7.135 — a gender chosen by mistake could not be corrected from the workspace
+- **Symptom**: the parent panel could always change a child's gender, and its field even preloads the current value. The workspace could not. Gender was set once by the popup that appears on entry, and after that, right or wrong, it was locked.
+- **Why it matters here**: the teacher addresses the child by that value in writing *and* in speech, so a wrong choice is heard in every sentence.
+- **Fix**: the child-details dialog has a "בן או בת" field right after the name, in the same style as the grade picker. It marks what is set now, so the parent can see it and change it with one click; leaving it alone keeps what is stored.
+- **Note**: audio already generated stays in the old wording. The voice cache key includes gender, so every new line is correct, but a line generated earlier sounds as it was generated.
+
+### 2026-09-17 — he/parent-panel is off the database
+- The three direct `kids_profiles` calls — list, update and create — became `iakidsApi` calls. This is the first screen that exercises all three operations.
+
+### 2026-09-17 — the two converted screens were broken, twice, for two different reasons
+- **Symptom**: on `/he/add-subject/` typing in the chat did nothing at all. No error, no message, nothing.
+- **Cause one, mine**: the pages create their client as `const sb = supabase.createClient(...)`, and **a `const` at the top level of a classic script never becomes a property of `window`**. The API module looked for `window.sb`, found nothing, and `activeKid()` returned null quietly. The chat's first line is `if (!text || !CURRENT_KID) return;`, so it simply returned. The same applied to the key, also a `const`.
+- **Fix**: the module now walks a chain — a client the page registered with `useClient()`, a global one if there is one, the games SDK's client, and failing all of those it creates its own. The session lives in `localStorage` and is shared, so it is the same session either way. It also warns out loud instead of failing silently. Verified in a real JS engine for four cases including "page uses const for both the client and the key".
+- **Cause two, the browser**: after the fix the page still did not work. The site's own log showed the browser had loaded the module at 5128 bytes, and the fixed file is 7435; on the next visit the page came back 304 and the module was never re-requested. The browser was running the broken copy from cache. **Every shared JS file gets a version in its script tag from the first day** — the project already does this for the dictation and completion scripts. Without it a fix reaches the server and never reaches the user, and both sides think it shipped.
+- **Verified end to end from the production log**: `GET /api/kid/...` answered 200 for the real parent, three `curriculum/chat` calls answered 200, `CUSTOM CURRICULUM APPROVED` followed, and the subject "משחק טאקי" is in the database, active, with its curriculum. Zero errors in the whole window.
+- **Noticed, not fixed**: `/assets/default-parent.png` is requested on the add-subject page and does not exist, 404 on every load. It is the parent picture shown when the account has none from Google.
+
+### 2026-09-17 — he/add-subject is off the database
+- Two direct `kids_profiles` queries became one `iakidsApi.activeKid()` call. The page no longer knows the table exists.
+- Second screen of stage 1. The gate's ceiling on direct database calls drops with each screen that ships, so the number can only go down.
+
+### 2026-09-17 — stage 1 of moving the UI off the database: the kid profile API
+- **Four routes** cover everything the browser did with `kids_profiles`: list my kids, read one, update one partially, create one. About thirty direct call sites across the site collapse into these five operations.
+- **Authorisation is server-side only.** A kid id in the request proves nothing: every route resolves the owner from the token and filters on `user_id`. Verified against production with two real test accounts — a parent reading or updating another parent's child gets 404 and the child is unchanged, no token gets 401, an invalid gender or an empty update gets 400, and the response carries only the fields a screen draws, never `user_id`.
+- **`assets/js/iakids-api.js`** is the single door: it resolves the API base, takes the token from the existing auth session, and exposes `listKids`, `getKid`, `updateKid`, `createKid` and `activeKid`.
+- **Found and fixed on the way**: `get_child_by_id` used `.single()`, which *raises* when nothing matches, so a parent asking for a child that is not theirs got a 500 after the retry wrapper had tried three times, instead of a plain 404.
+- **Learned the hard way**: the site container mounts `/opt/iakids` straight as the web root, so every frontend file edit is live the moment it is saved, with no commit and no deploy. A converted page was live for a few minutes while its backend routes were not yet deployed, and was restored immediately. Frontend and backend of the same change now ship together, backend first.
+
+### 2026-09-17 — the tasks page showed a default avatar for every child
+- **Symptom**: the child's picture never appeared on `/he/tasks/`.
+- **Cause**: the page asked for `avatar_key + ".webp"` (`dog.webp`) while the files are named `dog_blue.png`. Every request answered 404 and an `onerror` handler quietly swapped in the generic default, so nothing ever looked broken and no child ever saw the avatar they chose. Same class as the missing dog avatar fixed earlier today, in a page that had not been touched then.
+- **Fix**: the page uses the shared naming convention and the known-avatar list, so an unknown key falls back to a real image instead of a broken one.
+- **Also**: `/he/tasks/` is now the first screen that no longer queries the database at all. Its task list is empty because `kid_tasks` holds no rows for any child, not because of the change.
+
+### 2026-09-17 — decision: the UI talks to the backend, never to the database
+- **Question asked**: can the code be hidden so a user of the system cannot see it. **Answer: no.** The browser must receive and run it. Minifying or obfuscating buys an attacker hours, not safety, and here it would cost a build step the project deliberately avoids, break the log switch and blind the gates that read those files.
+- **What can be hidden is the data layer.** As long as a page calls `sb.from("kids_profiles")`, the table name, the column list and the relationships sit in the request URL and the JSON response, visible in the network tab whatever the JavaScript looks like. The only way to hide them is to stop the browser talking to the database — which is the decision that was taken.
+- **Measured**: 178 direct database calls in 53 browser files. `kids_profiles` appears in about 30 of them, most through one shared helper in `games/game-sdk.js`. Full inventory, per-table counts and the staged order are in `MIGRATION_TO_BACKEND.md`.
+- **Gate**: the number of direct database calls in browser files may only go down. A new `.from(...)` call in any page fails the build and says to add an endpoint. Verified by adding one on purpose.
+- **Checked while mapping**: no real secret is in any page. The Firebase and Supabase publishable keys are public by design and documented as such in `games/game-sdk.js`. The gate now also fails on a secret-looking key or any mention of `service_role` in a page.
+
+### 2026-09-17 — the admin email list was published in two pages
+- **Symptom**: `he/admin/lessons-review/` and `he/iakids-admin-dashboard-he/` each carried the admin email addresses in plain source, five in one and two in the other.
+- **What it protected**: nothing. Every admin route already checks `ADMIN_EMAILS` server-side and answers 403, which was verified when those routes were built. What the list did do was hand anyone the accounts worth phishing.
+- **Fix**: a new `GET /api/admin/whoami` answers 200 for an admin and 403 for anyone else. Both pages ask it instead of holding a list. A gate rule fails the build if an allowlist ever comes back.
+
+### 2026-09-17 — browser grants revoked on every table the browser never touches
+- **Applied and verified** with a real signed-in session: all 27 revoked tables answer `permission denied`, all 23 tables live pages use still work, the backend (service_role) still reads everything, and the services are clean.
+- **One table had to come back out of the list: `app_admins`.** Revoking it broke reading `support_tickets`, and the error named a table nobody asked for: `permission denied for table app_admins`. A row level policy on support_tickets asks whether the user is in app_admins, and a policy runs with the caller's own rights, so the moment the caller cannot read that table the whole policy fails — for an ordinary user looking at their own tickets. `app_admins` is empty and holds only admin user ids. The proper fix is a `SECURITY DEFINER is_app_admin()` helper and a policy that calls it; until then the table stays granted, and the migration says why.
+- **Why**: Supabase grants `anon` and `authenticated` every privilege on every table in `public` by default, and row level security is the only thing in front of them. That is one policy mistake away from an open table, and it already happened: the 2026-09-10 audit found anonymous reads of exam answer keys, exam questions and the whole lesson catalogue, plus an anonymous INSERT into subscriptions that only a NOT NULL constraint stopped.
+- **Method**: every `.html` and `.js` file the site serves was scanned for `.from("table")`, excluding backup copies. 28 tables are never read or written from a browser; 23 are. Only the 28 are revoked, so nothing that works today stops working.
+- **Functions were checked one by one**, because a `SECURITY INVOKER` function needs the caller's own rights: `record_user_location`, `game_record_answer`, `game_record_answers` and `game_question_mark` are `SECURITY DEFINER`; `game_next_questions` is invoker but reads only `game_questions` and `kid_question_answers`, both of which stay granted.
+- **Still open by design**: the 23 tables live pages read directly. Closing those means moving their reads behind the backend first, which is a separate job.
+- **Found on the way**: `games/game-sdk.js` calls two tables that do not exist in the database at all, `game_achievements` and `game_wins`, so those calls have always failed.
+
+### 2026-09-17 — every migration now has a rollback file
+- **Rule**: `<name>.sql` must ship with `<name>_rollback.sql` in the same commit; the gate fails otherwise, and a rollback with only comments counts as missing.
+- **Written for all 17 migrations**, 14 of which had none. Statements that would destroy data are written out but left commented with `-- DATA LOSS:` — a `drop table` or `drop column` is never left ready to run.
+- **Honest about what a rollback cannot do**: `create or replace function` cannot be undone by dropping the function, because that removes it entirely. Those files say so and name the earlier migration to re-run instead. The rollback of the 2026-09-10 security audit opens with a capitalised warning that running it reopens the holes it closed.
+
+### build 0.7.135 — a browser query had been asking for a column that does not exist
+- **Found while checking that the answer-key migration breaks nothing.** One query in the workspace asked `lesson_units_content` for `parent_lesson`, which is not a column of that table. PostgREST answers `42703 undefined column`, and the call site is `if(!r.error) unitMeta = r.data` — so the error was swallowed and the unit names were silently missing from that view. Confirmed against prod: the old query fails today, the corrected one returns rows.
+- **Fix**: it now asks for `learning_lesson_id`, the column it actually needed.
+- **Also verified**: every live browser query on that table selects only columns the new grant keeps, so the migration cannot break the product.
+
+### build 0.7.134 — the answer key was on its way to the browser
+- **Found while answering "how do I stop someone reading the JS and turning the logs back on"**. The honest answer is that you cannot: anything the page holds can be shown. So the question becomes what the page is allowed to hold — and today's own change had just made that worse.
+- **The leak**: `question.answer` was added this morning so the Learning Coach stops inventing the answer it grades the child against. The unit-lesson route returns `structured_lesson` verbatim, so the answer to every question was about to travel to the browser, where any child with the network tab open could read it before answering.
+- **Fixed in the response**: `public_structured_lesson()` strips `answer` from every question on the way out, at both return paths (fresh and cached). The coach reads the answer from the database, never from the client, so nothing else changes. The original object is not mutated.
+- **Still open, needs approval**: `lesson_units_content` is readable by **any signed-in account** (`for select to authenticated using (true)`, from the 2026-09-10 RLS work), so a child with a session can query the table from the console and read `generated_lesson_json` directly, route or no route. Row level security cannot fix this — the row must stay readable, it is one column that must not be. `supabase/migrations/20260917_hide_lesson_answer_key.sql` revokes column-level select on `generated_lesson_json` and `lesson_audio_json` from `authenticated` and `anon`. **Not applied.** Checked first that no browser code reads either column.
+- **`he/lesson/index.html`** was doing `select("*")` on that table, which pulled the whole generated JSON into the page. It now selects the seven columns it actually uses.
+- **Three gate rules**: the strip helper must exist and be used on every path that returns a structured lesson, no browser file may read `generated_lesson_json`, and no browser file may `select("*")` from `lesson_units_content`. All verified by breaking them.
+
+### build 0.7.133 — test and production log modes
+- **Ask**: a test configuration where the logs are written to the console, and a production one where they are not.
+- **Why one switch and not two scripts**: the pages are static files that nginx (and GitHub Pages on iakids.app) serves as they are. The backend never generates them, so the prints cannot be stripped on the way out, and a second copy of a page would diverge within a week. A build step is against the project's structure. So `assets/js/iakids-log-mode.js` replaces the console methods once, before anything else runs.
+- **Behaviour**: test prints everything; production prints nothing except `console.error`, which is never silenced, and uncaught exceptions are untouched. The switch hides noise, never failures.
+- **Choosing the mode**: `window.IAKIDS_LOG_MODE` before the shim, then `?log=1` / `?log=0` in the URL (kept for the tab), then `localStorage.IAKIDS_LOG`, otherwise localhost and private ranges are test and everything else is production. On production, open with `?log=1` or run `iakidsLogMode("test")` and reload.
+- **Covers**: log, debug, info, warn, table, dir, group, time, count, trace and assert, on all six pages that print — the workspace alone had 154 log calls, 70 warns and a table, all of which were reaching every child's console together with kid ids and signed media URLs.
+- **Verified** in a real JS engine for six cases: production host, localhost, production with `?log=1` (and that it persists), localhost with `?log=0`, blocked storage in private mode, and switching at runtime in both directions. Loading the file twice does not re-wrap. Four gate rules, each verified by breaking it.
+
+### build 0.7.132 — a lesson now ends with a summary, not with a video and three numbers
+- **What it was**: the closing was the coach's one-sentence wrap-up of the **last question only**, then `lesson-closing.mp4` — one file, identical for every lesson and every child, twenty seconds — then a card with three numbers and a grid of eight equal lesson cards. Nothing ever told the child what they had learned. The progress rail even had a "סיכום" step with a checkered flag that rendered nothing.
+- **New**: `POST /api/tutor/unit-lesson/closing` returns a personal wrap-up built from the lesson's own explanations, the child's real answers and the per-part scores: a spoken summary of about thirty seconds, three short lines (למדנו / הצלחת / נחזק) shown on the card, and one sentence for the parent. Generated once per child per lesson and cached in the history table, so re-entering a finished lesson costs nothing and needs no migration.
+- **Verified on lesson 152 with ארבל's real answers**: "ארבל, היום למדנו איך לזהות שמות עצם שמציינים אנשים ובעלי חיים… הצלחת לזהות כמעט את כל השמות במשפטים… כדאי לחזק את זיהוי השמות במשפטים מורכבים יותר." Correct feminine forms throughout, grounded in what she actually wrote, no numbers and no question.
+- **The video** is cut to a four-second sting and plays while the summary is fetched.
+- **The lesson is finally marked as finished**: `status="completed"`, `completed_at`, `progress_percent=100`, `xp_earned` and `stars_earned` are written when the last part ends. Those are exactly the columns the child's and the parent's dashboards read, which is why every unit lesson had been showing zero.
+- **One next step** instead of a grid of equals: the next lesson was already computed in the code and never shown. It is now a single primary button, with the unit grid kept below it.
+- **The score on the card** came from scraping the on-screen gauge, which is refreshed by a call nobody awaits, so it could show the previous part's score. It now comes from the progress row the backend just wrote.
+- **The parent** sees the teacher's sentence instead of percentages, with the numbers moved to a small second line.
+- **Five gate rules** cover all of it (route, response model, cache, completion write, the fetch/render/sting in the screen, the single next button, the score source), each verified by breaking it on purpose.
+
+### build 0.7.131 — "save" in the child-details dialog left it open (again)
+- **Symptom**: editing the child's details and pressing save kept the dialog on screen. The profile was in fact saved.
+- **Cause**: after the save, the function refreshes the screen. Four of those updates wrote to elements that do not exist on every screen (`heroGreeting`, `heroAvatar`, `rightbarAvatar`, `rightbarName`) with no check, so the first missing one threw and `closeSettings()` was never reached. The earlier fix in 0.7.122 had only wrapped the subject list.
+- **Fix**: once the save has succeeded, the whole screen refresh runs inside `try`, every element is checked before it is written, and `closeSettings()` runs in a `finally`. A failed refresh can never hold the dialog open again. Gate rule added and verified by removing the `finally` on purpose.
+
+### build 0.7.131 — 22 children had a broken avatar
+- **Symptom**: `GET /assets/avatars/dog_blue.png 404`.
+- **Cause**: the avatar URL was built straight from `avatar_key` with no check that the file exists. Of 137 children, 22 had chosen `dog` and there was no dog image; 2 have no key at all.
+- **Fix**: `dog_blue.png` was generated in the same style as the other six avatars (the cat was used as the style reference) and added. A shared `iakidsAvatarUrl()` helper falls back to the cat for any unknown key, in the workspace and in the parent panel. The gate fails if an avatar URL is ever built straight from the key again.
 
 ### build 0.7.130 — a server restart ended a child's lesson, in Spanish
 - **Symptom**: ארבל sent her answer at the exact moment of a deploy and got "⚠️ Algo salió mal. Intenta más tarde." — a Spanish sentence on a Hebrew page — and the lesson stopped.
