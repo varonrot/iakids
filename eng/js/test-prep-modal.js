@@ -11,7 +11,7 @@
     file: '<path d="M6 2h8l5 5v15H6Z"/><path d="M14 2v6h5M9 12h7M9 16h7"/>',
     topics: '<path d="m3 5 2 2 3-4m-5 9 2 2 3-4m-5 9 2 2 3-4M12 5h9M12 12h9M12 19h9"/>'
   };
-  const option = (kind, title, text) => `<button type="button" class="prep-option" data-prep-action="${kind}"><span class="prep-icon"><svg viewBox="0 0 24 24" aria-hidden="true">${icons[kind]}</svg></span><strong>${title}</strong><small>${text}</small><span class="prep-chevron" aria-hidden="true">›</span></button>`;
+  const option = (kind, title, text) => `<button type="button" class="prep-option" data-prep-action="${kind}"><span class="prep-icon"><svg viewBox="0 0 24 24" aria-hidden="true">${icons[kind]}</svg></span><strong>${title}</strong><small>${text}</small><span class="prep-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></button>`;
   dialog.innerHTML = `<button type="button" class="prep-close" aria-label="Close Test Prep">×</button>
     <section data-prep-view="start"><div class="prep-hero"><img alt="" width="1500" height="500"><div class="prep-hero-copy"><h2 id="prepTitle">Test Prep</h2><p>Let’s get ready for your test!</p></div></div>
     <div class="prep-content"><h3>How would you like to start?</h3><div class="prep-options">
