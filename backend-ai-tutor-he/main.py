@@ -22981,11 +22981,11 @@ HARD RULES:
 # token; nothing here is reachable without an allowlisted email.
 # =====================================================
 ADMIN_EMAILS = {
-    e.strip().lower() for e in os.getenv(
-        "ADMIN_EMAILS",
-        "varonrot@gmail.com,office@calzo-app.com,yossi.heine@gmail.com,yossi.hina@gmail.com,yossiheine.biz@gmail.com"
-    ).split(",") if e.strip()
+    # 2026-09-25: the default used to be the admin addresses themselves, in a public repository. They live in the
+    # environment now (.env.prod / the service env); with none set, NOBODY is an admin (fail closed).
+    e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "").split(",") if e.strip()
 }
+print(f"[config] admin allowlist: {len(ADMIN_EMAILS)} address(es)" + ("" if ADMIN_EMAILS else " - NO ADMINS: set ADMIN_EMAILS"))
 
 
 # =====================================================
@@ -23825,6 +23825,12 @@ async def tutor_stt(body: TutorSTTRequest, authorization: str = Header(None)):
         raise HTTPException(status_code=500, detail=f"speech to text failed: {e}")
 
 
-# English voice tutor (2026-09-25): new routes in their own module, registered on this app.
-# Must stay the last line: english_tutor.py imports names from this module.
+# Route modules (2026-09-25): new routes in their own files, registered on this app. These imports must stay at
+# the end of the file: each module imports names from this one.
+# English voice tutor.
 import english_tutor  # noqa: E402,F401
+
+# Question-bank admin review (2026-09-25): new routes in their own module, registered on this app.
+import qbank_admin  # noqa: E402,F401
+# Admin lock-out: an address that keeps failing the admin check is locked for a while.
+import admin_guard  # noqa: E402,F401

@@ -176,7 +176,8 @@ def stale_results_note(results_path: Path = RESULTS) -> str | None:
 
 def all_checks(main_src: str | None = None) -> list:
     if main_src is None:   # main.py + the route modules that register on main.app (tools/prompt_gate.py ROUTE_MODULES)
-        extra = [ROOT / "backend-ai-tutor-he" / "english_tutor.py"]
+        extra = [ROOT / "backend-ai-tutor-he" / "english_tutor.py", ROOT / "backend-ai-tutor-he" / "qbank_admin.py",
+                 ROOT / "backend-ai-tutor-he" / "admin_guard.py"]
         main_src = "\n\n".join(p.read_text(encoding="utf-8") for p in [MAIN] + extra if p.exists())
     try:
         ast.parse(main_src)

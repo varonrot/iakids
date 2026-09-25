@@ -1,0 +1,236 @@
+<!doctype html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>IAKIDS · בדיקת שאלות</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!--
+  Question-bank review (2026-09-25). Admins only: the server checks ADMIN_EMAILS on every route
+  (backend-ai-tutor-he/qbank_admin.py); this page holds no list. Supabase is used here for Google sign-in
+  only; every read and write goes through our API (/api/admin/qbank/*), never to the database.
+  Items carry their answers, so the page is noindex and served only to signed-in admins.
+-->
+<style>
+  :root{--ink:#12161c;--ink2:#454b54;--muted:#7a828d;--line:#dfe3e8;--panel:#f4f6f8;--bg:#fcfcfb;--blue:#2a78d6;--good:#1e7a48;--warn:#b06a00;--bad:#b3261e}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+  h1{font-size:20px;margin:0} .sub{color:var(--muted);font-size:12px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;color:var(--ink)}
+  .btn:hover{border-color:var(--blue)} .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .btn.good{background:var(--good);color:#fff;border-color:var(--good)} .btn.danger{color:var(--bad);border-color:#e6b8b4}
+  .btn:disabled{opacity:.45;cursor:default}
+  .login{max-width:420px;margin:80px auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px;text-align:center}
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px} .kpi b{display:block;font-size:22px} .kpi span{color:var(--muted);font-size:12px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+  .filters select,.filters input{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;background:#fff}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;background:#fff;font:inherit} .chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:var(--panel);color:var(--ink2)}
+  .b-ok{background:#e3f4ea;color:var(--good)} .b-bad{background:#fbe6e4;color:var(--bad)} .b-warn{background:#fff1dc;color:var(--warn)}
+  .topic{font-size:12px;color:var(--ink2);margin-bottom:10px} .topic a{color:var(--blue)}
+  .child{background:#f3f7ff;border:1px solid #d6e4fb;border-radius:12px;padding:14px;margin:8px 0}
+  .stim{background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px;white-space:pre-wrap}
+  .stem{font-size:18px;font-weight:700;margin:4px 0 10px}
+  .opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;margin:6px 0}
+  .opt.key{border-color:var(--good);background:#eef9f2} .opt b{min-width:22px}
+  .why{color:var(--ink2);font-size:13px;margin-top:2px} .opt.key .why{color:var(--good);font-weight:700}
+  .explain{border-right:4px solid var(--good);padding:6px 10px;background:var(--panel);border-radius:6px;margin:8px 0}
+  .problems{color:var(--bad);background:#fdf1f0;border:1px solid #f1c9c5;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
+  .check{font-size:12px;color:var(--muted);margin:6px 0}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .actions input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
+  .edit label{display:block;font-size:12px;color:var(--muted);margin-top:8px}
+  .edit textarea,.edit input[type=text]{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
+  .edit .row{display:flex;gap:8px;align-items:center} .edit .row input[type=text]{flex:1}
+  .empty{padding:40px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:12px}
+  .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:60;max-width:90vw}
+  .pager{display:flex;gap:8px;justify-content:center;margin-top:10px}
+  @media (max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="loginScreen" class="login">
+    <h1>בדיקת שאלות · IAKIDS</h1>
+    <p class="sub">מסך ניהול למאגר השאלות. כניסה רק למנהלים.</p>
+    <button class="btn primary" id="googleBtn">כניסה עם Google</button>
+    <p id="loginMsg" class="sub"></p>
+  </section>
+
+  <section id="app" hidden>
+    <header>
+      <div><h1>בדיקת שאלות</h1><div class="sub"><span id="who"></span> · <span id="apiBase"></span></div></div>
+      <div class="actions" style="margin:0"><button class="btn" id="reloadBtn">רענון</button><button class="btn" id="logoutBtn">יציאה</button></div>
+    </header>
+    <div class="kpis">
+      <div class="kpi"><b id="kPending" style="color:var(--warn)">–</b><span>ממתינות לבדיקה</span></div>
+      <div class="kpi"><b id="kApproved" style="color:var(--good)">–</b><span>אושרו</span></div>
+      <div class="kpi"><b id="kRejected" style="color:var(--bad)">–</b><span>נדחו</span></div>
+      <div class="kpi"><b id="kTotal">–</b><span>סך הכול במאגר</span></div>
+    </div>
+    <div class="filters">
+      <button class="chip active" data-s="pending">ממתינות</button>
+      <button class="chip" data-s="approved">אושרו</button>
+      <button class="chip" data-s="rejected">נדחו</button>
+      <select id="fSubject"><option value="">כל המקצועות</option></select>
+      <select id="fGrade"><option value="0">כל הכיתות</option><option value="1">א</option><option value="2">ב</option><option value="3">ג</option><option value="4">ד</option><option value="5">ה</option><option value="6">ו</option></select>
+      <input id="fTopic" placeholder="קוד נושא (למשל MATH-3-05)" dir="ltr">
+      <span class="sub" id="countLine"></span>
+    </div>
+    <div id="list"></div>
+    <div class="pager"><button class="btn" id="prevBtn">הקודמות</button><button class="btn" id="nextBtn">הבאות</button></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+// the review routes live on the tutor running on this box (smarts-brains.online); iakids.app still points at Render
+const TUTOR_API_BASE = location.hostname.endsWith("smarts-brains.online") ? location.origin + "/tutor-api" : "https://iakids-ai-tutor-he.onrender.com";
+const SUBJECT_HE = {math:"מתמטיקה", science:"מדע וטכנולוגיה", hebrew:"עברית", english:"אנגלית", moledet:"מולדת", geography:"גאוגרפיה", history:"היסטוריה", tanakh:'תנ"ך'};
+const GRADE_HE = ["", "א", "ב", "ג", "ד", "ה", "ו"];
+const PURPOSE_HE = {practice:"תרגול", exam_prep:"הכנה למבחן", gifted:"מחוננים"};
+const ORIGIN_HE = {original_llm:"מקורית (מודל)", original_human:"מקורית (אדם)", adapted_open:"מעובדת ממקור פתוח"};
+const PAGE = 20;
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+let SESSION = null, STATUS = "pending", OFFSET = 0, COUNT = 0, ITEMS = [];
+
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",4200); }
+async function api(path, method="GET", body=null){
+  const r = await fetch(TUTOR_API_BASE + path, { method, headers: { "Authorization": "Bearer " + SESSION.access_token, "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : null });
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){ const d = j.detail; const e = new Error(typeof d === "string" ? d : (d?.reason || ("HTTP " + r.status))); e.problems = d?.problems; e.status = r.status; throw e; }
+  return j;
+}
+
+$("googleBtn").onclick = async () => { await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.href.split("#")[0] } }); };
+$("logoutBtn").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+$("reloadBtn").onclick = () => load();
+document.querySelectorAll(".chip").forEach(c => c.onclick = () => { document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active", x===c)); STATUS = c.dataset.s; OFFSET = 0; load(); });
+["fSubject","fGrade"].forEach(id => $(id).onchange = () => { OFFSET = 0; load(); });
+$("fTopic").onchange = () => { OFFSET = 0; load(); };
+$("prevBtn").onclick = () => { OFFSET = Math.max(0, OFFSET - PAGE); load(); };
+$("nextBtn").onclick = () => { if (OFFSET + PAGE < COUNT){ OFFSET += PAGE; load(); } };
+Object.entries(SUBJECT_HE).forEach(([k,v]) => { const o=document.createElement("option"); o.value=k; o.textContent=v; $("fSubject").appendChild(o); });
+
+async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session?.user) return;
+  SESSION = session;
+  const email = (session.user.email || "").toLowerCase();
+  try { await api("/api/admin/whoami"); }            // the server decides; the page holds no list
+  catch(e){ $("loginMsg").textContent = "אין הרשאה לחשבון " + email; SESSION = null; await sb.auth.signOut(); return; }
+  $("loginScreen").hidden = true; $("app").hidden = false;
+  $("who").textContent = email; $("apiBase").textContent = TUTOR_API_BASE;
+  await load();
+}
+
+async function load(){
+  try{
+    const s = await api("/api/admin/qbank/summary");
+    $("kPending").textContent = s.by_status.pending; $("kApproved").textContent = s.by_status.approved;
+    $("kRejected").textContent = s.by_status.rejected; $("kTotal").textContent = s.total;
+    const q = new URLSearchParams({ status: STATUS, subject: $("fSubject").value, grade: $("fGrade").value, topic: $("fTopic").value.trim(), limit: PAGE, offset: OFFSET });
+    const j = await api("/api/admin/qbank/items?" + q.toString());
+    ITEMS = j.items || []; COUNT = j.count || 0;
+    $("countLine").textContent = COUNT ? `${OFFSET + 1}–${Math.min(OFFSET + PAGE, COUNT)} מתוך ${COUNT}` : "";
+    $("prevBtn").disabled = OFFSET === 0; $("nextBtn").disabled = OFFSET + PAGE >= COUNT;
+    render();
+  }catch(e){ toast("טעינה נכשלה: " + e.message); if (e.status === 503) $("list").innerHTML = "<div class='empty'>טבלאות המאגר עוד לא קיימות בשרת הזה.</div>"; }
+}
+
+function render(){
+  if(!ITEMS.length){ $("list").innerHTML = "<div class='empty'>אין שאלות בסינון הזה.</div>"; return; }
+  $("list").innerHTML = ITEMS.map((it, i) => card(it, i)).join("");
+  ITEMS.forEach((it, i) => wire(it, i));
+}
+
+function card(it, i){
+  const t = it.topic || {}, v = it.verification || {};
+  const opts = (it.options || []).map((o, k) => `<div class="opt ${k===it.answer?"key":""}"><b>${"אבגד"[k]}</b><div><div>${esc(o)}</div>
+      <div class="why">${k===it.answer ? "✓ התשובה הנכונה" : esc((it.why_wrong||{})[String(k)] || "— אין הסבר לטעות —")}</div></div></div>`).join("");
+  const statusBadge = {pending:"b-warn", approved:"b-ok", rejected:"b-bad"}[it.review_status] || "";
+  return `<article class="card" id="c${i}">
+    <div class="meta">
+      <span class="badge ${statusBadge}">${esc({pending:"ממתינה", approved:"אושרה", rejected:"נדחתה"}[it.review_status] || it.review_status)}</span>
+      <span class="badge">${esc(SUBJECT_HE[it.subject] || it.subject)} · כיתה ${GRADE_HE[it.grade] || it.grade}</span>
+      <span class="badge">רמה ${it.difficulty}</span><span class="badge">${esc(PURPOSE_HE[it.purpose] || it.purpose)}</span>
+      <span class="badge">${esc(ORIGIN_HE[it.origin] || it.origin)}${it.source_id && it.source_id!=="original" ? " · " + esc(it.source_id) : ""}</span>
+      <span class="badge" dir="ltr">${esc(it.id)}</span>
+    </div>
+    <div class="topic"><b dir="ltr">${esc(t.code)}</b> · ${esc(t.title_he)}${t.inferred ? " (מוסק)" : ""}${t.source_url ? ` · <a href="${esc(t.source_url)}" target="_blank" rel="noopener">מסמך תוכנית הלימודים</a>` : ""}
+      ${(t.skills||[]).length ? `<div class="sub">מיומנויות: ${esc(t.skills.slice(0,4).join(" · "))}</div>` : ""}</div>
+    <div class="child">${it.stimulus ? `<div class="stim">${esc(it.stimulus)}</div>` : ""}<div class="stem">${esc(it.stem)}</div>${opts}</div>
+    <div class="explain"><b>הסבר:</b> ${esc(it.explain)}</div>
+    ${(it.problems||[]).length ? `<div class="problems"><b>לא ניתן לאשר לפני תיקון:</b><br>${it.problems.map(p=>esc(p.replace(/^[^:]+:\s*/,""))).join("<br>")}</div>` : ""}
+    <div class="check">בדיקה עיוורת: ${esc(v.model || "—")} בחר ${v.answer!=null ? "אבגד"[v.answer] || v.answer : "—"}${v.problem ? " · " + esc(v.problem) : ""}${it.solution_expr ? ` · חישוב: <span dir="ltr">${esc(it.solution_expr)}</span>` : ""}${it.attribution ? " · " + esc(it.attribution) : ""}${it.reviewer ? ` · נבדק ע"י ${esc(it.reviewer)}` : ""}${it.review_note ? " · הערה: " + esc(it.review_note) : ""}</div>
+    <div class="actions">
+      <button class="btn good" data-a="approve" ${(it.problems||[]).length ? "disabled title='יש בעיות לתקן קודם'" : ""}>אישור</button>
+      <button class="btn danger" data-a="reject">דחייה</button>
+      <button class="btn" data-a="edit">עריכה</button>
+      ${it.review_status!=="pending" ? `<button class="btn" data-a="pending">החזרה להמתנה</button>` : ""}
+      <input data-a="note" placeholder="הערה (לא חובה)" value="${esc(it.review_note || "")}">
+    </div>
+    <div class="edit" data-a="editbox" hidden></div>
+  </article>`;
+}
+
+function wire(it, i){
+  const el = $("c" + i), note = () => el.querySelector("[data-a=note]").value.trim();
+  el.querySelector("[data-a=approve]").onclick = () => review(it, i, "approved", note());
+  el.querySelector("[data-a=reject]").onclick = () => review(it, i, "rejected", note() || prompt("למה נדחתה? (לא חובה)") || "");
+  const back = el.querySelector("[data-a=pending]"); if (back) back.onclick = () => review(it, i, "pending", note());
+  el.querySelector("[data-a=edit]").onclick = () => openEdit(it, i);
+}
+
+function openEdit(it, i){
+  const box = $("c" + i).querySelector("[data-a=editbox]");
+  if (!box.hidden){ box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = `<label>סיפור / קטע (לא חובה)</label><textarea rows="3" data-f="stimulus">${esc(it.stimulus || "")}</textarea>
+    <label>השאלה</label><textarea rows="2" data-f="stem">${esc(it.stem)}</textarea>
+    <label>התשובות (מסמנים את הנכונה) והסבר לכל תשובה שגויה</label>
+    ${(it.options||[]).map((o,k)=>`<div class="row"><input type="radio" name="key${i}" value="${k}" ${k===it.answer?"checked":""}>
+      <input type="text" data-o="${k}" value="${esc(o)}"><input type="text" data-w="${k}" placeholder="למה זה לא נכון" value="${esc((it.why_wrong||{})[String(k)] || "")}"></div>`).join("")}
+    <label>הסבר לתשובה הנכונה</label><textarea rows="2" data-f="explain">${esc(it.explain)}</textarea>
+    ${it.subject==="math" ? `<label>חישוב שמוכיח את התשובה (רק מספרים ו־+ - * / // % וסוגריים)</label><input type="text" dir="ltr" data-f="solution_expr" value="${esc(it.solution_expr || "")}">` : ""}
+    <label>רמת קושי</label><select data-f="difficulty">${[1,2,3].map(d=>`<option ${d===it.difficulty?"selected":""}>${d}</option>`).join("")}</select>
+    <div class="actions"><button class="btn good" data-e="approve">שמירה ואישור</button><button class="btn" data-e="save">שמירה בלי אישור</button></div>`;
+  const collect = () => {
+    const answer = +(box.querySelector(`input[name=key${i}]:checked`)?.value ?? it.answer);
+    const options = [0,1,2,3].map(k => box.querySelector(`[data-o="${k}"]`).value.trim());
+    const why_wrong = {}; [0,1,2,3].forEach(k => { if (k !== answer) why_wrong[String(k)] = box.querySelector(`[data-w="${k}"]`).value.trim(); });
+    const f = n => box.querySelector(`[data-f=${n}]`);
+    const out = { stem: f("stem").value.trim(), stimulus: f("stimulus").value.trim(), explain: f("explain").value.trim(),
+                  options, answer, why_wrong, difficulty: +f("difficulty").value };
+    if (f("solution_expr")) out.solution_expr = f("solution_expr").value.trim();
+    return out;
+  };
+  box.querySelector("[data-e=approve]").onclick = () => review(it, i, "approved", $("c"+i).querySelector("[data-a=note]").value.trim(), collect());
+  box.querySelector("[data-e=save]").onclick = () => review(it, i, it.review_status, $("c"+i).querySelector("[data-a=note]").value.trim(), collect());
+}
+
+async function review(it, i, status, note, edits){
+  try{
+    const r = await api(`/api/admin/qbank/items/${encodeURIComponent(it.id)}/review`, "POST", { status, note: note || null, ...(edits || {}) });
+    toast({approved:"השאלה אושרה", rejected:"השאלה נדחתה", pending:"השאלה הוחזרה להמתנה"}[status] || "נשמר");
+    ITEMS[i] = r.item;
+    if (status !== STATUS){ ITEMS.splice(i, 1); COUNT = Math.max(0, COUNT - 1); render(); load(); }
+    else { render(); }
+  }catch(e){
+    toast((e.problems ? "לא נשמר: " + e.problems.map(p=>p.replace(/^[^:]+:\s*/,"")).join(" · ") : "לא נשמר: " + e.message));
+  }
+}
+
+init();
+</script>
+</body>
+</html>

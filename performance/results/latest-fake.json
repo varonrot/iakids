@@ -1,7 +1,7 @@
 {
- "run": "20260925-083842-english-turn-fake",
+ "run": "20260925-103508-admin-guard-fake",
  "db": "fake",
- "scale": 1.0,
+ "scale": 0.05,
  "db_latency_ms": 100.0,
  "routes": {
   "health": {
@@ -1376,12 +1376,117 @@
    "limit": [
     "p95 1063 > 1000 ms (3x one-user p50 121)"
    ]
+  },
+  "admin-qbank-summary": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 118.5,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:qbank_item": 1
+   },
+   "db_ms": 101.3,
+   "db_by": {
+    "GET table:qbank_item": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-qbank-items": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 118.0,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET table:qbank_item": 1
+   },
+   "db_ms": 101.4,
+   "db_by": {
+    "GET table:qbank_item": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-qbank-review": {
+   "kind": "admin",
+   "status": 404,
+   "ms": 112.2,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET table:qbank_item": 1
+   },
+   "db_ms": 101.0,
+   "db_by": {
+    "GET table:qbank_item": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"item not found\"}"
+  },
+  "admin-links": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 7.0,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-locks": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 6.6,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1
+   },
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lock-release": {
+   "kind": "admin",
+   "status": 404,
+   "ms": 7.7,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"that address is not locked\"}"
   }
  },
  "box": {
   "cpus": 2,
   "mem_total_mb": 1967,
-  "tutor_rss_idle_mb": 137
+  "tutor_rss_idle_mb": 138
  },
  "summary": {
   "per_child_cpu_ms_per_min": 0.0,
@@ -1404,6 +1509,6 @@
  },
  "workers": 1,
  "cpus": "all",
- "main_sha": "d561f7bd80617465",
+ "main_sha": "b492c64e92ac52d2",
  "tutor_dir": "/opt/iakids/backend-ai-tutor-he"
 }

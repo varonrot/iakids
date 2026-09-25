@@ -89,6 +89,12 @@ ROUTES = {
     "admin-lesson-regenerate": dict(method="POST", path="/api/admin/lessons/{ul}/regenerate", kind="admin", p95_ms=60000, ramp=False, db_max=5),
     "admin-image-approve":  dict(method="POST", path="/api/admin/lessons/{ul}/images/approve", body={"path": "perf.png"}, kind="admin", p95_ms=3000, ramp=False, db_max=2),
     "admin-image-regenerate": dict(method="POST", path="/api/admin/lessons/{ul}/images/regenerate", body={"path": "perf.png"}, kind="admin", p95_ms=60000, ramp=False, db_max=3),
+    "admin-locks":          dict(method="GET",  path="/api/admin/security/locks", kind="admin", p95_ms=1000, ramp=False, db_max=0),
+    "admin-lock-release":   dict(method="POST", path="/api/admin/security/locks/release", body={"ip": "203.0.113.9"}, kind="admin", p95_ms=1000, ramp=False, db_max=0),
+    "admin-links":          dict(method="GET",  path="/api/admin/links", kind="admin", p95_ms=1000, ramp=False, db_max=0),
+    "admin-qbank-summary":  dict(method="GET",  path="/api/admin/qbank/summary", kind="admin", p95_ms=3000, ramp=False, db_max=1),
+    "admin-qbank-items":    dict(method="GET",  path="/api/admin/qbank/items?status=pending&limit=20", kind="admin", p95_ms=3000, ramp=False, db_max=1),
+    "admin-qbank-review":   dict(method="POST", path="/api/admin/qbank/items/perf-missing/review", body={"status": "rejected", "note": "perf"}, kind="admin", p95_ms=3000, ramp=False, db_max=1),
     "admin-lesson-media":   dict(method="GET",  path="/api/admin/lessons/{ul}/media", kind="admin", p95_ms=3000, ramp=False, db_max=2),
 }
 

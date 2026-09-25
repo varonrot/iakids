@@ -73,18 +73,33 @@ ITEM_COLUMNS = ("id", "topic_code", "subject", "grade", "purpose", "format", "di
                 "generator", "verification", "fingerprint", "review_status")
 
 
+def topic_row(t: dict) -> dict:
+    return {"code": t["code"], "subject": t["subject"], "grade": t["grade"], "strand": t["strand"], "title_he": t["title_he"],
+            "title_en": t["title_en"], "skills": t["skills"], "meta": {**t["meta"], "source_url": t["source_url"]},
+            "source_id": "moe-curriculum", "source_ref": t["source_ref"], "inferred": t["inferred"]}
+
+
+def sync_db(topics: dict, sources: dict) -> tuple[int, int]:
+    """Every source and every curriculum topic from the reviewed files in the repo into the tables."""
+    sb = db_client()
+    sb.table("qbank_source").upsert([{k: s.get(k) for k in ("id", "title", "url", "licence", "licence_class", "attribution")}
+                                     for s in sources.values()]).execute()
+    rows = [topic_row(t) for t in topics.values()]
+    for i in range(0, len(rows), 200):
+        sb.table("curriculum_topics").upsert(rows[i:i + 200]).execute()
+    return len(sources), len(rows)
+
+
 def save_db(items: list, topics: dict, sources: dict) -> int:
     sb = db_client()
     sb.table("qbank_source").upsert([{k: s.get(k) for k in ("id", "title", "url", "licence", "licence_class", "attribution")}
                                      for s in sources.values()]).execute()
     codes = {i["topic_code"] for i in items}
-    sb.table("curriculum_topics").upsert([{"code": t["code"], "subject": t["subject"], "grade": t["grade"], "strand": t["strand"],
-                                            "title_he": t["title_he"], "title_en": t["title_en"], "skills": t["skills"],
-                                            "meta": {**t["meta"], "source_url": t["source_url"]}, "source_id": "moe-curriculum",
-                                            "source_ref": t["source_ref"], "inferred": t["inferred"]}
-                                           for c, t in topics.items() if c in codes]).execute()
+    sb.table("curriculum_topics").upsert([topic_row(t) for c, t in topics.items() if c in codes]).execute()
     rows = [{k: it.get(k) for k in ITEM_COLUMNS} for it in items]
-    for r in rows:
+    for it, r in zip(items, rows):
+        # the arithmetic that proves a maths key is verification data: kept in the verification JSON (no column)
+        r["verification"] = {**(it.get("verification") or {}), "solution_expr": it.get("solution_expr")}
         r["source_id"] = r.get("source_id") or "original"
         r["format"] = r.get("format") or "mcq4"
         r["licence_class"] = "A"

@@ -2,6 +2,15 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Admin: question review, admin hub, lock-out; admin addresses out of the code (build 0.7.153)
+
+- **Question review** (`he/admin/questions-review/`, `backend-ai-tutor-he/qbank_admin.py`): admins see pending question-bank items as a child would, with the key, every distractor's explanation, the curriculum topic and its source, the blind solver and the maths proof; approve / reject with a note / back to pending / edit. The validators run again on every edit and **an item with problems cannot be approved** (page and server). Found on the way: `solution_expr` was not stored (no column), so every maths item would have been unapprovable — now kept in `verification`, 4 items backfilled.
+- **Admin hub** (`he/admin/`): after Google sign-in the server returns the admin links (`/api/admin/links`, require_admin); the page source holds no link and no list. Each link shows how its page is protected.
+- **Lock-out** (`admin_guard.py`): 5 failed admin calls (401/403) from one address within 15 min lock it for 30 min (429 on every /api/admin/*, even with a valid token); released by time or by an admin from the hub; logged.
+- **Symptom (found)**: the admin allowlist's default in `main.py` was the five admin addresses, and production ran on it — public in the repository (and until today on iakids.app). **Fix**: moved to `.env.prod` (5 addresses); the code default is empty (fail closed); `[config] admin allowlist: N address(es)` at start-up. Still present in `main_backup.py`, `V8`–`V26_BACKUP` and git history (public repo) — the user decides on those.
+- **Security check** (`tools/admin_security_check.py`): 62 attempts on a local copy with the new routes and 50 on production (existing admin routes): forged tokens (attacker key, alg=none, guessed HS256, key confusion with the public key, expired), a real non-admin login, token in the URL, path and method tricks, a non-admin approve — none got through; a real admin control got 200; the lock engaged after 5 failures. Database layer with a real non-admin login: the browser-only admin pages' tables return 0 rows (own child only); qbank tables and ai_calls denied; sign-up needs email confirmation.
+- **Gate**: `admin_route_checks` (every admin route calls require_admin), `admin_hub_checks` (no admin address/list in the page), `admin_list_checks` (no address as the code default), `.env.prod` must define ADMIN_EMAILS (deploy path), `qbank_admin_tests`, `admin_lockout_tests` — each negative-tested.
+- **Build**: 0.7.153.
 ## 2026-09-25 — Align the Continue Learning header badge (eng-dashboard-badge-1)
 
 - Symptom: “READY WHEN YOU ARE” appeared at the card's top border instead of centered in its header.

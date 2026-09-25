@@ -31,7 +31,8 @@ PROMPTS = ROOT / "backend-ai-tutor-he" / "prompts"
 MAIN = ROOT / "backend-ai-tutor-he" / "main.py"
 # Route modules that register on main.app (`from main import app`). The gate reads them together with
 # main.py as ONE source, so every rule below (security, prompts, models, performance) covers their routes too.
-ROUTE_MODULES = [ROOT / "backend-ai-tutor-he" / "english_tutor.py"]
+ROUTE_MODULES = [ROOT / "backend-ai-tutor-he" / "english_tutor.py", ROOT / "backend-ai-tutor-he" / "qbank_admin.py",
+                 ROOT / "backend-ai-tutor-he" / "admin_guard.py"]
 
 
 def api_source() -> str:
@@ -1558,6 +1559,10 @@ def env_file_checks() -> list:
         elif "_KEY=" in v or "_URL=" in v:
             bad.append("%s: %s has another variable glued into its value (length %d) - "
                        "the file is missing a newline" % (name, key, len(v)))
+    # 2026-09-25: the admin allowlist left main.py (public repo) for the environment; a production env without it
+    # would lock every admin out of /api/admin/* (fail closed)
+    if name == ".env.prod" and not re.search(r"^ADMIN_EMAILS=\S+@\S+", path.read_text(encoding="utf-8", errors="replace"), re.M):
+        bad.append(".env.prod has no ADMIN_EMAILS: after this deploy no admin could open the admin pages")
     return bad
 
 
@@ -1899,6 +1904,52 @@ def qbank_checks() -> list:
         bad.append("qbank copy check misses a verbatim copy")
     return bad
 
+def admin_list_checks(main_src: str) -> list:
+    """2026-09-25: the admin allowlist's default in main.py was the five admin addresses, in a public repository.
+    The list lives in the environment; the code's default is empty (fail closed)."""
+    bad = []
+    m = re.search(r'os\.getenv\(\s*"ADMIN_EMAILS"\s*,\s*"([^"]*)"', main_src)
+    if not m:
+        bad.append("main.py no longer reads ADMIN_EMAILS from the environment")
+    elif m.group(1).strip():
+        bad.append("main.py writes admin addresses as the ADMIN_EMAILS default: they are public in the repository (2026-09-25)")
+    return bad
+
+
+def admin_hub_checks() -> list:
+    """he/admin/ (2026-09-25, user: only people on the approved list see the admin links): the page holds no admin
+    address and no list of admins; it shows only what /api/admin/links (require_admin) returns."""
+    f = ROOT / "he" / "admin" / "index.html"
+    if not f.exists():
+        return ["he/admin/index.html is missing: there is no admin hub"]
+    t = f.read_text(encoding="utf-8")
+    bad = []
+    if '"/api/admin/links"' not in t:
+        bad.append("he/admin/: the hub no longer asks the server for its links")
+    for addr in ("/he/admin/questions-review", "/he/admin/lessons-review", "/admin/dashboard", "/support-dashboard", "/he/iakids-admin-dashboard-he"):
+        if addr in t:
+            bad.append(f"he/admin/: the page source names {addr}: anyone can read the admin addresses without signing in")
+    if re.search(r"ADMIN_EMAILS|@gmail\.com|@iakids", t):
+        bad.append("he/admin/: an admin email or list is written in the page")
+    return bad
+
+
+def admin_route_checks() -> list:
+    """Every route of an admin module checks the caller is an admin (require_admin, ADMIN_EMAILS on the server).
+    qbank_admin serves questions WITH their answers: an unchecked route would hand them to any signed-in parent."""
+    bad = []
+    for f in [ROOT / "backend-ai-tutor-he" / "qbank_admin.py", ROOT / "backend-ai-tutor-he" / "admin_guard.py"]:
+        if not f.exists():
+            continue
+        src = f.read_text(encoding="utf-8")
+        for m in re.finditer(r"@app\.(?:get|post|put|patch|delete)\((?:.|\n)*?\)\s*\n(?:async )?def (\w+)\(", src):
+            body = src[m.end():]
+            nxt = re.search(r"\n@app\.|\ndef |\nclass ", body)
+            body = body[:nxt.start()] if nxt else body
+            if "require_admin(authorization)" not in body:
+                bad.append(f"{f.name}: route {m.group(1)}() does not call require_admin: questions with their answers would reach any signed-in user")
+    return bad
+
 PAGES_PRIVATE = ["backend", "backend-ai-tutor-he", '"iakids_*_prompt*.txt"', '"V*_BACKUP"', "tools", "docs", "performance",
                  "supabase", "ops", '"*.md"', '"*.py"', '"*.sql"', '"*.sh"', '"*.env"']
 
@@ -1918,6 +1969,148 @@ def pages_privacy_checks() -> list:
         if entry not in lines:
             bad.append(f"_config.yml no longer excludes {entry}: it is published on iakids.app for anyone to read (2026-09-25)")
     return bad
+
+def qbank_admin_tests() -> list:
+    """qbank_admin.py (2026-09-25): an item the validators reject can never be approved, a fix + approve works and
+    records the reviewer, the maths proof (solution_expr) survives an edit, a rejection keeps its note, and an unknown
+    item is 404. Real routes, TestClient, an in-memory stand-in for the table."""
+    code = r"""
+import os, sys, io, contextlib, copy
+os.chdir("backend-ai-tutor-he"); sys.path.insert(0, ".")
+with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    import main
+    import qbank_admin as qa
+from types import SimpleNamespace
+from fastapi.testclient import TestClient
+ROWS = {"MATH-3-05-t1": {"id": "MATH-3-05-t1", "topic_code": "MATH-3-05", "subject": "math", "grade": 3, "purpose": "practice",
+        "format": "mcq4", "difficulty": 1, "language": "he", "stimulus": None, "stem": "מהי התוצאה של 7 × 8?",
+        "options": ["49", "56", "54", "64"], "answer": 1, "why_wrong": {"0": "7×7.", "2": "6×9.", "3": "8×8."},
+        "explain": "7 קבוצות של 8 הן 56 לפי לוח הכפל.", "origin": "original_llm", "source_id": "original",
+        "verification": {"solution_expr": "7*9"}, "generator": {}, "fingerprint": "fp1", "review_status": "pending"}}
+class Q:
+    def __init__(s, name): s.f = {}; s.patch = None
+    def select(s, *a, **k): return s
+    def order(s, *a, **k): return s
+    def range(s, *a): return s
+    def limit(s, *a): return s
+    def eq(s, k, v): s.f[k] = v; return s
+    def update(s, patch): s.patch = patch; return s
+    def execute(s):
+        hit = [r for r in ROWS.values() if all(r.get(k) == v for k, v in s.f.items())]
+        if s.patch is not None:
+            for r in hit: r.update(copy.deepcopy(s.patch))
+        return SimpleNamespace(data=copy.deepcopy(hit), count=len(hit))
+qa.sb = SimpleNamespace(table=lambda n: Q(n))
+qa.supabase_with_retry = lambda op, label=None: op()
+qa.require_admin = lambda a: SimpleNamespace(id="u", email="rev@x")
+c = TestClient(main.app)
+bad = []
+r = c.post("/api/admin/qbank/items/MATH-3-05-t1/review", json={"status": "approved"})
+if r.status_code != 422 or ROWS["MATH-3-05-t1"]["review_status"] != "pending":
+    bad.append(f"an item whose maths proof gives another answer (7*9 for 56) was approved (status {r.status_code})")
+r = c.post("/api/admin/qbank/items/MATH-3-05-t1/review", json={"status": "approved", "solution_expr": "7*8", "note": "fixed"})
+row = ROWS["MATH-3-05-t1"]
+if r.status_code != 200 or row["review_status"] != "approved" or row.get("reviewer") != "rev@x" or row["verification"].get("solution_expr") != "7*8":
+    bad.append(f"fix + approve did not store the approval, the reviewer or the fixed proof (status {r.status_code}, row {row.get('review_status')}, {row.get('verification')})")
+r = c.post("/api/admin/qbank/items/MATH-3-05-t1/review", json={"status": "rejected", "note": "too easy"})
+if r.status_code != 200 or ROWS["MATH-3-05-t1"]["review_status"] != "rejected" or ROWS["MATH-3-05-t1"].get("review_note") != "too easy":
+    bad.append("a rejection did not keep its note")
+r = c.post("/api/admin/qbank/items/NOPE/review", json={"status": "rejected"})
+if r.status_code != 404:
+    bad.append(f"an unknown item answered {r.status_code}, not 404")
+r = c.post("/api/admin/qbank/items/MATH-3-05-t1/review", json={"status": "approved", "stem": "x" * 1600})
+if r.status_code != 422:
+    bad.append("a 1,600-character edited question was accepted")
+print("\n".join("BAD: " + b for b in bad) if bad else "QBANK_ADMIN_OK")
+"""
+    env = dict(os.environ, APP_ENV=os.environ.get("APP_ENV", "prod"), OPS_METRICS_ENABLED="0", AI_COSTS_ENABLED="0",
+               RATE_LIMIT_PER_MINUTE="1000000")
+    for k in ENV_KEYS:
+        env[k] = "gate-dummy-key"
+    env["SUPABASE_URL"] = env.get("SUPABASE_URL") or "https://gate.supabase.co"
+    r = subprocess.run([str(PY), "-c", code], cwd=ROOT, capture_output=True, text=True, env=env, timeout=180)
+    if r.returncode != 0:
+        return [f"qbank admin tests crashed: {(r.stderr or r.stdout)[-500:]}"]
+    lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip()]
+    if lines and lines[-1].endswith("QBANK_ADMIN_OK"):
+        return []
+    found = ["qbank admin: " + l.split("BAD: ", 1)[1] for l in lines if "BAD: " in l]
+    return found or ["qbank admin tests gave no result: " + " | ".join(lines[-3:])]
+
+def admin_lockout_tests() -> list:
+    """admin_guard.py (2026-09-25, user: lock and release): 5 failed admin calls from one address lock it (429, even
+    with a valid admin token); another address is not affected; an admin releases it; a lock ends by itself; a
+    success resets the count."""
+    code = r"""
+import os, sys, io, contextlib
+os.chdir("backend-ai-tutor-he"); sys.path.insert(0, ".")
+with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+    import main
+    import admin_guard as ag
+from types import SimpleNamespace
+from fastapi.testclient import TestClient
+from fastapi import HTTPException
+IP = {"v": "1.1.1.1"}
+ag.client_ip = lambda request: IP["v"]
+clock = {"t": 1000.0}
+ag.now = lambda: clock["t"]
+def fake_admin(auth):
+    if auth != "Bearer admin":
+        raise HTTPException(status_code=403, detail="admin only")
+    return SimpleNamespace(id="a", email="admin@x")
+main.require_admin = fake_admin
+import qbank_admin; qbank_admin.require_admin = fake_admin; ag.require_admin = fake_admin
+c = TestClient(main.app)
+bad = []
+for i in range(ag.LOCK_FAILS):
+    c.get("/api/admin/links", headers={"Authorization": "Bearer nope"})
+r = c.get("/api/admin/links", headers={"Authorization": "Bearer admin"})
+if r.status_code != 429:
+    bad.append(f"after {ag.LOCK_FAILS} failed admin calls the address was not locked (a valid token then got {r.status_code})")
+IP["v"] = "2.2.2.2"
+r = c.get("/api/admin/links", headers={"Authorization": "Bearer admin"})
+if r.status_code != 200:
+    bad.append(f"a lock on one address blocked the admin at another address ({r.status_code})")
+r = c.get("/api/admin/security/locks", headers={"Authorization": "Bearer admin"})
+if r.status_code != 200 or not any(l["ip"] == "1.1.1.1" for l in r.json().get("locks", [])):
+    bad.append("the locked address is not listed for the admin")
+r = c.post("/api/admin/security/locks/release", json={"ip": "1.1.1.1"}, headers={"Authorization": "Bearer admin"})
+IP["v"] = "1.1.1.1"
+if r.status_code != 200 or c.get("/api/admin/links", headers={"Authorization": "Bearer admin"}).status_code != 200:
+    bad.append("an admin could not release a locked address")
+for i in range(ag.LOCK_FAILS):
+    c.get("/api/admin/links", headers={"Authorization": "Bearer nope"})
+clock["t"] += ag.LOCK_SECONDS + 1
+if c.get("/api/admin/links", headers={"Authorization": "Bearer admin"}).status_code != 200:
+    bad.append("a lock did not end by itself")
+IP["v"] = "3.3.3.3"
+for i in range(ag.LOCK_FAILS - 1):
+    c.get("/api/admin/links", headers={"Authorization": "Bearer nope"})
+c.get("/api/admin/links", headers={"Authorization": "Bearer admin"})
+c.get("/api/admin/links", headers={"Authorization": "Bearer nope"})
+if c.get("/api/admin/links", headers={"Authorization": "Bearer admin"}).status_code != 200:
+    bad.append("a success did not reset the count: an admin with one typo too many is locked out")
+r = c.get("/api/tutor/checks/gifted/set", headers={"Authorization": "Bearer nope"})
+IP["v"] = "4.4.4.4"
+for i in range(ag.LOCK_FAILS + 2):
+    c.get("/api/kid/list", headers={"Authorization": "Bearer nope"})
+if c.get("/api/admin/links", headers={"Authorization": "Bearer admin"}).status_code != 200:
+    bad.append("failures on a child's route locked the admin API: the lock must count admin routes only")
+print("\n".join("BAD: " + b for b in bad) if bad else "LOCKOUT_OK")
+"""
+    env = dict(os.environ, APP_ENV=os.environ.get("APP_ENV", "prod"), OPS_METRICS_ENABLED="0", AI_COSTS_ENABLED="0",
+               RATE_LIMIT_PER_MINUTE="1000000")
+    for k in ENV_KEYS:
+        env[k] = "gate-dummy-key"
+    env["SUPABASE_URL"] = env.get("SUPABASE_URL") or "https://gate.supabase.co"
+    r = subprocess.run([str(PY), "-c", code], cwd=ROOT, capture_output=True, text=True, env=env, timeout=180)
+    if r.returncode != 0:
+        return [f"admin lock-out tests crashed: {(r.stderr or r.stdout)[-500:]}"]
+    lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip()]
+    if lines and lines[-1].endswith("LOCKOUT_OK"):
+        return []
+    found = ["admin lock-out: " + l.split("BAD: ", 1)[1] for l in lines if "BAD: " in l]
+    return found or ["admin lock-out tests gave no result: " + " | ".join(lines[-3:])]
 
 def changed_prompts(staged: bool) -> list:
     args = ["git", "diff", "--cached", "--name-only"] if staged else ["git", "diff", "--name-only", "HEAD"]
@@ -2023,14 +2216,14 @@ def main():
         # live in code (the lesson screen, the coach handover, the media failure signal)
         # plus, for main.py, the render smoke that doubles as an import smoke — a route
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
-        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks() + english_page_checks() + homework_back_checks() + pages_privacy_checks() + subscription_button_checks()
+        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks() + english_page_checks() + homework_back_checks() + pages_privacy_checks() + subscription_button_checks() + admin_route_checks() + admin_hub_checks() + admin_list_checks(main_src)
               + (performance_checks(main_src) + request_cache_tests() if main_changed else [])
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
           + client_secrets_checks() + browser_db_budget_checks()
           + browser_query_shape_checks())
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
-        rf = [] if (a.fast or not main_changed) else render_smoke() + english_tutor_tests()
+        rf = [] if (a.fast or not main_changed) else render_smoke() + english_tutor_tests() + qbank_admin_tests() + admin_lockout_tests()
         if main_changed:
             print(("FAIL " if rf else "ok   ") + "render/import smoke for main.py")
         if cf or rf:
@@ -2046,7 +2239,7 @@ def main():
         fails = check_file(PROMPTS / name, name, main_src, head_version(name))
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
-    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + homework_back_checks() + pages_privacy_checks() + gifted_quality_checks() + subscription_button_checks() + qbank_checks() + persona_checks(main_src) + coverage_checks(main_src)
+    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + homework_back_checks() + pages_privacy_checks() + gifted_quality_checks() + subscription_button_checks() + qbank_checks() + admin_route_checks() + admin_hub_checks() + admin_list_checks(main_src) + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + security_checks(main_src) + required_entry_checks() + check_bank_checks() + topbar_stacking_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
@@ -2068,6 +2261,12 @@ def main():
         et = english_tutor_tests()
         print(("FAIL " if et else "ok   ") + "english tutor (allowance before the model, limits, ownership, corrections)")
         all_fails += et
+        lo = admin_lockout_tests()
+        print(("FAIL " if lo else "ok   ") + "admin lock-out (lock, other address, release, expiry, reset, child routes)")
+        all_fails += lo
+        qa = qbank_admin_tests()
+        print(("FAIL " if qa else "ok   ") + "question-bank review (no approval with problems, fix + approve, reject, 404)")
+        all_fails += qa
     if a.all:
         ef = env_file_checks()
         print(("FAIL " if ef else "ok   ") + "env file keys (present, clean ASCII, no glued variable)")

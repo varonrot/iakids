@@ -1,0 +1,112 @@
+<!doctype html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>IAKIDS · ניהול</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!--
+  Admin hub (2026-09-25, user: only people on the approved list; one screen with all the admin links).
+  This page holds NO links and NO list of admins: after Google sign-in it asks GET /api/admin/links, which
+  answers only to the server's admin list (backend-ai-tutor-he/qbank_admin.py). Anyone else sees nothing.
+  Supabase is used for sign-in only.
+-->
+<style>
+  :root{--ink:#12161c;--ink2:#454b54;--muted:#7a828d;--line:#dfe3e8;--panel:#f4f6f8;--bg:#fcfcfb;--blue:#2a78d6;--good:#1e7a48;--warn:#b06a00;--bad:#b3261e}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:18px}
+  h1{font-size:22px;margin:0} .sub{color:var(--muted);font-size:12px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;color:var(--ink)}
+  .btn:hover{border-color:var(--blue)} .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .login{max-width:420px;margin:80px auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  a.tile{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+  a.tile:hover{border-color:var(--blue);box-shadow:0 4px 14px rgba(0,0,0,.06)}
+  a.tile h2{font-size:17px;margin:0 0 4px} a.tile p{margin:0 0 10px;color:var(--ink2);font-size:13px}
+  .guard{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700}
+  .g-server{background:#e3f4ea;color:var(--good)} .g-mixed{background:#fff1dc;color:var(--warn)} .g-browser{background:#fbe6e4;color:var(--bad)}
+  .url{direction:ltr;text-align:left;color:var(--muted);font-size:12px;margin-top:6px}
+  .note{margin-top:18px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section id="loginScreen" class="login">
+    <h1>ניהול · IAKIDS</h1>
+    <p class="sub">כניסה רק למנהלים שברשימה המאושרת.</p>
+    <button class="btn primary" id="googleBtn">כניסה עם Google</button>
+    <p id="loginMsg" class="sub"></p>
+  </section>
+
+  <section id="app" hidden>
+    <header>
+      <div><h1>ניהול</h1><div class="sub" id="who"></div></div>
+      <button class="btn" id="logoutBtn">יציאה</button>
+    </header>
+    <div class="grid" id="links"></div>
+    <h2 style="font-size:17px;margin:22px 0 8px">כתובות נעולות</h2>
+    <p class="sub" id="lockPolicy"></p>
+    <div id="locks" class="sub">טוען…</div>
+    <p class="note">ירוק: השרת בודק שהמשתמש מנהל בכל פעולה. כתום: השרת בודק, אבל הדף קורא את בסיס הנתונים ישירות. אדום: הבדיקה נעשית בדפדפן בלבד, צריך להעביר את הדף לשרת.</p>
+  </section>
+</div>
+
+<script>
+const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
+const TUTOR_API_BASE = location.hostname.endsWith("smarts-brains.online") ? location.origin + "/tutor-api" : "https://iakids-ai-tutor-he.onrender.com";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+const GUARD = {"server": ["g-server", "השרת בודק מנהל"], "browser only": ["g-browser", "בדיקה בדפדפן בלבד"]};
+
+$("googleBtn").onclick = async () => { await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.href.split("#")[0] } }); };
+$("logoutBtn").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) return;
+  const email = (session.user.email || "").toLowerCase();
+  let data;
+  try {
+    // the server decides: only the server's admins get the list; the page itself has no link and no list
+    const r = await fetch(TUTOR_API_BASE + "/api/admin/links", { headers: { "Authorization": "Bearer " + session.access_token } });
+    if (!r.ok) throw new Error(r.status);
+    data = await r.json();
+  } catch (e) {
+    $("loginMsg").textContent = "אין הרשאה לחשבון " + email;
+    await sb.auth.signOut();
+    return;
+  }
+  $("loginScreen").hidden = true; $("app").hidden = false;
+  $("who").textContent = data.email;
+  loadLocks(session.access_token);
+  $("links").innerHTML = (data.links || []).map(l => {
+    const g = GUARD[l.guard] || ["g-mixed", "השרת בודק, הדף קורא ישירות"];
+    return `<a class="tile" href="${esc(l.url)}"><h2>${esc(l.title)}</h2><p>${esc(l.about)}</p>
+      <span class="guard ${g[0]}">${esc(g[1])}</span><div class="url">${esc(l.url)}</div></a>`;
+  }).join("");
+}
+// lock and release (2026-09-25): an address that failed the admin check too often is locked; an admin releases it
+async function loadLocks(token){
+  try{
+    const r = await fetch(TUTOR_API_BASE + "/api/admin/security/locks", { headers: { "Authorization": "Bearer " + token } });
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json(), p = j.policy || {};
+    $("lockPolicy").textContent = `כתובת שנכשלה ${p.fails} פעמים תוך ${p.window_min} דקות ננעלת ל־${p.lock_min} דקות.`;
+    $("locks").innerHTML = (j.locks || []).length ? j.locks.map(l => `<div class="tile" style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span dir="ltr">${esc(l.ip)}</span><span>${esc(l.fails)} ניסיונות · עוד ${esc(l.minutes_left)} דקות</span>
+        <button class="btn" data-ip="${esc(l.ip)}">שחרור</button></div>`).join("") : "אין כתובות נעולות.";
+    document.querySelectorAll("#locks [data-ip]").forEach(b => b.onclick = async () => {
+      const rr = await fetch(TUTOR_API_BASE + "/api/admin/security/locks/release", { method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" }, body: JSON.stringify({ ip: b.dataset.ip }) });
+      if (rr.ok) loadLocks(token);
+    });
+  }catch(e){ $("locks").textContent = "לא הצלחתי לטעון את רשימת הנעילות."; }
+}
+init();
+</script>
+</body>
+</html>

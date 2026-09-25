@@ -56,9 +56,9 @@ _JWK = json.loads(jwt.algorithms.ECAlgorithm.to_jwk(_KEY.public_key()))
 _JWK.update({"kid": _KID, "alg": "ES256", "use": "sig"})
 
 
-def mint(base_url, seconds=3600):
+def mint(base_url, seconds=3600, email=None):
     now = int(time.time())
-    return jwt.encode({"sub": TEST_PARENT_ID, "email": TEST_EMAIL, "aud": "authenticated", "role": "authenticated",
+    return jwt.encode({"sub": TEST_PARENT_ID, "email": email or TEST_EMAIL, "aud": "authenticated", "role": "authenticated",
                        "iss": f"{base_url}/auth/v1", "iat": now, "exp": now + seconds, "session_id": "perf",
                        "app_metadata": {"provider": "email"}, "user_metadata": {}},
                       _KEY, algorithm="ES256", headers={"kid": _KID})
@@ -251,7 +251,9 @@ async def jwks(request: Request):
 
 
 async def token(request: Request):
-    return JSONResponse({"access_token": mint(f"http://127.0.0.1:{args.port}")})
+    # test-only: ?email= and ?seconds= (negative = already expired) for the admin security checks
+    q = request.query_params
+    return JSONResponse({"access_token": mint(f"http://127.0.0.1:{args.port}", int(q.get("seconds", 3600)), q.get("email"))})
 
 
 async def storage(request: Request):
