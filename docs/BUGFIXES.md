@@ -2,6 +2,14 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Fit the English dashboard into a desktop viewport (eng-dashboard-7)
+
+- Symptom: the bottom dashboard row was cut off on a 1915×987 browser screenshot, requiring vertical scrolling to see the full page.
+- Cause: the page used independent minimum row heights plus fixed hero, feature media, and feature body heights; their sum exceeded the viewport once all progress rows returned.
+- Fix: for desktop viewports 900–1140 CSS pixels tall, allocate the hero, feature cards, and dashboard panels from the available height and compact feature text without removing content. Refresh the CSS cache key.
+- Verification: checked the computed height of each row, desktop page scroll height after deployment, and the final full-page rendering.
+- Build: eng-dashboard-7, English dashboard only.
+
 ## 2026-09-25 — Restore the English Recent Progress reference (eng-dashboard-6)
 
 - Symptom: the Recent Progress card showed an empty state rather than the four activity rows and encouragement strip in the approved reference image.
