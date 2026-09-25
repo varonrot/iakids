@@ -2103,10 +2103,11 @@ img{max-width:100%;display:block}
   .continue-learning .lesson-thumb{border-radius:10px}
   .continue-learning .lesson-info{padding:4px 0;justify-content:flex-start}
   .continue-learning .kicker{
-    align-self:flex-start;padding:3px 5px;border-radius:4px;
+    padding:3px 5px;border-radius:4px;
     background:#e9faf6;color:#008e8d;
     font-size:clamp(11px,.6vw,14px);line-height:1.2;
   }
+  .continue-learning .lesson-info > .kicker{align-self:flex-start}
   .continue-learning .lesson-info h3{
     margin:8px 0;font-size:clamp(18px,1.05vw,26px);line-height:1.25;
     letter-spacing:-.02em;

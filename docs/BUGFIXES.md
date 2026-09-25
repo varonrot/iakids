@@ -2,6 +2,14 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Align the Continue Learning header badge (eng-dashboard-badge-1)
+
+- Symptom: “READY WHEN YOU ARE” appeared at the card's top border instead of centered in its header.
+- Cause: a shared `.continue-learning .kicker` rule applied `align-self:flex-start` to both the header badge and the inner “YOUR NEXT STEP” badge.
+- Fix: apply that alignment only to the badge inside `.lesson-info` and refresh the English dashboard stylesheet cache key.
+- Verification: CSS selector inspection and diff checks; live browser check after deployment.
+- Build: eng-dashboard-badge-1, English frontend only.
+
 ## 2026-09-25 — Remove the parent-auth loading popup before Test Prep (eng-auth-2)
 
 - Symptom: clicking Start prep briefly displayed a different parent-auth dialog before the Test Prep dialog appeared, even for a parent with a selected child.
