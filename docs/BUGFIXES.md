@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 12204)
+Total output lines: 341
+
 Warning: truncated output (original token count: 27919)
 Total output lines: 657
 
@@ -6,13 +9,14 @@ Total output lines: 657
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
 
-## 2026-09-24 — Claude Code project settings were invalid JSON; gate hooks never ran (build 0.7.148)
+## 2026-09-25 — Constrain the English dashboard logo at every viewport (eng-dashboard-4)
 
-- Symptom: Claude Code reported "Settings (.claude/settings.json): Expected object, but received undefined", and the PreToolUse/PostToolUse prompt-gate hooks (pre-edit backup, post-edit gate, the Bash guard on bare `systemctl restart`) were silently skipped.
-- Cause: the three hook `command` strings contained unescaped double quotes around `${CLAUDE_PROJECT_DIR:-/opt/iakids}/tools/prompt_gate.py`, so the file stopped parsing at line 9 (since e320959d).
-- Fix: escaped the inner quotes (`\"`). The commands are unchanged once parsed.
-- Verification: `json.load` parses the file and prints the three commands as intended; `prompt_gate --all` passes.
-- Build: 0.7.148.
+- Symptom: at tablet widths, the brand mark rendered at its 1280px source size, covering dashboard content and causing horizontal overflow.
+- Cause: logo dimensions were only set inside the mobile and wide desktop media queries.
+- Fix: define a 38px default logo size with contained scaling; existing breakpoint-specific sizes remain in effect. Bump the dashboard stylesheet cache key.
+- Verification: confirmed the base sizing rule applies across the missing 721–1100px range and narrower/wider breakpoint rules override it as intended; `git diff --check`.
+- Build: eng-dashboard-4, English dashboard only.
+
 
 ## 2026-09-24 — Complete Recent Progress empty state (eng-dashboard-3)
 
@@ -65,34 +69,6 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
 - Build: English CSS cache version prep-mobile-20260924; Hebrew workspace unchanged.
 
 ## 2026-09-24
-
-### 2026-09-24 — exam prep and gifted in the main menu; menu grows on hover; "חדש" badges (build 0.7.147)
-- **Exam prep and gifted** (user: move them to the main menu, not under בדיקות ומעקב):
-  - They now have their own buttons in the workspace menu, "הכנה למבחן" and "מבחן המחוננים". Each opens its page in the same center view as the hub (`openDiagnosticsView(path, btnId)`, limited to `/he/diagnostics/…`) and highlights its own button.
-  - The hub no longer has the "תרגול לקראת…" section.
-  - On those two pages, "סיימתי להיום" closes the view (`C.leave`), and the back link to the hub is gone.
-- **"הכנה למבחן" opened a "coming soon" page, and then בדיקות ומעקב stopped working** (user report):
-  - *Cause 1*: an old script (`IAKIDS_EXAM_PREP_COMING_SOON_0751`) catches, in the capture phase, every click on anything whose text contains "הכנה למבחן" and opens a "coming soon" screen. It swallowed the new button's click.
-  - *Cause 2*: that screen sits above the checks view (z-index 248 against 246) and nothing closed it, so after seeing it once, בדיקות ומעקב opened behind it and the menu seemed dead.
-  - *Fix*: the old catcher now opens the real exam prep (the "coming soon" screen stays only as a fallback), and opening the checks view hides the old screen.
-  - *Gate*: both are pinned and negative-tested.
-  - *Verified* on the real workspace with all old scripts loaded: each of the three buttons opens its page, and with the old screen forced open, clicking בדיקות ומעקב puts the checks on top.
-- **Hub layout** (user: all 4 in one row, or 2 rows of 2): the four check cards sit in one row when the frame is wider than 1000px, 2×2 in the workspace center, and one column on a phone. Measured by card positions at 1200, 860 and 400px.
-- **Menu text too small** (user): on hover or keyboard focus, a menu item's title grows ×1.18 and its icon ×1.12, anchored on the right (`IAKIDS_MENU_HOVER_ZOOM`, declared after every other `.side-item` rule; respects reduced motion).
-- **Badges** (user: a "new" or "premium" tag):
-  - `<span class="side-badge new">חדש</span>`, a cyan-to-green pill with a soft pulse, now on בדיקות ומעקב, הכנה למבחן and מבחן המחוננים.
-  - `<span class="side-badge premium">פרימיום</span>`, a gold pill with ★, is ready but not placed on any item yet.
-  - Both are labels only; nothing is locked.
-- **Gate**:
-  - The hub must not link to exam prep or gifted, and the menu must keep both buttons with their paths.
-  - The hover block must exist and come after the last `.side-item{` rule.
-  - The earlier rule that required exam prep to be inside the hub now only forbids the old coming-soon placeholder.
-  - Each rule was negative-tested.
-- **Verified**:
-  - The real menu markup and view script were tested in headless Chromium: each button opens its page, highlights itself, and any other menu item closes the view.
-  - On the real workspace the computed hover transform is `matrix(1.18…)`.
-  - The badges were rendered and checked on screen.
-  - `prompt_gate --all` passes.
 
 ### 2026-09-24 — English Test Prep entry popup
 - **Symptom**: Start prep, its arrow, and navigation/mobile Test Prep links led to a missing page.
@@ -215,13 +191,7 @@ Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly 
   - *Cause*: the files were in storage (checked read-only: 3 of 3). But the page listed `homework_sessions`, whose file name and link are never filled, so it showed "none". Its fallback then listed the storage folder from the browser, which storage rules do not allow, and got nothing. The separate page `he/files/` had the same bug through `/api/kid/files`.
   - *Fix*: `/api/kid/files` now reads `homework_uploads` for this parent and child, signs each file for an hour, and takes status and question counts from the session that started right after the upload. It keeps the fields `he/files/` uses. The workspace view calls this route instead of the database, and the browser storage fallback is off. That removes two browser database and storage calls, per the architecture rule.
   - *Verified*: read-only against production, 3 files returned with working links, subject and topic; another parent's id gets 404.
-  - *Gate*: code rules on the route's table and signing, and screen rules that the view uses the API and the fallback stays off. Both negative-tested.
-
-### 2026-09-24 — chat security review, server and browser (build 0.7.142)
-- **Asked**: check whether text typed into the chat can make a model leak data from the database or anything else, whether any model is connected to the database or can act, and limit the size of chat text. Server and browser.
-- **Found, and good already**:
-  - None of the 27 model calls has tools or function calling, so no model can reach the database or act.
-  - The child is loaded with a `user_id` filter, and memory and history only for that child, so the most an injection could leak is the attacker's own child's data, the prompt, and the homework plan's correct …15919 tokens truncated… to the cat for any unknown key, in the workspace and in the parent panel. The gate fails if an avatar URL is ever built straight from the key again.
+  - *Gate*: cod…204 tokens truncated… to the cat for any unknown key, in the workspace and in the parent panel. The gate fails if an avatar URL is ever built straight from the key again.
 
 ### build 0.7.130 — a server restart ended a child's lesson, in Spanish
 - **Symptom**: ארבל sent her answer at the exact moment of a deploy and got "⚠️ Algo salió mal. Intenta más tarde." — a Spanish sentence on a Hebrew page — and the lesson stopped.
