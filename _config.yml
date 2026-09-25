@@ -1,0 +1,25 @@
+# GitHub Pages (iakids.app) publishes this repository. 2026-09-25 (user): prompts, documentation and
+# every internal project file are private — only the site itself is published. Jekyll drops everything
+# listed here from the build; a pattern with * also matches inside sub-folders (games/*/GAME.md).
+# The mirror on smarts-brains.online blocks the same paths in nginx (/opt/iakids-deploy/nginx.conf).
+# tools/prompt_gate.py (pages_privacy_checks) fails if an entry below disappears.
+exclude:
+  # server code, prompts, question banks with answers
+  - backend
+  - backend-ai-tutor-he
+  - "iakids_*_prompt*.txt"
+  - "V*_BACKUP"
+  # internal tooling, docs, tests, database migrations, server config
+  - tools
+  - docs
+  - performance
+  - supabase
+  - ops
+  # file types that are never site content
+  - "*.md"
+  - "*.py"
+  - "*.sql"
+  - "*.sh"
+  - "*.pyc"
+  - "*.env"
+  - "*.log"

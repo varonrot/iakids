@@ -15019,6 +15019,11 @@ data-custom-slot="0"
 
   </div>
 
+  <!-- 2026-09-25 (user): homework had no visible way back; the same "חזרה" as every other screen, in the header row -->
+  <button type="button" class="lesson-chat-back" id="homeworkBackBtn" hidden onclick="showDashboard()">
+    <i class="fa-solid fa-arrow-right"></i> חזרה
+  </button>
+
 <button
   type="button"
   class="lesson-chat-help"
@@ -31193,6 +31198,9 @@ function updateLearningPathFooter({
    ===================================================== */
 
 function setLearningMode(mode){
+
+  // homework gets the same visible "חזרה" as every other screen (2026-09-25)
+  document.getElementById("homeworkBackBtn")?.toggleAttribute("hidden", mode !== "homework");
 
   const title =
     document.getElementById(
@@ -54002,7 +54010,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07149"></script>
+<script src="/he/workspace/lesson-completion.js?v=07150"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54176,8 +54184,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.149</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.149";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.150</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.150";</script>
 
 <!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
      "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
@@ -54197,6 +54205,10 @@ function(audio){
 .side-badge.premium{color:#3a2500;background:linear-gradient(90deg,#ffd76a,#ffb03a);box-shadow:0 0 12px rgba(255,176,58,.45)}
 .side-badge.premium::before{content:"★ "}
 /* 2026-09-25 (user): "בבדיקה" - a feature open to families while it is still being tested; calm, no pulse */
+/* homework back button (2026-09-25): same look as the other screens' "חזרה" (.iml-close), at the end of the header row */
+.lesson-chat-header .lesson-chat-back{margin-inline-start:auto;flex:0 0 auto;height:38px;padding:0 14px;border-radius:11px;border:1px solid rgba(89,150,226,.24);background:#102b50;color:#e7f2ff;font:inherit;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.lesson-chat-header .lesson-chat-back:hover{border-color:#28d7ff}
+.lesson-chat-header .lesson-chat-back[hidden]{display:none!important}
 .side-badge.testing{color:#2a1600;background:linear-gradient(90deg,#ffb03a,#ff7ab6);box-shadow:0 0 10px rgba(255,122,182,.35)}
 @keyframes sideBadgePulse{0%,100%{box-shadow:0 0 6px rgba(40,215,255,.35)}50%{box-shadow:0 0 16px rgba(40,215,255,.75)}}
 @media (prefers-reduced-motion:reduce){.side-badge.new{animation:none}}
@@ -55868,7 +55880,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07149"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07150"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example

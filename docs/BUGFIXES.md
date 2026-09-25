@@ -2,6 +2,16 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Project files private on iakids.app; homework gets a visible "חזרה" (build 0.7.150)
+
+- **Symptom 1 (user)**: in homework it was hard to understand how to go back — unlike every other screen, the homework header had no "חזרה"; the only exit was "חזרה למערך השיעורים" at the top of the lesson sidebar.
+- **Fix 1**: a standard "חזרה" button (`#homeworkBackBtn`, same look as the other screens' back buttons) at the end of the homework header row, shown only in homework mode (`setLearningMode`), back to the home screen (`showDashboard()`).
+- **Symptom 2 (found 2026-09-25)**: GitHub Pages published the whole repository on iakids.app — the server code, every LLM prompt, the check question banks WITH their answers, docs (BUGFIXES, CLAUDE.md), migrations, backups and the new performance/ folder all answered HTTP 200. The smarts-brains.online mirror already blocked them in nginx.
+- **Fix 2**: `_config.yml` excludes them from the Pages build (backend, backend-ai-tutor-he, prompt files, V*_BACKUP, tools, docs, performance, supabase, ops, and every .md / .py / .sql / .sh / .env). The mirror additionally blocks `/performance/` (`/opt/iakids-deploy/nginx.conf`, backup `nginx.conf.bak-20260925-performance`). **Not fixed by this**: the GitHub repository itself is public, so the same files remain readable on github.com and in the history — making the repo private (or splitting site and server) is the user's decision.
+- **Gate**: `homework_back_checks` (button exists, is shown in homework mode, has the shared style) and `pages_privacy_checks` (every exclusion present, no `.nojekyll`), each negative-tested.
+- **Verified**: gate `--all` passes; mirror returns 404 for /performance/* and 200 for the site; iakids.app checked after the Pages build (see the commit's follow-up).
+- **Build**: 0.7.150.
+
 ## 2026-09-25 — Tutor capacity: request caches, event-loop fixes, performance tests; English voice tutor (in testing) (build 0.7.149)
 
 - **Symptom (measured)**: one tutor process held ~155 children in a lesson; the main chat (`openai-clean-chat`) froze every other child's request for up to 14 s under load, a lesson open blocked the server at 8 children, and every request made two Supabase round trips (Auth + the child's row) before any work — ~28 database calls per child per minute.

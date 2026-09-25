@@ -1784,6 +1784,42 @@ def english_page_checks() -> list:
         bad.append("he/english-tutor: the dictation script would auto-attach in HEBREW to this box (#chatInput / data-dictation-for)")
     return bad
 
+def homework_back_checks() -> list:
+    """User report 2026-09-25: in homework it was hard to understand how to go back. The homework screen has the
+    same visible "חזרה" as every other screen, in its header row, shown in homework mode."""
+    ws = (ROOT / "he" / "workspace" / "index.html").read_text(encoding="utf-8")
+    bad = []
+    m = re.search(r'<button[^>]*id="homeworkBackBtn"[^>]*>', ws)
+    if not m or 'onclick="showDashboard()"' not in m.group(0):
+        bad.append("workspace: homework has no visible 'חזרה' button again: the child cannot find the way back (user report 2026-09-25)")
+    elif ws.rfind('<div class="welcome lesson-chat-header">', 0, m.start()) < ws.rfind("</div>\n</div>", 0, m.start()) - 4000:
+        bad.append("workspace: the homework 'חזרה' button left the header row")
+    if 'document.getElementById("homeworkBackBtn")?.toggleAttribute("hidden", mode !== "homework");' not in ws:
+        bad.append("workspace: the homework 'חזרה' button is never shown (setLearningMode no longer toggles it)")
+    if ".lesson-chat-header .lesson-chat-back{" not in ws:
+        bad.append("workspace: the homework 'חזרה' button has no style: it does not look like the other screens' back button")
+    return bad
+
+PAGES_PRIVATE = ["backend", "backend-ai-tutor-he", '"iakids_*_prompt*.txt"', '"V*_BACKUP"', "tools", "docs", "performance",
+                 "supabase", "ops", '"*.md"', '"*.py"', '"*.sql"', '"*.sh"', '"*.env"']
+
+
+def pages_privacy_checks() -> list:
+    """2026-09-25 (user): prompts, documentation and internal project files are private. GitHub Pages publishes the
+    repository, so _config.yml must keep excluding them, and a .nojekyll file (which turns Jekyll and the
+    exclusions off) must never appear."""
+    bad = []
+    cfg = ROOT / "_config.yml"
+    if (ROOT / ".nojekyll").exists():
+        bad.append(".nojekyll exists: GitHub Pages would publish EVERY file, prompts and answer banks included (2026-09-25)")
+    if not cfg.exists():
+        return bad + ["_config.yml is missing: iakids.app publishes the prompts, the server code and the answer banks (2026-09-25)"]
+    lines = {l.strip()[2:].strip() for l in cfg.read_text(encoding="utf-8").splitlines() if l.strip().startswith("- ")}
+    for entry in PAGES_PRIVATE:
+        if entry not in lines:
+            bad.append(f"_config.yml no longer excludes {entry}: it is published on iakids.app for anyone to read (2026-09-25)")
+    return bad
+
 def changed_prompts(staged: bool) -> list:
     args = ["git", "diff", "--cached", "--name-only"] if staged else ["git", "diff", "--name-only", "HEAD"]
     names = sh(*args).split()
@@ -1888,7 +1924,7 @@ def main():
         # live in code (the lesson screen, the coach handover, the media failure signal)
         # plus, for main.py, the render smoke that doubles as an import smoke — a route
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
-        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks() + english_page_checks()
+        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks() + english_page_checks() + homework_back_checks() + pages_privacy_checks()
               + (performance_checks(main_src) + request_cache_tests() if main_changed else [])
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
@@ -1911,7 +1947,7 @@ def main():
         fails = check_file(PROMPTS / name, name, main_src, head_version(name))
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
-    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + persona_checks(main_src) + coverage_checks(main_src)
+    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + homework_back_checks() + pages_privacy_checks() + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + security_checks(main_src) + required_entry_checks() + check_bank_checks() + topbar_stacking_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
