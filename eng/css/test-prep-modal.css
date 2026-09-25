@@ -17,6 +17,19 @@
 .prep-footer{display:flex;align-items:center;gap:18px;margin-top:18px}.prep-footer p{flex:1;margin:0;text-align:center;font-size:12px;line-height:1.5;color:#627591}
 .prep-secondary,.prep-primary{border:1px solid #c5d7e2;border-radius:9px;padding:12px 22px;background:#fff;color:#3d5671;min-height:44px}.prep-primary{background:#009ba3;border-color:#009ba3;color:#fff;font-weight:700}.prep-secondary:hover{background:#f0faf8}
 .prep-step{padding:26px;min-height:340px}.prep-step h2{margin:26px 0 10px;font-size:30px}.prep-step p{color:#627591;line-height:1.5}.prep-back{background:none;border:0;color:#008e98;padding:4px 0;min-height:44px}.prep-step label{display:block;font-weight:600;margin:20px 0 8px}.prep-step input,.prep-step select,.prep-step textarea{width:100%;max-width:100%;padding:12px;border:1px solid #cbdfe7;border-radius:9px;color:#182d50;background:#fff}.prep-step textarea{resize:vertical}.prep-step .prep-primary{margin-top:20px}.prep-preview{display:block;max-width:100%;max-height:270px;margin:20px auto;object-fit:contain;border-radius:10px}.prep-filename{overflow-wrap:anywhere;font-weight:600}.prep-notice{padding:14px 18px;border-radius:10px;background:#eef9f7;font-size:14px}.prep-error{color:#ae3030!important;margin:16px 0 0}.prep-status{color:#087570!important}
+.prep-topics-step{padding:18px 26px 22px}
+.prep-topics-step h2{margin:0 0 4px}.prep-topics-step .prep-learner{margin:0 0 10px;font-size:14px;color:#557087}
+.prep-topics-step label[for="prepSubject"],.prep-topics-step label[for="prepTopicSearch"],.prep-topics-step label[for="prepCustomTopic"],.prep-topics-step label[for="prepTestDate"]{margin:10px 0 5px;font-size:13px}
+.prep-topics-step select,.prep-topics-step input[type="search"],.prep-topics-step input[type="date"],.prep-topics-step input[type="text"]{min-height:42px;padding:9px 12px}
+.prep-topic-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 9px;font-size:14px}.prep-topic-count{color:#008f98;font-size:12px;font-weight:700}
+.prep-topic-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:206px;overflow-y:auto;overscroll-behavior:contain;padding:2px 6px 4px 2px}
+.prep-topics-step .prep-topic-choice{display:flex;align-items:center;gap:10px;min-height:43px;margin:0;padding:8px 11px;border:1px solid #d1e1e9;border-radius:9px;background:#fff;font-weight:500;cursor:pointer}
+.prep-topic-choice:hover,.prep-topic-choice:has(input:checked){border-color:#00a5a9;background:#eafaf7}
+.prep-topics-step .prep-topic-choice input{width:18px;height:18px;flex:none;margin:0;accent-color:#008f98}.prep-topic-choice span{font-size:13px;line-height:1.35}
+.prep-topics-step .prep-topic-empty{margin:8px 0;font-size:13px}
+.prep-add-topic>div{display:flex;gap:8px}.prep-add-topic input{flex:1;min-width:0}.prep-add-topic .prep-secondary{padding:8px 18px}
+.prep-topics-step #prepTestDate{max-width:280px}.prep-topics-step .prep-status{font-size:13px;margin:8px 0}
+.prep-topic-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #e2ecf0;font-size:13px;color:#58718a}.prep-topics-step .prep-topic-footer .prep-primary{margin:0}.prep-primary:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:640px){
   .prep-modal{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;padding:0}
   .prep-modal [data-prep-view="start"]{display:flex;flex-direction:column;min-height:100%}
@@ -42,6 +55,9 @@
   .prep-footer .prep-secondary{width:100%;min-height:48px;border-color:#008b86;color:#007c79;font-size:17px;font-weight:600;border-radius:10px}
   .prep-step{padding:22px 18px;padding-bottom:max(24px,env(safe-area-inset-bottom))}
   .prep-step h2{font-size:27px}
+  .prep-topics-step{padding:18px max(18px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))}
+  .prep-topic-list{grid-template-columns:minmax(0,1fr);max-height:min(34dvh,260px)}
+  .prep-topic-footer{align-items:stretch;flex-direction:column}.prep-topic-footer .prep-primary{width:100%}
 }
 @media(max-width:360px){
   .prep-hero-copy{padding-left:18px}
