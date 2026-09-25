@@ -4,13 +4,23 @@
   const API = 'https://iakids-ai-tutor-he.onrender.com';
   const pendingKey = 'iakids.eng.pending';
   const childKey = 'iakids.eng.child';
+  const emailPendingKey = 'iakids.eng.email-test.pending';
+  function emailPending() {
+    try {
+      const pending = JSON.parse(localStorage.getItem(emailPendingKey));
+      if (pending && Date.now() - pending.at < 30 * 60 * 1000) return pending;
+      localStorage.removeItem(emailPendingKey);
+    } catch {}
+    return null;
+  }
+  const testLogin = new URLSearchParams(location.search).get('test') === '1' || !!emailPending();
   const storage = {
     get(key) { try { return sessionStorage.getItem(key); } catch { return null; } },
     set(key, value) { sessionStorage.setItem(key, value); },
     remove(key) { try { sessionStorage.removeItem(key); } catch {} }
   };
   const sb = window.supabase?.createClient('https://bxnfzuglfwytiyaguwjj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o', {
-    auth: { flowType: 'pkce', storageKey: 'iakids-eng-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: { flowType: testLogin ? 'implicit' : 'pkce', storageKey: 'iakids-eng-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
   const dialog = document.createElement('dialog');
   dialog.id = 'parentAuthDialog';
@@ -21,6 +31,7 @@
     <div class="auth-body"><div class="auth-brand">IA KIDS <span>ENG</span></div>
       <section data-auth-view="login"><p class="auth-eyebrow">FOR PARENTS</p><h2 id="parentAuthTitle">A little support.<br>A world of learning.</h2><p>Sign in to set up your child’s learning space and help them get ready for their next test.</p>
       <button class="google-signin" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.2H24v8h11a9.4 9.4 0 0 1-4.1 6.2v5.2h6.7c3.9-3.6 6-8.9 6-15.2Z"/><path fill="#34A853" d="M24 44c5.5 0 10.2-1.8 13.6-4.9l-6.7-5.2c-1.8 1.2-4.1 1.9-6.9 1.9-5.3 0-9.9-3.6-11.5-8.4H5.6v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.5 27.4a12 12 0 0 1 0-7.6v-5.3H5.6a20 20 0 0 0 0 18.2l6.9-5.3Z"/><path fill="#EA4335" d="M24 11.4c3 0 5.6 1 7.7 3l5.8-5.8A19.3 19.3 0 0 0 24 4 20 20 0 0 0 5.6 14.5l6.9 5.3c1.6-4.8 6.2-8.4 11.5-8.4Z"/></svg><span>Continue with Google</span></button>
+      <div class="auth-test-login" hidden><p>Testing a new account? Use a Gmail + address. The sign-in link goes to your usual inbox.</p><form id="authTestForm"><label for="authTestEmail">Test email address</label><input id="authTestEmail" type="email" autocomplete="email" required placeholder="yourname+iakids-test@gmail.com"><button class="auth-primary" type="submit">Email me a sign-in link</button></form><p class="auth-test-sent" role="status" hidden></p><a class="auth-test-back" href="${base.href}">Back to Google sign-in</a></div>
       <p class="auth-parent-note">A parent or guardian should complete this step.<br>Kids don’t need their own account.</p>
       <p class="auth-legal">By continuing, you agree to our <a href="/terms/" target="_blank" rel="noopener">Terms</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p></section>
       <section data-auth-view="children" hidden><h2 id="authChildrenTitle">Who’s learning today?</h2><p>Choose a child to continue.</p><div class="auth-children"></div><button type="button" class="auth-add">+ Add a child</button><button type="button" class="auth-signout">Sign out</button></section>
@@ -29,6 +40,9 @@
       <p class="auth-error" role="alert" hidden></p><button type="button" class="auth-retry" hidden>Try again</button>
     </div>`;
   document.body.append(dialog);
+  dialog.querySelector('.auth-test-login').hidden = !testLogin;
+  dialog.querySelector('.google-signin').hidden = testLogin;
+  dialog.classList.toggle('auth-testing', testLogin);
   let opener, overflow, continuation, userId, activeChild, busy = false, generation = 0, resumeOnClose;
   const show = name => {
     dialog.querySelectorAll('[data-auth-view]').forEach(el => { el.hidden = el.dataset.authView !== name; });
@@ -59,6 +73,7 @@
   function finish(kid) {
     storage.set(childKey, JSON.stringify({ userId, id: kid.id }));
     storage.remove(pendingKey);
+    try { localStorage.removeItem(emailPendingKey); } catch {}
     paintProfile(kid);
     if (dialog.open) {
       resumeOnClose = continuation;
@@ -168,6 +183,32 @@
       storage.remove(pendingKey); busy = false; button.disabled = false; button.querySelector('span').textContent = 'Continue with Google';
     }
   });
+  dialog.querySelector('#authTestForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy) return;
+    const email = dialog.querySelector('#authTestEmail').value.trim().toLowerCase();
+    if (!/^[^@+\s]+\+[^@\s]+@gmail\.com$/.test(email))
+      return error('Use your Gmail address with +iakids-test before @gmail.com.');
+    const button = dialog.querySelector('#authTestForm button');
+    busy = true; button.disabled = true; button.textContent = 'Sending…';
+    try {
+      if (!sb) throw new Error('Sign in could not load. Please refresh and try again.');
+      const pending = {action:continuation ? 'test-prep' : 'profile', method:'email', at:Date.now()};
+      storage.set(pendingKey, JSON.stringify(pending));
+      localStorage.setItem(emailPendingKey, JSON.stringify(pending));
+      const {error: authError} = await sb.auth.signInWithOtp({email, options:{emailRedirectTo:base.href, shouldCreateUser:true}});
+      if (authError) throw authError;
+      const status = dialog.querySelector('.auth-test-sent');
+      status.textContent = `Check ${email} for your sign-in link, then open it in this Chrome profile.`;
+      status.hidden = false;
+    } catch {
+      storage.remove(pendingKey);
+      try { localStorage.removeItem(emailPendingKey); } catch {}
+      error('We couldn’t send the sign-in link. Check the address and try again.');
+    } finally {
+      busy = false; button.disabled = false; button.textContent = 'Email me a sign-in link';
+    }
+  });
   dialog.querySelector('#authChildForm').addEventListener('submit', async event => {
     event.preventDefault(); if (busy) return;
     const name = dialog.querySelector('#authChildName').value.trim();
@@ -188,7 +229,9 @@
   dialog.querySelector('.auth-close').addEventListener('click', () => { if (!busy) dialog.close(); });
   dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
   dialog.addEventListener('close', () => {
-    generation++; continuation = null; storage.remove(pendingKey);
+    generation++; continuation = null;
+    try { if (JSON.parse(storage.get(pendingKey))?.method !== 'email') storage.remove(pendingKey); }
+    catch { storage.remove(pendingKey); }
     document.body.style.overflow = overflow || ''; opener?.focus();
     const next = resumeOnClose; resumeOnClose = null; if (next) next();
   });
@@ -209,14 +252,20 @@
   window.addEventListener('iakids:prep-ready', () => {
     let pending;
     try { pending = JSON.parse(storage.get(pendingKey)); } catch {}
+    pending ||= emailPending();
     const url = new URL(location.href);
     const hash = new URLSearchParams(url.hash.slice(1));
     const failed = url.searchParams.has('error') || hash.has('error');
-    const callback = url.searchParams.has('code') || failed;
+    const callback = url.searchParams.has('code') || hash.has('access_token') || failed;
     if (pending && Date.now() - pending.at < 30 * 60 * 1000) {
-      if (failed) { open(); show('login'); error('Google sign in was cancelled or couldn’t be completed. Please try again.'); storage.remove(pendingKey); }
+      if (failed) { open(); show('login'); error('Sign in was cancelled or couldn’t be completed. Please try again.'); storage.remove(pendingKey); try { localStorage.removeItem(emailPendingKey); } catch {} }
       else requireChild(pending.action === 'test-prep' ? () => window.IAKidsTestPrep.open() : null);
-    } else if (callback) { open(); show('login'); error('Please start sign in again from this page.'); }
+    } else if (callback) {
+      sb?.auth.getSession().then(({data:{session}}) => {
+        if (session) requireChild(null);
+        else { open(); show('login'); error('Please start sign in again from this page.'); }
+      });
+    }
     else if (sb) {
       sb.auth.getUser().then(async ({data:{user}}) => {
         if (!user || dialog.open) return;
