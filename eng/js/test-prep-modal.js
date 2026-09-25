@@ -309,7 +309,8 @@
       event.stopImmediatePropagation();
       document.querySelector('.main-nav')?.classList.remove('mobile-open');
       document.getElementById('mobileMenu')?.setAttribute('aria-expanded','false');
-      window.IAKidsAuth?.requireChild(() => open(trigger), trigger);
+      if (window.IAKidsAuth) window.IAKidsAuth.requireChild(() => open(trigger), trigger);
+      else location.assign(new URL('#test-prep', base).href);
     }
   }, true);
   window.IAKidsTestPrep = { open };
