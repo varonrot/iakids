@@ -2,6 +2,14 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Remove the parent-auth loading popup before Test Prep (eng-auth-2)
+
+- Symptom: clicking Start prep briefly displayed a different parent-auth dialog before the Test Prep dialog appeared, even for a parent with a selected child.
+- Cause: `requireChild()` opened the auth dialog before checking the existing account and child profile.
+- Fix: verify the Supabase user and existing child in the background; proceed straight to Test Prep when valid. Show the auth dialog only if sign-in, child selection, child creation, or an error needs attention. Keep explicit Change learner visible.
+- Verification: authenticated and unauthenticated flow state checks, JavaScript syntax, and live page after deployment.
+- Build: eng-auth-2, English frontend only.
+
 ## 2026-09-25 — "ניהול מנוי" led to 404; question bank stage 1 (build 0.7.152)
 
 - **Symptom (user)**: "ניהול מנוי" in the Hebrew workspaces (lessons and games) ended in "Error backend: 404".

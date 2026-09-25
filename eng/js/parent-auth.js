@@ -60,9 +60,15 @@
     storage.set(childKey, JSON.stringify({ userId, id: kid.id }));
     storage.remove(pendingKey);
     paintProfile(kid);
-    resumeOnClose = continuation;
-    continuation = null;
-    dialog.close();
+    if (dialog.open) {
+      resumeOnClose = continuation;
+      continuation = null;
+      dialog.close();
+    } else {
+      const next = continuation;
+      continuation = null;
+      next?.();
+    }
   }
   async function api(path, body) {
     if (!sb) throw new Error('Sign in could not load. Please refresh and try again.');
@@ -80,26 +86,28 @@
     }
     return response.json();
   }
-  async function check(forceSelection = false) {
+  async function check(forceSelection = false, silent = false) {
     const turn = ++generation;
-    show('loading');
+    if (!silent) show('loading');
     try {
       if (!sb) throw new Error('Sign in could not load. Please refresh and try again.');
       const {data: {user}, error: authError} = await sb.auth.getUser();
-      if (turn !== generation || !dialog.open) return;
+      if (turn !== generation || (!silent && !dialog.open)) return;
       if (!user) {
+        if (silent) open(opener);
         userId = null; paintProfile(null); show('login');
         if (authError && authError.name !== 'AuthSessionMissingError') error('We couldn’t verify your session. Please try signing in again.');
         return;
       }
       userId = user.id;
       const {kids} = await api('/api/kid/list');
-      if (turn !== generation || !dialog.open) return;
+      if (turn !== generation || (!silent && !dialog.open)) return;
       let remembered;
       try { remembered = JSON.parse(storage.get(childKey)); } catch {}
       const selected = kids.find(k => remembered?.userId === user.id && k.id === remembered.id);
       if (!forceSelection && selected) return finish(selected);
       if (!forceSelection && kids.length === 1) return finish(kids[0]);
+      if (silent) open(opener);
       if (!kids.length) { show('create'); dialog.querySelector('#authChildName').focus(); return; }
       show('children');
       const list = dialog.querySelector('.auth-children'); list.replaceChildren();
@@ -109,11 +117,18 @@
       });
       list.querySelector('button')?.focus();
     } catch (e) {
-      if (turn === generation && dialog.open) { show('children'); dialog.querySelector('.auth-children').replaceChildren(); error(e.message || 'Please try again.', true); }
+      if (turn === generation && (dialog.open || silent)) {
+        if (silent) open(opener);
+        show('children'); dialog.querySelector('.auth-children').replaceChildren(); error(e.message || 'Please try again.', true);
+      }
     }
   }
   function requireChild(next, trigger, force = false) {
-    continuation = next; open(trigger); check(force);
+    if (dialog.open) return;
+    continuation = next;
+    opener = trigger || document.activeElement;
+    if (force) { open(opener); check(true); }
+    else check(false, true);
   }
   window.IAKidsAuth = { requireChild, get child() { return activeChild; } };
   dialog.querySelector('.google-signin').addEventListener('click', async () => {
