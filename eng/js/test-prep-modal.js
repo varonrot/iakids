@@ -76,7 +76,7 @@
   dialog.querySelector('.prep-hero img').src = new URL('assets/hero/test-prep-hero.webp', base).href;
   document.body.append(dialog);
   let opener, previousOverflow, previewURL, fileKind = 'file';
-  let topicChildId = null, topicChildGrade = null;
+  let topicChildId = null, topicChildGrade = null, remoteDraftChild = null, topicRevision = 0;
   let selectedTopics = new Set();
   let customTopics = [];
   const topicsForm = dialog.querySelector('#prepTopicsForm');
@@ -131,6 +131,8 @@
     if (topicChildId !== child?.id || topicChildGrade !== grade) {
       topicChildId = child?.id || null;
       topicChildGrade = grade;
+      remoteDraftChild = null;
+      topicRevision++;
       selectedTopics = new Set();
       customTopics = [];
       subjectField.value = 'Math';
@@ -150,6 +152,23 @@
     searchField.value = '';
     dialog.querySelector('.prep-status').textContent = '';
     renderTopics();
+    if (valid && remoteDraftChild !== child.id) {
+      remoteDraftChild = child.id;
+      const revision = topicRevision;
+      window.IAKidsAuth.loadTopicDraft(child.id).then(draft => {
+        if (!draft || topicChildId !== child.id || topicRevision !== revision || draft.grade !== grade) return;
+        if (![...Object.keys(topicCatalog), 'Other'].includes(draft.subject) || !Array.isArray(draft.topics)) return;
+        subjectField.value = draft.subject;
+        selectedTopics = new Set(draft.topics.filter(name => typeof name === 'string' && name.length <= 100));
+        customTopics = Array.isArray(draft.custom_topics) ? draft.custom_topics.filter(name => typeof name === 'string' && name.length <= 100) : [];
+        dialog.querySelector('#prepTestDate').value = draft.test_date || '';
+        renderTopics();
+        saveTopicDraft();
+      }).catch(() => {
+        if (topicChildId === child.id && topicRevision === revision)
+          dialog.querySelector('.prep-status').textContent = 'Saved topics could not be loaded. You can still choose topics and try saving again.';
+      });
+    }
   }
   function view(name) {
     dialog.querySelectorAll('[data-prep-view]').forEach(el => { el.hidden = el.dataset.prepView !== name; });
@@ -220,6 +239,7 @@
     view('file');
   }));
   subjectField.addEventListener('change', () => {
+    topicRevision++;
     selectedTopics.clear();
     customTopics = [];
     searchField.value = '';
@@ -227,11 +247,12 @@
     renderTopics();
     saveTopicDraft();
   });
-  searchField.addEventListener('input', renderTopics);
+  searchField.addEventListener('input', () => { topicRevision++; renderTopics(); });
   topicList.addEventListener('change', event => {
     if (!event.target.matches('input[type="checkbox"]')) return;
     if (event.target.checked) selectedTopics.add(event.target.value);
     else selectedTopics.delete(event.target.value);
+    topicRevision++;
     updateTopicCount();
     dialog.querySelector('.prep-status').textContent = '';
     saveTopicDraft();
@@ -240,6 +261,11 @@
     const input = dialog.querySelector('#prepCustomTopic');
     const name = input.value.trim().replace(/\s+/g, ' ');
     if (!name || !topicChildId) return;
+    if (selectedTopics.size >= 30 && !selectedTopics.has(name)) {
+      dialog.querySelector('.prep-status').textContent = 'Choose up to 30 topics for one test.';
+      return;
+    }
+    topicRevision++;
     if (!(topicCatalog[subjectField.value]?.[gradeFor(window.IAKidsAuth?.child)] || []).includes(name) && !customTopics.includes(name)) customTopics.push(name);
     selectedTopics.add(name);
     input.value = '';
@@ -251,12 +277,28 @@
   dialog.querySelector('#prepCustomTopic').addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); addCustomTopic(); }
   });
-  dialog.querySelector('#prepTestDate').addEventListener('change', saveTopicDraft);
-  topicsForm.addEventListener('submit', event => {
+  dialog.querySelector('#prepTestDate').addEventListener('change', () => { topicRevision++; saveTopicDraft(); });
+  topicsForm.addEventListener('submit', async event => {
     event.preventDefault();
-    if (!selectedTopics.size) return;
+    if (!selectedTopics.size || selectedTopics.size > 30 || !topicChildId) return;
+    const childId = topicChildId;
+    const button = topicsForm.querySelector('[type="submit"]');
+    button.disabled = true;
+    button.textContent = 'Saving…';
     saveTopicDraft();
-    dialog.querySelector('.prep-status').textContent = 'Your topic list is saved in this browser session. Study-plan creation is coming next.';
+    dialog.querySelector('.prep-status').textContent = '';
+    try {
+      await window.IAKidsAuth.saveTopicDraft(childId, {
+        grade: topicChildGrade, subject: subjectField.value, topics: [...selectedTopics],
+        custom: customTopics, date: dialog.querySelector('#prepTestDate').value
+      });
+      if (topicChildId === childId) dialog.querySelector('.prep-status').textContent = 'Saved to your account for this child. Study-plan creation is coming next.';
+    } catch (error) {
+      if (topicChildId === childId) dialog.querySelector('.prep-status').textContent = error.message;
+    } finally {
+      button.textContent = 'Keep topic list →';
+      updateTopicCount();
+    }
   });
   document.addEventListener('click', event => {
     const trigger = event.target.closest('a[href],button[aria-label="Open Test Prep"]');
