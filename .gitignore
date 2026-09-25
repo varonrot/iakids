@@ -15,3 +15,6 @@ node_modules/
 # session scratch — local handoff notes and launcher
 HANDOFF.md
 claude.sh
+
+# question bank working copy: items carry their answers and the repository is public (qbank/store.py)
+backend-ai-tutor-he/data/qbank/

@@ -1,0 +1,996 @@
+{
+ "subject": "english",
+ "subject_he": "אנגלית",
+ "curriculum": "English Curriculum 2020 (Ministry of Education, Pedagogical Secretariat, Language Department) – CEFR-aligned",
+ "notes": [
+  "Grade 3 = Pre-Basic User (Pre-A1), Lexical Pre-Band I (S1 Table 2: 'Grade 3 and/or first months of Grade 4').",
+  "Grades 4–6 = Basic User I (A1). Can-do statements (S3) are one set for grades 4–6; their per-grade placement here is inferred and marked inferred:true.",
+  "Grammar Band I (S5) is published per grade (Grade 4/5/6 columns, 'NO DESCRIPTOR' where a structure is not yet taught); grammar items are placed by those columns and are not inferred. The colour-coded level of progression per cell (mostly receptive → mostly correct) is not recoverable from the PDF text.",
+  "Lexical Band I Core I = Grade 4 – mid-Grade 5; Core II = mid-Grade 5 – end Grade 6 (S1 Table 2). vocab_sample entries are copied verbatim from S4 and were checked against the parsed list.",
+  "The 2020 curriculum organises can-dos as Reception (spoken = Listening, written = Reading), Production (spoken, written), Interaction (spoken, written/online) and Mediation; the strand names here map to those."
+ ],
+ "sources": [
+  {
+   "id": "S1",
+   "title": "English Curriculum 2020 (Introduction, Rationale, Standards; Table 2 'Vocabulary Bands per Level', Table 4 'Grammar Bands')",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/English/Curriculum2020.pdf",
+   "grades": [
+    3,
+    4,
+    5,
+    6
+   ]
+  },
+  {
+   "id": "S2",
+   "title": "Can do's – Pre-basic user (Pre-A1)",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/English/CurriculumFilesAugust21/candospreA1.pdf",
+   "grades": [
+    3
+   ]
+  },
+  {
+   "id": "S3",
+   "title": "Can do's – Basic user I (A1)",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/English/CurriculumFilesAugust21/candosA1.pdf",
+   "grades": [
+    4,
+    5,
+    6
+   ]
+  },
+  {
+   "id": "S4",
+   "title": "Lexical Pre-Band I & Band I – Elementary School (updated 26 Jan 2023)",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/English/CurriculumFilesAugust21/LexicalBand1.pdf",
+   "grades": [
+    3,
+    4,
+    5,
+    6
+   ]
+  },
+  {
+   "id": "S5",
+   "title": "Grammar Band I – Elementary School (Nov 2020), per-grade columns Grade 4/5/6",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/English/CurriculumFilesAugust21/GrammarBandI.pdf",
+   "grades": [
+    4,
+    5,
+    6
+   ]
+  },
+  {
+   "id": "S6",
+   "title": "English Curriculum 2020 – elementary curriculum page (Pedagogical Portal)",
+   "url": "https://pop.education.gov.il/tchumey_daat/english/yesodi/curriculum/introduction/",
+   "grades": [
+    3,
+    4,
+    5,
+    6
+   ]
+  }
+ ],
+ "grades": {
+  "3": [
+   {
+    "code": "ENG-3-01",
+    "strand": "Listening",
+    "title_he": "הבנת הנשמע: שאלות ומשפטים קצרים עם תמיכה חזותית",
+    "title_en": "Understanding short, slow spoken input with visual support",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can understand short, very simple questions and statements provided they are delivered slowly and clearly and accompanied by visuals or manual gestures",
+     "Can recognize Pre-Band I vocabulary, including instructions, delivered clearly and slowly in a familiar everyday context",
+     "Can recognize numbers, prices, dates and days of the week, delivered slowly and clearly",
+     "Can understand short, simple instructions for actions such as 'Stop,' 'Close the door'"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "Show me …",
+     "sit down",
+     "stop",
+     "Say it again please"
+    ],
+    "source": "S2",
+    "source_ref": "Reception activities – Spoken reception"
+   },
+   {
+    "code": "ENG-3-02",
+    "strand": "Reading",
+    "title_he": "האלפבית ומוסכמות הדפוס",
+    "title_en": "Alphabet and print conventions",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can recognize the letters of the alphabet in upper and lower case",
+     "Can recognize the use of a full stop to signal the end of a sentence and a question mark to signal a question",
+     "Can recognize the use of upper case to signal the beginning of a sentence and a proper noun",
+     "Can read sentences in the correct direction, from left to right and from the top of the page to the bottom"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S2",
+    "source_ref": "Written reception – Overall reading comprehension"
+   },
+   {
+    "code": "ENG-3-03",
+    "strand": "Reading",
+    "title_he": "פענוח: צליל-אות, מילים לא סדירות ושטף",
+    "title_en": "Decoding: phonics, irregular words, fluency",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can accurately read and pronounce phonetically-spelled words and words with familiar orthographic patterns",
+     "Can self-correct when decoding a familiar word by choosing the correct phoneme for a grapheme that may be associated with multiple phonemes",
+     "Can read familiar 'irregular words'",
+     "Can accurately and fluently read familiar words and chunks read aloud"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "cat",
+     "dog",
+     "red",
+     "sun",
+     "bed",
+     "pen",
+     "hat",
+     "egg"
+    ],
+    "source": "S2",
+    "source_ref": "Written reception"
+   },
+   {
+    "code": "ENG-3-04",
+    "strand": "Reading",
+    "title_he": "קריאת מילים ומשפטים מאוצר Pre-Band I בעזרת תמונות",
+    "title_en": "Reading Pre-Band I words and sentences with pictures",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can recognize all the words and phrases in Lexical Pre-Band I especially if accompanied by pictures or illustrations",
+     "Can read and understand sentences that contain lexical items from Pre-Band I",
+     "Can demonstrate understanding of a word by matching it to a picture",
+     "Can recognize a range of basic everyday nouns and adjectives (e.g., colors, numbers, classroom objects) and basic action words (e.g., 'clap', 'stamp', 'jump', 'walk')"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "bag",
+     "box",
+     "desk",
+     "pencil",
+     "big",
+     "hot",
+     "run",
+     "swim"
+    ],
+    "source": "S2",
+    "source_ref": "Written reception"
+   },
+   {
+    "code": "ENG-3-05",
+    "strand": "Spoken Production",
+    "title_he": "לספר על עצמי (שם, גיל, משפחה, הרגשה)",
+    "title_en": "Talking about myself",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can produce short phrases about themselves, giving basic personal information (e.g., name and address)",
+     "Can describe him/herself (e.g., name, age, family), using simple words and formulaic expressions, provided he/she can prepare in advance",
+     "Can say how he/she is feeling using simple words like 'happy' accompanied by body language"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "My name is …",
+     "I am/I'm … years old.",
+     "I live in …",
+     "I like … I don't like …"
+    ],
+    "source": "S2",
+    "source_ref": "Production activities – Spoken production"
+   },
+   {
+    "code": "ENG-3-06",
+    "strand": "Spoken Production",
+    "title_he": "חרוזים, דקלומים ושירים",
+    "title_en": "Rhymes, chants and songs",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can recite and sing using appropriate stress, rhythm and intonation",
+     "Can recite a short, simple rhyme or chant",
+     "Can sing a basic song from memory with or without the support of gestures and pictures",
+     "Can repeat phrases and short sentences, if spoken slowly and clearly"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S2",
+    "source_ref": "Spoken production"
+   },
+   {
+    "code": "ENG-3-07",
+    "strand": "Spoken Production",
+    "title_he": "ביטויים שגרתיים: נימוס, בקשות, שאלות קצרות",
+    "title_en": "Everyday formulaic expressions and requests",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can use a few basic words and phrases to show politeness (e.g., 'please', 'thank you')",
+     "Can ask about the identity of an object using a basic phrase (e.g., 'What is it?')",
+     "Can ask someone the time; can ask for the spelling of a word, using a basic phrase",
+     "Can ask people to do things with them, using a fixed expression (e.g., 'Let's play.')",
+     "Can make a few basic requests related to immediate personal needs (e.g., 'Can I go outside?')"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "thank you",
+     "you're welcome",
+     "What is it?",
+     "Let's play …",
+     "Excuse me please"
+    ],
+    "source": "S2",
+    "source_ref": "Spoken production"
+   },
+   {
+    "code": "ENG-3-08",
+    "strand": "Spoken Interaction",
+    "title_he": "שיחה: ברכות, היכרות ושאלות אישיות",
+    "title_en": "Greetings and personal-information exchanges",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can ask and answer questions related to personal information using short formulaic expressions and gestures when necessary",
+     "Can tell people his/her name and ask other people their name",
+     "Can ask and answer questions about him/herself and daily routines, using short, formulaic expressions",
+     "Can recognize and produce simple greetings, say his/her name and take leave",
+     "Can understand and use some basic responses including 'Yes,' 'No,' 'Please,' 'Sorry'"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "hello",
+     "How are you?",
+     "How old are you?",
+     "Where do you live?",
+     "see you later"
+    ],
+    "source": "S2",
+    "source_ref": "Interaction activities – Spoken interaction"
+   },
+   {
+    "code": "ENG-3-09",
+    "strand": "Writing",
+    "title_he": "כתיבת אותיות והעתקה",
+    "title_en": "Letter formation and copying",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can form letters in accordance with standard print conventions and in relation to marked lines",
+     "Can trace and copy individual letters in the correct direction",
+     "Can write the letters of the alphabet in upper and lower case",
+     "Can write their own name with the correct use of capital letters",
+     "Can copy short sentences containing familiar words, if presented in standard printed form",
+     "Can signal the end of a sentence using a full stop"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S2",
+    "source_ref": "Production activities – Written production"
+   },
+   {
+    "code": "ENG-3-10",
+    "strand": "Writing",
+    "title_he": "תיוג תמונות ומידע אישי בכתב",
+    "title_en": "Labelling pictures and basic personal information",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can label simple pictures related to familiar topics by copying single words",
+     "Can give basic personal information in writing (e.g., name, address)"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S2",
+    "source_ref": "Written production"
+   },
+   {
+    "code": "ENG-3-11",
+    "strand": "Written Interaction",
+    "title_he": "אינטראקציה בכתב: משפטים קצרים על עצמי",
+    "title_en": "Short written personal information",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can write short phrases and sentences giving basic personal information"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S2",
+    "source_ref": "Interaction activities – Written interaction"
+   },
+   {
+    "code": "ENG-3-12",
+    "strand": "Linguistic Competence",
+    "title_he": "אוצר מילים Pre-Band I, איות וסדר מילים",
+    "title_en": "Pre-Band I vocabulary, spelling and word order",
+    "band": "Pre-A1 / Lexical Pre-Band I (Grade 3 and/or first months of Grade 4)",
+    "skills": [
+     "Can use isolated words and basic expressions to give simple information about him/herself",
+     "Can spell words according to the appropriate stage in developmental spelling",
+     "Can employ very simple principles of word order in short statements",
+     "Can manage very short, isolated, rehearsed utterances using gesture and signaled requests for help when necessary"
+    ],
+    "grammar": [
+     "No Grammar Band for Pre-A1: only 'very simple principles of word order in short statements'; chunks such as 'I'm …', 'This is a/an …', 'there is / there are', 'Let's …', 'Do you like …?' are learned as formulaic phrases (from Pre-Band I list)"
+    ],
+    "vocab_sample": [
+     "I",
+     "you",
+     "he",
+     "it",
+     "they",
+     "a/an",
+     "the",
+     "and",
+     "but",
+     "in",
+     "on",
+     "next to"
+    ],
+    "source": "S4",
+    "source_ref": "Pre-Band I list (198 entries); S2 Communicative language competences"
+   }
+  ],
+  "4": [
+   {
+    "code": "ENG-4-01",
+    "strand": "Listening",
+    "title_he": "הבנת הנשמע: הוראות, שאלות ותיאורים פשוטים",
+    "title_en": "Following teacher talk, instructions and simple descriptions",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can understand and follow short and simple instructions/directions addressed carefully and slowly to him/her, including simple teacher instructions and explanations",
+     "Can understand basic questions about objects present in their immediate surroundings or in pictures (e.g., 'What's this?')",
+     "Can understand simple language related to naming and describing people's clothes",
+     "Can understand basic information about someone's immediate family with or without the support of pictures or gestures",
+     "Can understand basic phrases about the weather, spoken slowly and clearly"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken reception",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-02",
+    "strand": "Listening",
+    "title_he": "הבנת סיפור קצר ודיאלוג פשוט",
+    "title_en": "Following short stories and simple dialogues",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can follow a short, familiar story, with or without the support of pictures, gestures and repetition when delivered slowly and clearly",
+     "Can recognize familiar words and basic phrases in short, illustrated stories, read out slowly and clearly",
+     "Can identify the day and date in short, simple dialogues, if spoken slowly and clearly and supported by pictures or gestures"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken reception – Listening as a member of a live audience",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-03",
+    "strand": "Reading",
+    "title_he": "קריאת סיפורים וטקסטים קצרים מאוירים",
+    "title_en": "Reading short illustrated stories and texts",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can understand simple stories and shorter texts with the help of pictures and drawings",
+     "Can recognize key words and basic phrases in short, simple cartoon stories",
+     "Can follow simple dialogues in short, illustrated stories",
+     "Can understand basic written instructions for classroom activities (e.g., 'Read and match')"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written reception – Reading as a leisure activity / instructions",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-04",
+    "strand": "Spoken Production",
+    "title_he": "תיאור עצמי, משפחה ומזג אוויר",
+    "title_en": "Describing myself, my family and the weather",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can describe him/herself, what he/she does and where he/she lives",
+     "Can talk about their immediate family members",
+     "Can express likes and dislikes in relation to familiar topics in a basic way",
+     "Can say what the weather is like"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken production – Sustained monologue",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-05",
+    "strand": "Spoken Production",
+    "title_he": "שירים, חרוזים ומשחקי שפה",
+    "title_en": "Playing with spoken language",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can sing an age-appropriate, level-appropriate song or recite a rhyme from memory",
+     "Can say simple tongue-twisters and other types of playful language",
+     "Can take part in age-appropriate, level-appropriate games that use formulaic expressions or rhymes"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken production – Playing with spoken language (new)",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-06",
+    "strand": "Spoken Interaction",
+    "title_he": "שיחה פשוטה: ברכות, היכרות, בקשות",
+    "title_en": "Simple conversation: greetings, introductions, asking for things",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can introduce people and use basic greetings and leave-taking expressions",
+     "Can ask how people are and react to personal news",
+     "Can ask people for things and give people things",
+     "Can ask for food and drink using basic expressions"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken interaction – Conversation / Goal-oriented co-operation",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-07",
+    "strand": "Writing",
+    "title_he": "כתיבת משפטים פשוטים ואיות מילים יצרניות",
+    "title_en": "Writing simple phrases and sentences",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can write simple isolated phrases and sentences using level-appropriate language (vocabulary and grammar) and spelling that approximates accurate conventions based on a developmental continuum",
+     "Can describe certain everyday objects (e.g., the color of a car, whether it is big or small)",
+     "Can copy familiar words and common, frequent short phrases (e.g., simple signs, instructions, names of everyday objects and shops)"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written production; Orthographic control",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-08",
+    "strand": "Written Interaction",
+    "title_he": "מילוי פרטים אישיים בטופס",
+    "title_en": "Filling in personal details",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can write his/her name, address, age, date of birth, nationality, numbers etc. where required (e.g., on a registration form)",
+     "Can ask for or pass on personal details in written form"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written interaction – Notes, messages and forms",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-4-09",
+    "strand": "Grammar",
+    "title_he": "משפטים עם to be, there is/are ושאלות",
+    "title_en": "'To be', 'there is/are', yes/no and wh-questions",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "Declarative clauses with 'to be' + not/n't to describe a state (Amir is tall. They aren't tall.)",
+     "Declarative clauses with lexical verbs to describe a state (I like English. I don't like sport.)",
+     "Yes/no questions with auxiliary 'do' (Does Anna play sports? Yes, she does.)",
+     "Wh-questions with 'to be' and lexical verbs (Where is the party? When does the lesson begin?)",
+     "'There is/There are' to introduce the subject",
+     "Imperatives for instructions; 'Let's' + verb for suggestions"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 4 column: CLAUSES; VERBS: Imperative, Present/Linking 'TO BE', There is/There are"
+   },
+   {
+    "code": "ENG-4-10",
+    "strand": "Grammar",
+    "title_he": "זמנים: Present simple, Present continuous, Past simple (פעלים סדירים), can",
+    "title_en": "Tenses and 'can' in Grade 4",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "Present simple affirmative and negative for habits (Ofer usually watches TV. Lucie doesn't watch TV.)",
+     "Present simple yes/no questions",
+     "Present continuous affirmative 'be + verb-ing' (Gal is walking her dog.)",
+     "Past simple affirmative with regular verbs (I played football with Tom.)",
+     "'Can' / 'can't' for ability; 'Can …?' questions for ability and requests"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 4 column: VERBS: Present simple, Present continuous, Past simple lexical verbs; MODALITY"
+   },
+   {
+    "code": "ENG-4-11",
+    "strand": "Grammar",
+    "title_he": "שמות, כינויים ומילות יחס",
+    "title_en": "Nouns, pronouns, articles, possessives, prepositions",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "Plural -s on common countable nouns",
+     "Subject pronouns I/you/he/she/it/we/they; object pronouns me/him/her/us/them after verbs; 'it' as object",
+     "Articles a/an for a non-specific noun; the vs a/an for known/new information",
+     "Possessive determiners (your, his, their) and 's (Reuben's shop)",
+     "Coordinating 'and'/'or'/'but' joining words and phrases; 'because' after a main clause",
+     "Single-word prepositions of time and place (on Monday, at 4:00)"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 4 column: NOUNS; DETERMINERS; PREPOSITIONS; CLAUSES: Coordinated/Subordinated"
+   },
+   {
+    "code": "ENG-4-12",
+    "strand": "Vocabulary",
+    "title_he": "אוצר מילים – Band I Core I",
+    "title_en": "Lexical Band I Core I (Grade 4 – mid-Grade 5)",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can draw on his/her receptive and productive knowledge of vocabulary (Lexical Band I) when relating to particular concrete situations",
+     "Can spell the lexical entries in Lexical Band I marked as productive with reasonable accuracy"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "family",
+     "mother",
+     "brother",
+     "grandmother",
+     "body",
+     "head",
+     "eye",
+     "apple",
+     "bread",
+     "breakfast",
+     "Monday",
+     "January",
+     "spring",
+     "weather",
+     "sunny",
+     "classroom",
+     "teacher",
+     "homework",
+     "animal",
+     "horse",
+     "happy",
+     "hungry"
+    ],
+    "source": "S4",
+    "source_ref": "BAND I CORE I (547 entries); S1 Table 2"
+   }
+  ],
+  "5": [
+   {
+    "code": "ENG-5-01",
+    "strand": "Listening",
+    "title_he": "איתור מידע בהקלטות והודעות",
+    "title_en": "Picking out information from recordings and announcements",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can pick out concrete information (e.g., places and times) from short audio recordings on familiar everyday topics, provided they are delivered slowly and clearly",
+     "Can identify the day, date and time (e.g., 8:00, this afternoon) in short, simple dialogues",
+     "Can understand information (e.g., figures, prices and times) spoken slowly and clearly in a public announcement (e.g., at a railway station or in a shop)",
+     "Can understand when someone tells him/her where something is, provided the object is in the immediate environment"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken reception – Listening to announcements / audio media",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-5-02",
+    "strand": "Reading",
+    "title_he": "קריאה להתמצאות: מודעות, מערכת שעות, הודעות",
+    "title_en": "Reading for orientation and short messages",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can understand short, simple messages in notes, social media or email (e.g., proposing what to do, when and where to meet)",
+     "Can find and understand simple, important information in advertisements, programs for special events, leaflets and brochures",
+     "Can understand the information in a simple school timetable giving days and times of classes",
+     "Can follow short, simple written directions (e.g., to go from X to Y)"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written reception – Reading correspondence / for orientation",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-5-03",
+    "strand": "Reading",
+    "title_he": "קריאת הוראות הכנה ותיאורי מקומות",
+    "title_en": "Following instructions and reading descriptions",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can follow basic instructions for making something (e.g., a mask, a clock), if supported by pictures/illustrations",
+     "Can understand short, simple descriptions of familiar places written in level-appropriate language (vocabulary and grammar)"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written reception – Reading instructions; Reading as a leisure activity",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-5-04",
+    "strand": "Spoken Production",
+    "title_he": "תיאור אנשים, עבודות ומיקום",
+    "title_en": "Describing people, jobs and positions",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can describe someone's physical appearance in a basic way",
+     "Can say what someone's job is, using familiar common job names",
+     "Can describe the position of objects or people using pictures or gestures",
+     "Can answer a series of simple questions about family and friends, using basic phrases"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken production – Giving information",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-5-05",
+    "strand": "Spoken Interaction",
+    "title_he": "החלפת מידע והעדפות",
+    "title_en": "Exchanging information and likes/dislikes",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can ask and answer questions about themselves and other people, where they live, people they know, things they have",
+     "Can exchange likes and dislikes for sports, foods, etc. when addressed clearly, slowly and directly",
+     "Can ask for the price of basic products/services",
+     "Can act on short, basic instructions that involve times, locations, numbers, etc."
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken interaction – Information exchange; Obtaining goods and services",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-5-06",
+    "strand": "Writing",
+    "title_he": "כתיבה יצירתית: על עצמי ועל דמויות",
+    "title_en": "Creative writing about people and places",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can write about themselves and fictitious people, where they live and what they do",
+     "Can link words or groups of words with basic linear connectors (e.g., 'and', 'then')",
+     "Shows evolving control of periods, commas, question marks, apostrophes and capital letters"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written production – Creative writing; Coherence; Orthographic control",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-5-07",
+    "strand": "Written Interaction",
+    "title_he": "הודעות ופוסטים קצרים",
+    "title_en": "Short messages and online posts",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can write messages and online postings as a series of very short sentences about hobbies and likes/dislikes",
+     "Can leave a simple informative message giving, for example, where he/she has gone, what time he/she will be back",
+     "Can post short reactions to simple online postings using formulaic expressions and combinations of simple words"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written interaction – Correspondence; Notes; Online interaction",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-5-08",
+    "strand": "Grammar",
+    "title_he": "עבר: was/were, פעלים סדירים ולא סדירים, שלילה ושאלות",
+    "title_en": "Past simple in Grade 5",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "Past 'to be' (was/were), affirmative and negative, and yes/no + wh-questions about a past state",
+     "Past simple of irregular verbs (they found a dog … Dana took the dog home)",
+     "Past simple negative with didn't (Tom didn't talk during our game)",
+     "'Did …?' yes/no questions and wh-questions with 'did' (When did you go to bed last night?)"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 5 column: VERBS: Past/Linking, Past simple linking verbs questions, Past simple lexical verbs"
+   },
+   {
+    "code": "ENG-5-09",
+    "strand": "Grammar",
+    "title_he": "עתיד והווה: will, be going to, present continuous בשלילה ושאלות",
+    "title_en": "Future forms and more present tenses in Grade 5",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "'Will + verb' and 'won't + verb' for plans and intentions; 'Will you …?' yes/no questions",
+     "'Be going to + verb' affirmative; yes/no and wh-questions with 'going to'",
+     "Present continuous negative and questions; temporary situations",
+     "Present simple wh-questions with 'do' (What do you eat for breakfast?); mental process verbs think/hope/know",
+     "Frequency adverbs always/sometimes with present simple"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 5 column: VERBS: Future 'WILL', 'BE GOING TO', Present continuous, Present simple questions/mental process; ADVERBS: Frequency"
+   },
+   {
+    "code": "ENG-5-10",
+    "strand": "Grammar",
+    "title_he": "השוואה, כמות וקישור משפטים",
+    "title_en": "Comparatives, quantifiers and compound sentences",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "Comparative adjectives: -er (bigger), -y → -ier (easier, funnier), irregular (better, further)",
+     "Quantifying determiners some/any with plural and uncountable nouns",
+     "'The + adjective' in a noun phrase (opposite the tall building)",
+     "Two main clauses joined with and/but/or (Mika likes most vegetables, but she doesn't like avocados.)",
+     "Object pronouns after prepositions (important to them); prepositional phrases of time and place (under the bed)"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 5 column: ADJECTIVES: Comparative; DETERMINERS: Quantity; CLAUSES: Coordinated; NOUNS: Pronouns; PREPOSITIONS"
+   },
+   {
+    "code": "ENG-5-11",
+    "strand": "Vocabulary",
+    "title_he": "אוצר מילים – סיום Core I ומעבר ל-Core II",
+    "title_en": "Lexical Band I Core I → Core II (Core II starts mid-Grade 5)",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can draw on his/her receptive and productive knowledge of vocabulary (Lexical Band I) when relating to particular concrete situations"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "country",
+     "city",
+     "restaurant",
+     "waiter",
+     "price",
+     "cheap",
+     "doctor",
+     "hospital",
+     "travel",
+     "holiday",
+     "bedroom",
+     "bathroom",
+     "supermarket",
+     "ticket",
+     "vacation",
+     "museum"
+    ],
+    "source": "S4",
+    "source_ref": "BAND I CORE I and BAND I CORE II; S1 Table 2 (Core I: Grade 4 – mid-Grade 5; Core II: mid-Grade 5 – end Grade 6)"
+   }
+  ],
+  "6": [
+   {
+    "code": "ENG-6-01",
+    "strand": "Listening",
+    "title_he": "הבנת הוראה עם תנאי והבנת שיחה בין דוברים",
+    "title_en": "Conditional instructions and conversations between speakers",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can understand a simple instruction containing a qualifying condition (e.g., 'If your birthday is in March, stand here.')",
+     "Can understand words and short sentences when listening to a simple conversation (e.g., between a customer and a waiter in a cafe), when people talk slowly and clearly",
+     "Can understand sentence types (e.g., questions) through word order rather than intonation alone",
+     "Can seek repetition and clarification to understand spoken language, and may ask other speakers for meanings of words"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken reception",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-6-02",
+    "strand": "Listening",
+    "title_he": "צפייה: חדשות ופרסומות",
+    "title_en": "Watching TV, film and video",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can recognize familiar words and phrases and identify the topics in headline news summaries and many of the products in advertisements, by exploiting visual information and activating general background knowledge"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken reception – Watching TV, film and video",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-6-03",
+    "strand": "Reading",
+    "title_he": "קריאת טקסטים מידעיים: רעיון עיקרי מול פרטים",
+    "title_en": "Reading for information: main ideas vs. unimportant details",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can understand stories and short texts on a range of familiar topics (e.g., sports, music or travel) written in level-appropriate language and supported by illustrations, rereading as required",
+     "Can form an idea of the content of simple informational material and short simple descriptions, especially if there is visual support",
+     "Can differentiate between main ideas and unimportant information in factual texts (new)"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written reception – Overall; Reading for information and argument",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-6-04",
+    "strand": "Spoken Production",
+    "title_he": "הצגה, תיאור ושחזור סיפור",
+    "title_en": "Presenting, describing and retelling",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can describe simple aspects of his/her everyday life in a series of simple sentences, especially if he/she can prepare in advance",
+     "Can give a simple description of an object or picture while showing it to others, especially when he/she can prepare in advance",
+     "Can read a very short, rehearsed statement (e.g., to introduce the participants in a role play)",
+     "Can re-tell parts of a story (with or without pictures) read by the teacher or from previous knowledge",
+     "Can draw simple conclusions about people in pictures (e.g., 'he's happy')"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken production – Sustained monologue; Addressing audiences; Playing with spoken language",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-6-05",
+    "strand": "Spoken Interaction",
+    "title_he": "שיחה על נושא צפוי, ריאיון ושיתוף פעולה",
+    "title_en": "Conversation, interviews and collaboration",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can take part in a simple conversation of a basic factual nature on a predictable topic (e.g., his/her home country, family, school)",
+     "Can reply in an interview to simple direct questions about personal details",
+     "Can state in simple language the nature of a problem to a health professional and answer simple questions such as 'Does that hurt?'",
+     "Can express an idea in simple language and ask what others think; can indicate that he/she understands and ask whether others understand"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Spoken interaction – Conversation; Interviewing; Mediation – Collaboration",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-6-06",
+    "strand": "Writing",
+    "title_he": "כתיבה מקושרת ותגובה אישית",
+    "title_en": "Connected writing and personal response",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can write simple isolated phrases and sentences using level-appropriate language and spelling that approximates accurate conventions",
+     "Can use simple words, phrases and sentences to say how a work made him/her feel",
+     "Can list names, numbers, prices and very simple information of immediate interest",
+     "Can spell the lexical entries in Lexical Band I marked as productive with reasonable accuracy"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written production; Mediation; Orthographic control",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-6-07",
+    "strand": "Written Interaction",
+    "title_he": "טפסים והודעות מקוונים",
+    "title_en": "Online forms and transactions",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "Can fill out sections of a very simple online purchase or application, providing basic personal information (e.g., name, e-mail address or telephone number)",
+     "Can write messages and online postings as a series of very short sentences about hobbies and likes/dislikes"
+    ],
+    "grammar": [],
+    "vocab_sample": [],
+    "source": "S3",
+    "source_ref": "Written interaction – Online interaction",
+    "inferred": true,
+    "inferred_note": "The A1 can-do statements are published once for grades 4–6; placing this subset in this grade is inferred (simpler statements earlier, more demanding later)."
+   },
+   {
+    "code": "ENG-6-08",
+    "strand": "Grammar",
+    "title_he": "השוואה מלאה: than, more, superlative",
+    "title_en": "Comparatives with 'than' and 'more', superlatives",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "Comparative with 'than' to compare two nouns (England is bigger than Ireland.)",
+     "'More' + longer adjectives (more comfortable than)",
+     "Superlative 'the + -est + noun' (the tallest building in Israel)",
+     "Superlative 'the most + adjective + noun' (the most beautiful bird)",
+     "Manner adverbs (plays happily, smiles sweetly)"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 6 column: ADJECTIVES: Comparative/Superlative; ADVERBS: Manner"
+   },
+   {
+    "code": "ENG-6-09",
+    "strand": "Grammar",
+    "title_he": "זמנים: אמיתות כלליות ועתיד מורחב",
+    "title_en": "General truths and full future forms",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [],
+    "grammar": [
+     "Present simple for general truths, affirmative and negative (Koala bears live only in Australia. They don't drink water.)",
+     "Wh-questions with 'will' (When will you visit me again?)",
+     "Negative 'be not going to + verb' (We aren't going to cook dinner tonight.)",
+     "Consolidation of all Band I tenses: present simple/continuous, past simple (regular/irregular), will, be going to"
+    ],
+    "vocab_sample": [],
+    "source": "S5",
+    "source_ref": "Grade 6 column: VERBS: Present simple, Future 'WILL' questions, 'BE GOING TO'"
+   },
+   {
+    "code": "ENG-6-10",
+    "strand": "Vocabulary",
+    "title_he": "אוצר מילים – Band I Core II (כל Band I יצרני עד סוף ו')",
+    "title_en": "Lexical Band I Core II (mid-Grade 5 – end Grade 6)",
+    "band": "A1 (Basic User I) / Lexical Band I, Grammar Band I",
+    "skills": [
+     "All Band I lexical items are expected to become productive by the end of elementary school (S1)",
+     "Can draw on his/her receptive and productive knowledge of vocabulary (Lexical Band I) when relating to particular concrete situations"
+    ],
+    "grammar": [],
+    "vocab_sample": [
+     "advice",
+     "agree",
+     "believe",
+     "competition",
+     "decide",
+     "describe",
+     "dictionary",
+     "explain",
+     "famous",
+     "important",
+     "information",
+     "instructions",
+     "mistake",
+     "newspaper",
+     "prefer",
+     "project",
+     "science",
+     "subject",
+     "useful",
+     "vocabulary"
+    ],
+    "source": "S4",
+    "source_ref": "BAND I CORE II (597 entries); S1 p.21"
+   }
+  ]
+ }
+}

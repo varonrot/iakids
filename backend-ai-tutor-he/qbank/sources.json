@@ -1,0 +1,19 @@
+{
+ "note": "Every source the question bank may use or has studied, with its licence class (research 2026-09-25, not legal advice: counsel reviews class A before bulk ingestion). A = open and commercially reusable (may feed adapted items, attribution required); B = inspiration / format only (never copied or adapted); C = not usable. Israeli commercial prep sites are C by the owner's rule.",
+ "sources": [
+  {"id": "original", "title": "Original items written by iakids (people, or a model grounded in a curriculum topic)", "url": null, "licence": "iakids", "licence_class": "A", "attribution": null},
+  {"id": "svamp", "title": "SVAMP (Patel, Bhattamishra, Goyal 2021)", "url": "https://github.com/arkilpatel/SVAMP", "licence": "MIT (the 1,000 SVAMP items only; the bundled ASDiv-A and MAWPS files keep their own licences)", "licence_class": "A", "attribution": "Adapted from SVAMP (Patel et al., 2021), MIT licence"},
+  {"id": "gsm8k", "title": "GSM8K (Cobbe et al. 2021, OpenAI)", "url": "https://huggingface.co/datasets/openai/gsm8k", "licence": "MIT", "licence_class": "A", "attribution": "Adapted from GSM8K (Cobbe et al., 2021), MIT licence"},
+  {"id": "im-k5", "title": "Illustrative Mathematics K-5 Math v.I", "url": "https://illustrativemathematics.org/math-curriculum/k-5-math/", "licence": "CC BY 4.0 (© 2021 Illustrative Mathematics; name and logo excluded; assessments: confirm first)", "licence_class": "A", "attribution": "Adapted from IM K–5 Math v.I, © 2021 Illustrative Mathematics®, CC BY 4.0"},
+  {"id": "arc", "title": "AI2 Reasoning Challenge (ARC)", "url": "https://huggingface.co/datasets/allenai/ai2_arc", "licence": "CC BY-SA 4.0 (derived items stay CC BY-SA)", "licence_class": "A", "attribution": "Adapted from ARC (Clark et al., 2018), CC BY-SA 4.0"},
+  {"id": "tatoeba", "title": "Tatoeba sentence pairs", "url": "https://tatoeba.org", "licence": "CC BY 2.0 FR (attribute the sentence author)", "licence_class": "A", "attribution": "Sentences from Tatoeba, CC BY 2.0 FR"},
+  {"id": "storyweaver", "title": "StoryWeaver (Pratham Books) leveled readers", "url": "https://storyweaver.org.in", "licence": "CC BY 4.0", "licence_class": "A", "attribution": "Story from StoryWeaver (Pratham Books), CC BY 4.0"},
+  {"id": "openbookqa", "title": "OpenBookQA", "url": "https://github.com/allenai/OpenBookQA", "licence": "Apache-2.0 on GitHub; 'unknown' on Hugging Face: read the LICENSE file before ingesting", "licence_class": "B", "attribution": null},
+  {"id": "rama-meitzav", "title": "RAMA released Meitzav / assessment tests", "url": "https://rama.education.gov.il", "licence": "© כל הזכויות שמורות לראמ\"ה", "licence_class": "B", "attribution": null},
+  {"id": "moe-gifted-samples", "title": "Ministry of Education gifted-identification samples (Stage A/B, grade 6)", "url": "https://parents.education.gov.il", "licence": "© כל הזכויות שמורות למשרד החינוך", "licence_class": "B", "attribution": null},
+  {"id": "moe-curriculum", "title": "Ministry of Education curriculum documents (topic lists are facts; the documents are not copied)", "url": "https://pop.education.gov.il", "licence": "© משרד החינוך", "licence_class": "B", "attribution": null},
+  {"id": "cet", "title": "מט\"ח / CET", "url": "https://www.cet.ac.il", "licence": "terms forbid commercial use, copying and crawling", "licence_class": "C", "attribution": null},
+  {"id": "israeli-prep-sites", "title": "Israeli commercial prep sites and workbooks (e.g. mihonan)", "url": null, "licence": "כל הזכויות שמורות; excluded by the owner's rule", "licence_class": "C", "attribution": null},
+  {"id": "pgm", "title": "DeepMind PGM matrices", "url": "https://github.com/google-deepmind/abstract-reasoning-matrices", "licence": "non-commercial research only", "licence_class": "C", "attribution": null}
+ ]
+}

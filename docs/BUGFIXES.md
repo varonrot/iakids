@@ -2,6 +2,21 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — "ניהול מנוי" led to 404; question bank stage 1 (build 0.7.152)
+
+- **Symptom (user)**: "ניהול מנוי" in the Hebrew workspaces (lessons and games) ended in "Error backend: 404".
+- **Cause**: the button called `/api/create-portal-session` on the Hebrew TUTOR (`TUTOR_API_BASE`), which has no such route; it lives in the payments backend (`backend/main.py`, iakids-backend.onrender.com). On the right server, a family with no paid subscription also gets 404 ("No Lemon subscription") or 500 (no subscriptions row, `.single()`).
+- **Fix**: `PAYMENTS_API_BASE` (iakids.app → iakids-backend.onrender.com; smarts-brains.online → `/payments-api/`, an nginx proxy of exactly that route, POST only, because the payments backend does not allow that origin in CORS; host nginx backup `/etc/nginx/backups/smarts-brains.bak-20260925-payments`). No subscription → "לא מצאנו מנוי בתשלום… לעבור לעמוד המנויים?" → `/he/#pricing`; other errors in Hebrew. Gate `subscription_button_checks` (2 negative tests).
+- **Verified**: a temporary production parent (deleted) called the route through the proxy and directly: same answer (500, no subscriptions row → the page offers the plans); without login 401; GET 403; other paths 404.
+- **Not fixed (noted)**: `goToUpgrade()` sends Hebrew users to `/#pricing` (the Spanish landing).
+- **Question bank, stage 1** (`backend-ai-tutor-he/qbank/`, `data/curriculum/`, migration `20260925_qbank.sql` + rollback, not yet applied):
+  - 446 curriculum topics from the Ministry's official documents (math 104, science 83, Hebrew 84, Tanakh 60, English 45, moledet 34, geography 24, history 12), each with its source link; 38 marked inferred.
+  - `qbank/sources.json`: licence registry (A usable / B inspiration only / C never); Israeli prep sites and CET fixed as C.
+  - `qbank/validate.py`: one key (maths recomputed from `solution_expr`), an explanation per distractor, reading load per grade, plural address, no slash forms / gershayim, key not in the stem, class-A sources only, gifted = original only, copy check (5-word shingles).
+  - `qbank/generate.py`: writer model → validators → blind solver of another model family → copy check → review queue (`pending`). Pilot: 8/8 kept (math grade 3, science grade 4), $0.052. Items are local only (`data/qbank/` gitignored: they carry answers, the repo is public).
+  - Gate `qbank_checks` (curriculum files, registry, validators with negative cases, generator prompt sections, no answer file tracked by git), each negative-tested.
+- **Build**: 0.7.152.
+
 ## 2026-09-25 — Test images added (no code change)
 
 - `backend/prompts/images.jpeg`, `backend/prompts/images2.png`: two images kept in the repo for testing, at the user's request. Not loaded by any code; not published on iakids.app (`backend/` is excluded in `_config.yml`), but readable in the public GitHub repository.

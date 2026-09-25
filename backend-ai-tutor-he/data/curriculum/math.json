@@ -1,0 +1,1538 @@
+{
+ "subject": "math",
+ "subject_he": "מתמטיקה",
+ "sources": [
+  {
+   "id": "S1",
+   "title": "תוכנית הלימודים לכיתה א' (תוכנית הלימודים החדשה במתמטיקה ליסודי)",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/math/primary-school/math2023/Newprogramgrade1.pdf",
+   "grades": [
+    1
+   ],
+   "note": "new curriculum; taught to grade 1 since תשפ\"ה (2024-25). Page refs = PDF page"
+  },
+  {
+   "id": "S2",
+   "title": "תוכנית הלימודים לכיתה ב' (תוכנית הלימודים החדשה במתמטיקה ליסודי)",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/math/primary-school/math2023/Newprogramgrade2.pdf",
+   "grades": [
+    2
+   ],
+   "note": "new curriculum; taught to grade 2 since תשפ\"ו (2025-26). Page refs = PDF page"
+  },
+  {
+   "id": "S3",
+   "title": "תוכנית הלימודים לכיתה ג' (תוכנית הלימודים החדשה במתמטיקה ליסודי)",
+   "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/math/primary-school/math2023/Newprogramgrade3.pdf",
+   "grades": [
+    3
+   ],
+   "note": "new curriculum; pop.education.gov.il states grade 3 joins in תשפ\"ז (2026-27, the current year). Page refs = PDF page"
+  },
+  {
+   "id": "S4",
+   "title": "תכנית לימודים במתמטיקה לכיתות א-ו בכל המגזרים (תשס\"ו 2006) – כיתה ד'",
+   "url": "https://meyda.education.gov.il/files/mazkirut_pedagogit/matematika/tochnyotlemud/kita4.pdf",
+   "grades": [
+    4
+   ],
+   "note": "current (old) curriculum, still taught in grade 4 in תשפ\"ז. Page refs = printed curriculum page"
+  },
+  {
+   "id": "S5",
+   "title": "תכנית לימודים במתמטיקה לכיתות א-ו בכל המגזרים (תשס\"ו 2006) – כיתה ה'",
+   "url": "https://meyda.education.gov.il/files/mazkirut_pedagogit/matematika/tochnyotlemud/kita5.pdf",
+   "grades": [
+    5
+   ],
+   "note": "current (old) curriculum, still taught in grade 5 in תשפ\"ז. Page refs = printed curriculum page"
+  },
+  {
+   "id": "S6",
+   "title": "תכנית לימודים במתמטיקה לכיתות א-ו בכל המגזרים (תשס\"ו 2006) – כיתה ו'",
+   "url": "https://meyda.education.gov.il/files/mazkirut_pedagogit/matematika/tochnyotlemud/kita6.pdf",
+   "grades": [
+    6
+   ],
+   "note": "current (old) curriculum, still taught in grade 6 in תשפ\"ז. Page refs = printed curriculum page"
+  },
+  {
+   "id": "S7",
+   "title": "ציוני דרך – תוכנית לימודים מבוארת, כיתה ד' (קבצי D.*: Shvarim, MisparimTivyim, Peulot, Prikim, Netunim, Geometriya, Medidot)",
+   "url": "https://meyda.education.gov.il/files/Tochniyot_Limudim/Math/Yesodi/Mevoeret/D.Peulot.pdf",
+   "grades": [
+    4
+   ],
+   "note": "milestone document for the current curriculum; one PDF per topic under .../Mevoeret/D.<topic>.pdf, linked from https://pop.education.gov.il/tchumey_daat/matmatika/yesodi/oraat-math/tohnit-limudim/"
+  },
+  {
+   "id": "S8",
+   "title": "ציוני דרך – תוכנית לימודים מבוארת, כיתה ה' (קבצי E.*: Shvarim, Peulot, Geometriya, Medidot)",
+   "url": "https://meyda.education.gov.il/files/Tochniyot_Limudim/Math/Yesodi/Mevoeret/E.Shvarim.pdf",
+   "grades": [
+    5
+   ],
+   "note": "milestone document for the current curriculum; one PDF per topic under .../Mevoeret/E.<topic>.pdf, linked from https://pop.education.gov.il/tchumey_daat/matmatika/yesodi/oraat-math/tohnit-limudim/"
+  },
+  {
+   "id": "S9",
+   "title": "ציוני דרך – תוכנית לימודים מבוארת, כיתה ו' (קבצי F.*: Shvarim, Achuzim, Yachas, Midot, KnehMida, Peulot, Netunim, Medidot)",
+   "url": "https://meyda.education.gov.il/files/Tochniyot_Limudim/Math/Yesodi/Mevoeret/F.Shvarim.pdf",
+   "grades": [
+    6
+   ],
+   "note": "milestone document for the current curriculum; one PDF per topic under .../Mevoeret/F.<topic>.pdf, linked from https://pop.education.gov.il/tchumey_daat/matmatika/yesodi/oraat-math/tohnit-limudim/"
+  }
+ ],
+ "grades": {
+  "1": [
+   {
+    "code": "MATH-1-01",
+    "strand": "מספרים",
+    "title_he": "ספירה עד 100",
+    "title_en": "Counting to 100",
+    "skills": [
+     "ספירה קדימה ואחורה עד 100 ממספר כלשהו",
+     "ספירה קדימה ואחורה בעשרות שלמות",
+     "ספירת המשך בדילוגים של 5 מכפולה של 5",
+     "ספירת המשך בדילוגים של 2",
+     "ספירה אחורה מ-50 בדילוגים של 2"
+    ],
+    "number_range": "0-100",
+    "source": "S1",
+    "source_ref": "הכרת המספרים הטבעיים בתחום 100 וה-0, עמ' 1"
+   },
+   {
+    "code": "MATH-1-02",
+    "strand": "מספרים",
+    "title_he": "מנייה עד 100",
+    "title_en": "Counting objects to 100",
+    "skills": [
+     "התאמת כמות למספר",
+     "אומדן ומנייה של עצמים עד 100",
+     "מנייה בקבוצות של 10 פריטים",
+     "זיהוי מהיר של כמויות קטנות",
+     "הבחנה בין מספר סודר (ראשון, שני) למספר מונה"
+    ],
+    "number_range": "0-100",
+    "source": "S1",
+    "source_ref": "עמ' 1-2"
+   },
+   {
+    "code": "MATH-1-03",
+    "strand": "מספרים",
+    "title_he": "קריאה וכתיבה של המספרים הטבעיים עד 100 ושל ה-0",
+    "title_en": "Reading and writing numbers to 100 and 0",
+    "skills": [
+     "קריאת מספר עד 100 ואמירת שמו",
+     "כתיבת מספר עד 100 בספרות",
+     "התאמת מספר לכמות מוצגת",
+     "מציאת המספר שלפני ואחרי מספר נתון"
+    ],
+    "number_range": "0-100",
+    "source": "S1",
+    "source_ref": "עמ' 3"
+   },
+   {
+    "code": "MATH-1-04",
+    "strand": "מספרים",
+    "title_he": "סדרות",
+    "title_en": "Sequences and patterns",
+    "skills": [
+     "זיהוי החוק בסדרה מספרית שההפרש בה 2, 5 או 10",
+     "השלמת איבר חסר בסדרה מספרית",
+     "זיהוי חוקיות בסדרת צורות או דגם חוזר",
+     "המשכת דגם חוזר"
+    ],
+    "number_range": "0-100",
+    "source": "S1",
+    "source_ref": "עמ' 3-4"
+   },
+   {
+    "code": "MATH-1-05",
+    "strand": "מספרים",
+    "title_he": "ישר המספרים",
+    "title_en": "The number line",
+    "skills": [
+     "מיקום מדויק של מספר עד 100 על ישר מספרים שמסומנים בו לפחות שני מספרים",
+     "מיקום מקורב של מספר על ישר מספרים",
+     "זיהוי טעות במיקום מספר על ישר המספרים"
+    ],
+    "number_range": "0-100",
+    "source": "S1",
+    "source_ref": "עמ' 4"
+   },
+   {
+    "code": "MATH-1-06",
+    "strand": "מספרים",
+    "title_he": "סדר המספרים עד 100",
+    "title_en": "Ordering numbers to 100",
+    "skills": [
+     "סידור מספרים מהקטן לגדול ומהגדול לקטן",
+     "איזה מספר גדול/קטן יותר (בלי סימן)",
+     "איזה מספר נמצא בין שני מספרים נתונים",
+     "איזה מספר קרוב יותר למספר נתון"
+    ],
+    "number_range": "0-100",
+    "source": "S1",
+    "source_ref": "עמ' 5"
+   },
+   {
+    "code": "MATH-1-07",
+    "strand": "פעולות חשבון",
+    "title_he": "מצבים של חיבור וחיסור",
+    "title_en": "Addition and subtraction situations",
+    "skills": [
+     "כתיבת תרגיל חיבור לסיפור של איסוף או הוספה",
+     "כתיבת תרגיל חיסור לסיפור של הפרדה או גריעה",
+     "חיבור סיפור לתרגיל נתון"
+    ],
+    "number_range": "0-20",
+    "source": "S1",
+    "source_ref": "פעולות חשבון בתחום ה-100, עמ' 5-6"
+   },
+   {
+    "code": "MATH-1-08",
+    "strand": "פעולות חשבון",
+    "title_he": "חיבור וחיסור בתחום ה-20",
+    "title_en": "Addition and subtraction within 20",
+    "skills": [
+     "חיבור וחיסור בתחום 10",
+     "פירוקי המספר 10 לשני מחוברים",
+     "חיבור וחיסור בתחום 20",
+     "0 כמחובר או כמחסר",
+     "ההפרש בין שני מספרים שווים הוא 0",
+     "השלמת מספר חסר במשוואה, למשל 10 = __ + 4",
+     "בדיקת חיבור בעזרת חיסור ולהפך",
+     "שאלה מילולית עם מחירים בשקלים שלמים עד 20"
+    ],
+    "number_range": "0-20",
+    "source": "S1",
+    "source_ref": "עמ' 6-7"
+   },
+   {
+    "code": "MATH-1-09",
+    "strand": "פעולות חשבון",
+    "title_he": "חיבור וחיסור בעשרות שלמות בתחום ה-100",
+    "title_en": "Adding and subtracting whole tens within 100",
+    "skills": [
+     "חיבור עשרות שלמות, למשל 20 + 60",
+     "חיסור עשרות שלמות, למשל 80 - 30",
+     "שאלה מילולית במחירים בעשרות שלמות עד 100"
+    ],
+    "number_range": "0-100 (עשרות שלמות)",
+    "source": "S1",
+    "source_ref": "עמ' 8"
+   },
+   {
+    "code": "MATH-1-10",
+    "strand": "גאומטריה",
+    "title_he": "מצולעים",
+    "title_en": "Polygons",
+    "skills": [
+     "זיהוי ושיום משולש, מרובע, מחומש, משושה ועד מעושר לפי מספר הצלעות",
+     "זיהוי ריבוע, מלבן ומעוין",
+     "הבחנה בין מצולע ללא מצולע (למשל עיגול)",
+     "ספירת קודקודים וצלעות במצולע",
+     "זיהוי מצולעים בציור מורכב",
+     "פירוק והרכבה של מצולעים"
+    ],
+    "source": "S1",
+    "source_ref": "צורות גאומטריות, עמ' 8"
+   },
+   {
+    "code": "MATH-1-11",
+    "strand": "גאומטריה",
+    "title_he": "מיקום וכיוונים",
+    "title_en": "Position and direction",
+    "skills": [
+     "קריאת מפה פשוטה של מקום מוכר",
+     "תיאור מיקום יחסי במילים קרוב יותר / רחוק יותר"
+    ],
+    "source": "S1",
+    "source_ref": "עמ' 9-10"
+   },
+   {
+    "code": "MATH-1-12",
+    "strand": "מדידות",
+    "title_he": "תיאור והשוואה של תכונות מדידות והשוואת אורכים",
+    "title_en": "Describing measurable attributes; comparing lengths",
+    "skills": [
+     "השוואה גבוה/נמוך, ארוך/קצר, כבד/קל",
+     "השוואה ישירה של אורכי שני עצמים",
+     "השוואת אורכים בעזרת מתווך"
+    ],
+    "source": "S1",
+    "source_ref": "מדידות אורך, עמ' 10"
+   },
+   {
+    "code": "MATH-1-13",
+    "strand": "מדידות",
+    "title_he": "מדידה ביחידות שרירותיות ובסנטימטר",
+    "title_en": "Measuring with non-standard units and centimetres",
+    "skills": [
+     "מדידת אורך ביחידות שרירותיות (אטבים, עפרונות)",
+     "מדידת אורך בסרגל בסנטימטרים שלמים",
+     "סרטוט קטע באורך נתון על דף משבצות"
+    ],
+    "number_range": "ס\"מ שלמים",
+    "source": "S1",
+    "source_ref": "עמ' 11-12"
+   },
+   {
+    "code": "MATH-1-14",
+    "strand": "מדידות",
+    "title_he": "הכרת שעון אנלוגי",
+    "title_en": "Reading an analogue clock",
+    "skills": [
+     "קריאת שעון מחוגים בשעות שלמות",
+     "חישוב משך זמן בשעות שלמות"
+    ],
+    "number_range": "שעות שלמות",
+    "source": "S1",
+    "source_ref": "מדידת זמן, עמ' 12"
+   },
+   {
+    "code": "MATH-1-15",
+    "strand": "חקר נתונים",
+    "title_he": "חקר נתונים",
+    "title_en": "Data",
+    "skills": [
+     "קריאת נתון מדיאגרמת עמודות",
+     "בניית דיאגרמת עמודות מנתונים שנאספו",
+     "קריאת נתון מפיקטוגרם ובנייתו"
+    ],
+    "source": "S1",
+    "source_ref": "עמ' 13"
+   }
+  ],
+  "2": [
+   {
+    "code": "MATH-2-01",
+    "strand": "מספרים",
+    "title_he": "הכרת המספרים הטבעיים עד 1,000 וה-0",
+    "title_en": "Natural numbers to 1,000 and 0",
+    "skills": [
+     "קריאה וכתיבה של מספרים עד 1,000 במילים ובספרות",
+     "פירוק מספר ליחידות, עשרות ומאות",
+     "הבחנה בין ספרה למספר",
+     "זיהוי ייצוגים שונים של אותו מספר",
+     "השוואת מספרים והשימוש בסימנים < ו->",
+     "סידור מספרים מהקטן לגדול"
+    ],
+    "number_range": "0-1,000",
+    "source": "S2",
+    "source_ref": "עמ' 1"
+   },
+   {
+    "code": "MATH-2-02",
+    "strand": "מספרים",
+    "title_he": "ספירה ומנייה בתחום ה-1,000",
+    "title_en": "Counting to 1,000",
+    "skills": [
+     "ספירה קדימה ואחורה ממספר כלשהו עד 1,000",
+     "מנייה ביחידות, בזוגות ובעשרות",
+     "ספירה בדילוגים של 10, 20, 50 ו-100"
+    ],
+    "number_range": "0-1,000",
+    "source": "S2",
+    "source_ref": "עמ' 3"
+   },
+   {
+    "code": "MATH-2-03",
+    "strand": "מספרים",
+    "title_he": "מספרים זוגיים ואי-זוגיים",
+    "title_en": "Even and odd numbers",
+    "skills": [
+     "קביעה אם מספר זוגי או אי-זוגי",
+     "מציאת המספר הזוגי הבא אחרי מספר נתון"
+    ],
+    "number_range": "0-1,000",
+    "source": "S2",
+    "source_ref": "עמ' 4"
+   },
+   {
+    "code": "MATH-2-04",
+    "strand": "מספרים",
+    "title_he": "סדרות",
+    "title_en": "Sequences",
+    "skills": [
+     "זיהוי חוק והשלמת איבר בסדרה צורנית",
+     "השלמת מספרים בסדרה עולה או יורדת בקפיצות שוות",
+     "השלמת סדרה בהפרשים של עשרות ושל מאות שלמות",
+     "יצירת סדרה לפי חוק"
+    ],
+    "number_range": "0-1,000",
+    "source": "S2",
+    "source_ref": "עמ' 5"
+   },
+   {
+    "code": "MATH-2-05",
+    "strand": "פעולות חשבון",
+    "title_he": "חיבור וחיסור בתחום ה-100",
+    "title_en": "Addition and subtraction within 100",
+    "skills": [
+     "חיבור וחיסור במאוזן של עשרות שלמות",
+     "חיבור וחיסור במאוזן של עשרות שלמות ומספר דו-ספרתי, למשל 47 + 30",
+     "חיבור וחיסור במאוזן של מספרים דו-ספרתיים",
+     "חיבור וחיסור במאונך של מספרים דו-ספרתיים",
+     "שאלה מילולית בחיבור או בחיסור עד 100"
+    ],
+    "number_range": "0-100",
+    "source": "S2",
+    "source_ref": "עמ' 6-8"
+   },
+   {
+    "code": "MATH-2-06",
+    "strand": "פעולות חשבון",
+    "title_he": "תכונות של חיבור וחיסור",
+    "title_en": "Properties of addition and subtraction",
+    "skills": [
+     "בדיקת תרגיל חיבור בעזרת חיסור (פעולות הפוכות)",
+     "תכונות ה-0 בחיבור ובחיסור",
+     "שימוש בחוק החילוף ובחוק הקיבוץ לחישוב נוח"
+    ],
+    "number_range": "0-100",
+    "source": "S2",
+    "source_ref": "עמ' 9"
+   },
+   {
+    "code": "MATH-2-07",
+    "strand": "פעולות חשבון",
+    "title_he": "פעולות הכפל והחילוק",
+    "title_en": "Multiplication and division",
+    "skills": [
+     "כתיבת תרגיל כפל לציור של קבוצות שוות או מערך",
+     "זיהוי מצב כפלי בסיפור",
+     "עובדות הכפל והחילוק של 2, 4, 5 ו-10",
+     "חילוק לחלקים שווים וחילוק להכלה בסיפור",
+     "השלמת משוואת כפל, למשל 10 = __ × 5"
+    ],
+    "number_range": "לוח הכפל: כפולות 2, 4, 5, 10",
+    "source": "S2",
+    "source_ref": "עמ' 9-10"
+   },
+   {
+    "code": "MATH-2-08",
+    "strand": "פעולות חשבון",
+    "title_he": "תכונות של פעולות הכפל והחילוק",
+    "title_en": "Properties of multiplication and division",
+    "skills": [
+     "כפל ב-0 וב-1 וחילוק ב-1",
+     "חוק החילוף בכפל, למשל 3×4 = 4×3",
+     "חוק הקיבוץ בכפל"
+    ],
+    "number_range": "כפולות 2, 4, 5, 10",
+    "source": "S2",
+    "source_ref": "עמ' 11"
+   },
+   {
+    "code": "MATH-2-09",
+    "strand": "גאומטריה",
+    "title_he": "מצולעים ומשולשים",
+    "title_en": "Polygons and triangles",
+    "skills": [
+     "פירוק והרכבה של מצולעים",
+     "מיון משולשים לפי אורכי צלעות (שווה צלעות, שווה שוקיים, שונה צלעות)",
+     "זיהוי קו סימטרייה במשולש"
+    ],
+    "source": "S2",
+    "source_ref": "צורות גאומטריות, עמ' 12"
+   },
+   {
+    "code": "MATH-2-10",
+    "strand": "גאומטריה",
+    "title_he": "זווית ישרה",
+    "title_en": "Right angle",
+    "skills": [
+     "זיהוי זווית ישרה במצולע",
+     "זיהוי זווית ישרה בעצמים מהסביבה"
+    ],
+    "source": "S2",
+    "source_ref": "עמ' 14"
+   },
+   {
+    "code": "MATH-2-11",
+    "strand": "מדידות",
+    "title_he": "מדידת אורך ביחידות מידה מקובלות",
+    "title_en": "Measuring length in standard units",
+    "skills": [
+     "מדידת אורך קטע בסרגל בס\"מ שלמים",
+     "סרטוט קטע באורך נתון בס\"מ",
+     "הכרת המטר והשוואתו לס\"מ"
+    ],
+    "number_range": "ס\"מ ומטרים שלמים",
+    "source": "S2",
+    "source_ref": "עמ' 14"
+   },
+   {
+    "code": "MATH-2-12",
+    "strand": "מדידות",
+    "title_he": "קווים שבורים והיקף מצולעים",
+    "title_en": "Broken lines and perimeter",
+    "skills": [
+     "מדידת אורך קו שבור כסכום אורכי קטעיו",
+     "מציאת היקף מצולע מסכום אורכי הצלעות בס\"מ או במטרים שלמים"
+    ],
+    "number_range": "0-100",
+    "source": "S2",
+    "source_ref": "עמ' 15"
+   },
+   {
+    "code": "MATH-2-13",
+    "strand": "גאומטריה",
+    "title_he": "גופים",
+    "title_en": "3D solids",
+    "skills": [
+     "זיהוי ושיום קובייה, תיבה, מנסרה, פירמידה, חרוט, גליל, כדור",
+     "ספירת קודקודים, מקצועות ופאות של גוף",
+     "זיהוי בסיס של גוף"
+    ],
+    "source": "S2",
+    "source_ref": "גופים ומדידות נפח, עמ' 16"
+   },
+   {
+    "code": "MATH-2-14",
+    "strand": "מדידות",
+    "title_he": "השוואת נפחים ובנייה מקוביות",
+    "title_en": "Comparing volumes; building with cubes",
+    "skills": [
+     "השוואה ישירה של נפחי שני כלים",
+     "השוואת נפחים באמצעות מתווך",
+     "ספירת קוביות במבנה פשוט"
+    ],
+    "source": "S2",
+    "source_ref": "עמ' 16-17"
+   },
+   {
+    "code": "MATH-2-15",
+    "strand": "מדידות",
+    "title_he": "קריאת זמן בשעות שלמות ובחצאי שעות",
+    "title_en": "Telling time to the hour and half hour",
+    "skills": [
+     "קריאת שעון מחוגים בשעות שלמות ובחצאי שעות",
+     "קריאת שעה שלמה וחצי שעה בשעון דיגיטלי",
+     "חישוב משך זמן בשעות ובחצאי שעות, גם מעבר ל-12:00"
+    ],
+    "number_range": "שעות וחצאי שעות",
+    "source": "S2",
+    "source_ref": "מדידות זמן, עמ' 17-18"
+   },
+   {
+    "code": "MATH-2-16",
+    "strand": "חקר נתונים",
+    "title_he": "חקר נתונים",
+    "title_en": "Data",
+    "skills": [
+     "קריאת נתון מטבלה ורישום נתונים בטבלה",
+     "קריאת נתון מדיאגרמת עמודות ובנייתה",
+     "קריאת נתון מפיקטוגרם ובנייתו"
+    ],
+    "source": "S2",
+    "source_ref": "עמ' 18"
+   }
+  ],
+  "3": [
+   {
+    "code": "MATH-3-01",
+    "strand": "מספרים",
+    "title_he": "הכרת המספרים הטבעיים בתחום הרבבה וה-0",
+    "title_en": "Natural numbers to 10,000 and 0",
+    "skills": [
+     "קריאה וכתיבה של מספרים עד 10,000 במילים ובספרות",
+     "זיהוי ערך הספרה (יחידות, עשרות, מאות, אלפים)",
+     "השוואת מספרים עם הסימנים <, >, =",
+     "ספירה בדילוגים של 20, 25, 50, 200 ו-500",
+     "הגדלה והקטנה פי 10 ופי 100",
+     "המרה בין שקלים לאגורות"
+    ],
+    "number_range": "0-10,000",
+    "source": "S3",
+    "source_ref": "עמ' 1-3"
+   },
+   {
+    "code": "MATH-3-02",
+    "strand": "מספרים",
+    "title_he": "גימטרייה",
+    "title_en": "Gematria (Hebrew letter values)",
+    "skills": [
+     "ידיעת הערך המספרי של האותיות א-ת",
+     "חישוב ערך מספרי של מילה קצרה"
+    ],
+    "source": "S3",
+    "source_ref": "עמ' 3"
+   },
+   {
+    "code": "MATH-3-03",
+    "strand": "מספרים",
+    "title_he": "סדרות",
+    "title_en": "Sequences",
+    "skills": [
+     "השלמת איבר בסדרה צורנית",
+     "השלמת סדרה עולה או יורדת בהפרשים של עשרות, מאות או אלפים שלמים",
+     "השלמת מספרים בסדרת מכפלות",
+     "יצירת סדרה לפי חוק"
+    ],
+    "number_range": "0-10,000",
+    "source": "S3",
+    "source_ref": "עמ' 4"
+   },
+   {
+    "code": "MATH-3-04",
+    "strand": "פעולות חשבון",
+    "title_he": "חיבור וחיסור בתחום הרבבה",
+    "title_en": "Addition and subtraction to 10,000",
+    "skills": [
+     "חיבור וחיסור במאוזן ובמאונך עד 10,000",
+     "חיבור וחיסור של עשרות, מאות ואלפים שלמים, למשל 3,400 + 500",
+     "פתרון משוואה ואי-שוויון של חיבור וחיסור",
+     "אומדן תוצאה והכרת הסימן ≈",
+     "בדיקת חיסור בעזרת חיבור"
+    ],
+    "number_range": "0-10,000",
+    "source": "S3",
+    "source_ref": "עמ' 5-6"
+   },
+   {
+    "code": "MATH-3-05",
+    "strand": "פעולות חשבון",
+    "title_he": "כפל וחילוק – לוח הכפל",
+    "title_en": "Multiplication and division – the times table",
+    "skills": [
+     "שליטה בלוח הכפל עד 10×10",
+     "חילוק כפעולה הפוכה לכפל בתחום לוח הכפל",
+     "כפל וחילוק ב-0 וב-1",
+     "חוק החילוף וחוק הקיבוץ בכפל",
+     "שאלה מילולית בכפל או בחילוק"
+    ],
+    "number_range": "לוח הכפל 10×10 (עד 100)",
+    "source": "S3",
+    "source_ref": "עמ' 7-9"
+   },
+   {
+    "code": "MATH-3-06",
+    "strand": "פעולות חשבון",
+    "title_he": "סימני ההתחלקות ב-2, ב-5 וב-10",
+    "title_en": "Divisibility by 2, 5 and 10",
+    "skills": [
+     "קביעה אם מספר מתחלק ב-2, ב-5 או ב-10 לפי ספרת היחידות"
+    ],
+    "number_range": "0-10,000",
+    "source": "S3",
+    "source_ref": "עמ' 9"
+   },
+   {
+    "code": "MATH-3-07",
+    "strand": "פעולות חשבון",
+    "title_he": "חילוק עם שארית",
+    "title_en": "Division with remainder",
+    "skills": [
+     "חילוק עם שארית בתחום לוח הכפל כשהמחלק חד-ספרתי, למשל 13 : 4",
+     "פירוש השארית בשאלה מילולית"
+    ],
+    "number_range": "עד 100, מחלק חד-ספרתי",
+    "source": "S3",
+    "source_ref": "עמ' 9-10"
+   },
+   {
+    "code": "MATH-3-08",
+    "strand": "פעולות חשבון",
+    "title_he": "חוק הפילוג וסדר פעולות החשבון",
+    "title_en": "Distributive law and order of operations",
+    "skills": [
+     "חישוב תרגיל לפי סדר פעולות החשבון",
+     "חישוב תרגיל עם סוגריים",
+     "חישוב כפל בעזרת חוק הפילוג כשגורם אחד חד-ספרתי, למשל 23×9"
+    ],
+    "number_range": "0-10,000",
+    "source": "S3",
+    "source_ref": "עמ' 10-11"
+   },
+   {
+    "code": "MATH-3-09",
+    "strand": "פעולות חשבון",
+    "title_he": "כפל וחילוק בתחום הרבבה",
+    "title_en": "Multiplication and division to 10,000",
+    "skills": [
+     "כפל ב-10, ב-100 וב-1,000",
+     "כפל עשרות ומאות שלמות במספר חד-ספרתי, למשל 300×4",
+     "חילוק ב-10, ב-100 וב-1,000",
+     "חילוק עשרות ומאות שלמות במספר חד-ספרתי",
+     "חילוק ללא שארית של מספר דו-ספרתי בחד-ספרתי בפירוק המחולק, למשל 48 : 4"
+    ],
+    "number_range": "0-10,000",
+    "source": "S3",
+    "source_ref": "עמ' 11-12"
+   },
+   {
+    "code": "MATH-3-10",
+    "strand": "מספרים",
+    "title_he": "עיגול מספרים בתחום הרבבה",
+    "title_en": "Rounding to 10,000",
+    "skills": [
+     "עיגול מספר לעשרות שלמות",
+     "עיגול מספר למאות שלמות",
+     "עיגול מספר לאלפים שלמים"
+    ],
+    "number_range": "0-10,000",
+    "source": "S3",
+    "source_ref": "עמ' 13"
+   },
+   {
+    "code": "MATH-3-11",
+    "strand": "גאומטריה",
+    "title_he": "זוויות",
+    "title_en": "Angles",
+    "skills": [
+     "זיהוי זווית ישרה, חדה, קהה ושטוחה",
+     "השוואת זוויות ישירה או בעזרת מתווך",
+     "זיהוי סוגי זוויות במצולע"
+    ],
+    "source": "S3",
+    "source_ref": "צורות גאומטריות, עמ' 13-14"
+   },
+   {
+    "code": "MATH-3-12",
+    "strand": "גאומטריה",
+    "title_he": "משולשים",
+    "title_en": "Triangles",
+    "skills": [
+     "שיום משולש לפי זוויות (ישר זווית, חד זווית, קהה זווית)",
+     "מיון כפול של משולשים לפי צלעות ולפי זוויות"
+    ],
+    "source": "S3",
+    "source_ref": "עמ' 14"
+   },
+   {
+    "code": "MATH-3-13",
+    "strand": "מדידות",
+    "title_he": "שטח – השוואה ומדידה",
+    "title_en": "Area – comparing and measuring",
+    "skills": [
+     "השוואה ישירה בין שטחים",
+     "השוואת שטחים בפירוק והרכבה",
+     "מדידת שטח בספירת משבצות",
+     "הכרת סמ\"ר ומ\"ר"
+    ],
+    "source": "S3",
+    "source_ref": "מדידת שטח, עמ' 15"
+   },
+   {
+    "code": "MATH-3-14",
+    "strand": "מדידות",
+    "title_he": "חישוב שטח מלבן",
+    "title_en": "Area of a rectangle",
+    "skills": [
+     "חישוב שטח מלבן שאורכי צלעותיו מספרים שלמים",
+     "סרטוט מלבן על רשת משבצות לפי שטח נתון",
+     "הבחנה בין שטח להיקף"
+    ],
+    "number_range": "מספרים שלמים (לוח הכפל)",
+    "source": "S3",
+    "source_ref": "עמ' 16-18"
+   },
+   {
+    "code": "MATH-3-15",
+    "strand": "גאומטריה",
+    "title_he": "תיבות וקוביות",
+    "title_en": "Boxes and cubes",
+    "skills": [
+     "זיהוי פריסה של תיבה",
+     "התאמה בין פריסה לתיבה"
+    ],
+    "source": "S3",
+    "source_ref": "תיבות וקוביות, עמ' 18"
+   },
+   {
+    "code": "MATH-3-16",
+    "strand": "מדידות",
+    "title_he": "מדידת זמן בשעות ובדקות",
+    "title_en": "Time in hours and minutes",
+    "skills": [
+     "קריאת שעות ודקות בשעון מחוגים",
+     "קריאת שעות ודקות בשעון דיגיטלי",
+     "חישוב משך זמן בשעות ובדקות שלמות"
+    ],
+    "number_range": "שעות ודקות",
+    "source": "S3",
+    "source_ref": "מדידת זמן, עמ' 18-19"
+   },
+   {
+    "code": "MATH-3-17",
+    "strand": "חקר נתונים",
+    "title_he": "חקר נתונים",
+    "title_en": "Data",
+    "skills": [
+     "קריאת נתון מטבלה ובניית טבלה",
+     "קריאת נתון מדיאגרמת עמודות, כולל דיאגרמת עמודות כפולה",
+     "בניית דיאגרמת עמודות ופיקטוגרם"
+    ],
+    "source": "S3",
+    "source_ref": "עמ' 19"
+   }
+  ],
+  "4": [
+   {
+    "code": "MATH-4-01",
+    "strand": "שברים",
+    "title_he": "השבר הפשוט",
+    "title_en": "Simple fractions",
+    "skills": [
+     "זיהוי שבר המוצג בציור (עיגול, מלבן, קבוצה)",
+     "מציאת חלק של כמות, למשל 1/3 מ-30",
+     "הכרת המונחים מונה, מכנה, מספר מעורב",
+     "מציאת שמות שונים לאותו שבר, למשל 1/2 = 2/4 = 3/6",
+     "השוואת שברים בדרכים אינטואיטיביות, למשל 1/7 או 1/9",
+     "כתיבת שבר גדול מ-1 כמספר מעורב"
+    ],
+    "number_range": "שברים שמכניהם עד 12 (אומדן)",
+    "source": "S4",
+    "source_ref": "א. השבר הפשוט, עמ' 76-78; ציוני דרך D.Shvarim",
+    "inferred": true,
+    "inferred_note": "number_range is an estimate; the curriculum gives no explicit bound"
+   },
+   {
+    "code": "MATH-4-02",
+    "strand": "שברים",
+    "title_he": "פעולות בשברים (היכרות ראשונה)",
+    "title_en": "Fraction operations (first steps)",
+    "skills": [
+     "חיבור וחיסור שברים עם מכנים שווים",
+     "חיבור וחיסור שברים שמכנה אחד כפולה של השני, למשל 2/3 + 1/6",
+     "חיבור וחיסור מספרים מעורבים עם מכנים שווים",
+     "כפל שלם בשבר כחיבור חוזר, למשל 3 × 1/4",
+     "שאלה מילולית על חלק של שלם או של כמות"
+    ],
+    "source": "S4",
+    "source_ref": "א.2-3, עמ' 77-78; ציוני דרך D.Shvarim"
+   },
+   {
+    "code": "MATH-4-03",
+    "strand": "מספרים",
+    "title_he": "המספרים הטבעיים עד מיליון",
+    "title_en": "Natural numbers to one million",
+    "skills": [
+     "קריאה וכתיבה של מספרים עד מיליון בספרות ובמילים",
+     "זיהוי ערך ספרה במספר ושינוי המספר כשמשנים ספרה",
+     "פירוק מספר לפי המבנה העשרוני",
+     "השוואת מספרים גדולים"
+    ],
+    "number_range": "0-1,000,000",
+    "source": "S4",
+    "source_ref": "ב. עמ' 78; ציוני דרך D.MisparimTivyim"
+   },
+   {
+    "code": "MATH-4-04",
+    "strand": "מספרים",
+    "title_he": "שיטת האלף-בית (גימטרייה)",
+    "title_en": "Hebrew letter numerals (gematria)",
+    "skills": [
+     "כתיבת מספר באותיות עבריות",
+     "פענוח מספר הכתוב באותיות",
+     "חישוב ערך מספרי של מילה",
+     "קריאת שנה בלוח העברי"
+    ],
+    "source": "S4",
+    "source_ref": "ב. עמ' 79; ציוני דרך D.MisparimTivyim"
+   },
+   {
+    "code": "MATH-4-05",
+    "strand": "מספרים",
+    "title_he": "ישר המספרים",
+    "title_en": "Number line",
+    "skills": [
+     "מיקום מספר גדול על ישר מספרים",
+     "מציאת מספר המסומן בנקודה על ישר המספרים"
+    ],
+    "number_range": "0-1,000,000",
+    "source": "S4",
+    "source_ref": "ג. עמ' 79"
+   },
+   {
+    "code": "MATH-4-06",
+    "strand": "פעולות חשבון",
+    "title_he": "חיבור וחיסור (ללא הגבלה)",
+    "title_en": "Addition and subtraction (unrestricted)",
+    "skills": [
+     "חיבור וחיסור במאונך של מספרים רב-ספרתיים עד מיליון",
+     "חיבור בעל פה, למשל 1,200 + 314",
+     "השוואת ביטויים בלי לחשב, למשל 2,753-285 או 2,753-392"
+    ],
+    "number_range": "0-1,000,000",
+    "source": "S4",
+    "source_ref": "ד.1, עמ' 79; ציוני דרך D.Peulot"
+   },
+   {
+    "code": "MATH-4-07",
+    "strand": "פעולות חשבון",
+    "title_he": "כפל במאונך (בגורם רב-ספרתי)",
+    "title_en": "Long multiplication",
+    "skills": [
+     "כפל בעל פה בעשרות ובמאות שלמות, למשל 40×300",
+     "כפל דו-ספרתי בדו-ספרתי בדרכים שונות (חוק הפילוג)",
+     "כפל במאונך בגורם דו-ספרתי (ולפי היכולת תלת-ספרתי)"
+    ],
+    "number_range": "גורם דו-ספרתי או תלת-ספרתי",
+    "source": "S4",
+    "source_ref": "ד.2, עמ' 80; ציוני דרך D.Peulot"
+   },
+   {
+    "code": "MATH-4-08",
+    "strand": "פעולות חשבון",
+    "title_he": "חילוק ארוך",
+    "title_en": "Long division",
+    "skills": [
+     "חילוק בעל פה של דו-ספרתי בחד-ספרתי, למשל 81 : 3",
+     "חילוק ארוך של מספר רב-ספרתי בחד-ספרתי",
+     "חילוק במחלק שהוא עשרת שלמה",
+     "חילוק עם שארית"
+    ],
+    "number_range": "מחלק חד-ספרתי או עשרת שלמה",
+    "source": "S4",
+    "source_ref": "ד.3, עמ' 80-81; ציוני דרך D.Peulot"
+   },
+   {
+    "code": "MATH-4-09",
+    "strand": "פעולות חשבון",
+    "title_he": "אומדן ופיתוח תובנה מספרית",
+    "title_en": "Estimation and number sense",
+    "skills": [
+     "אומדן תוצאה של תרגיל והערכת סבירותה",
+     "הבחנה בין מספר מדויק למספר מקורב בהקשר"
+    ],
+    "number_range": "0-1,000,000",
+    "source": "S4",
+    "source_ref": "ד.4, עמ' 81-83; ציוני דרך D.Peulot"
+   },
+   {
+    "code": "MATH-4-10",
+    "strand": "פעולות חשבון",
+    "title_he": "שאלות כוללות (אינטגרטיביות)",
+    "title_en": "Multi-step word problems",
+    "skills": [
+     "פתרון שאלה חד-שלבית בארבע הפעולות במספרים גדולים",
+     "פתרון שאלה דו-שלבית עם פעולה כפלית ופעולה חיבורית",
+     "כתיבת ביטוי אחד לפתרון שאלה"
+    ],
+    "number_range": "0-1,000,000",
+    "source": "S4",
+    "source_ref": "ד.5, עמ' 86; ציוני דרך D.Peulot"
+   },
+   {
+    "code": "MATH-4-11",
+    "strand": "פעולות חשבון",
+    "title_he": "סדר הפעולות, סוגריים ותכונות ה-0 וה-1",
+    "title_en": "Order of operations, brackets, properties of 0 and 1",
+    "skills": [
+     "חישוב תרגיל מורכב לפי סדר הפעולות",
+     "חישוב תרגיל עם סוגריים",
+     "כפל ב-0 וב-1",
+     "ידיעה שאין חילוק ב-0"
+    ],
+    "source": "S4",
+    "source_ref": "ד.6-7, עמ' 87-88; ציוני דרך D.Peulot"
+   },
+   {
+    "code": "MATH-4-12",
+    "strand": "פעולות חשבון",
+    "title_he": "מספרים ראשוניים ופריקים וסימני התחלקות",
+    "title_en": "Primes, composites and divisibility rules",
+    "skills": [
+     "הבחנה בין מספר ראשוני למספר פריק",
+     "פירוק מספר לגורמים ראשוניים",
+     "קביעה אם מספר מתחלק ב-3, ב-6 או ב-9"
+    ],
+    "number_range": "עד 100 לראשוניים (משוער)",
+    "source": "S4",
+    "source_ref": "ד.8-9, עמ' 88-89; ציוני דרך D.Prikim",
+    "inferred": true,
+    "inferred_note": "number_range is an estimate; the curriculum gives no explicit bound"
+   },
+   {
+    "code": "MATH-4-13",
+    "strand": "פעולות חשבון",
+    "title_he": "חזקות",
+    "title_en": "Powers",
+    "skills": [
+     "כתיבת כפל חוזר כחזקה, למשל 2×2×2 = 2³",
+     "חישוב ערך של חזקה פשוטה"
+    ],
+    "source": "S4",
+    "source_ref": "ד.10, עמ' 89; ציוני דרך D.Prikim"
+   },
+   {
+    "code": "MATH-4-14",
+    "strand": "חקר נתונים",
+    "title_he": "חקר נתונים וניתוח סיכויים",
+    "title_en": "Data and chance",
+    "skills": [
+     "קריאת דיאגרמת מוטות ועמודות, כולל עמודות כפולה",
+     "ייצוג אותם נתונים בדרכים שונות",
+     "שימוש במונחים בלתי אפשרי, אפשרי, ודאי",
+     "השוואת סיכויים של שני אירועים"
+    ],
+    "source": "S4",
+    "source_ref": "ה. עמ' 89-90; ציוני דרך D.Netunim"
+   },
+   {
+    "code": "MATH-4-15",
+    "strand": "גאומטריה",
+    "title_he": "מצולעים, אלכסון, ריבוע ומלבן, משולשים",
+    "title_en": "Polygons, diagonals, squares, rectangles, triangles",
+    "skills": [
+     "זיהוי וסרטוט אלכסון במצולע",
+     "הכרת המלבן כמרובע שכל זוויותיו ישרות והריבוע כמלבן שכל צלעותיו שוות",
+     "מיון כפול של משולשים לפי צלעות ולפי זוויות"
+    ],
+    "source": "S4",
+    "source_ref": "ו.1-3, עמ' 90-91; ציוני דרך D.Geometriya"
+   },
+   {
+    "code": "MATH-4-16",
+    "strand": "גאומטריה",
+    "title_he": "תיבות",
+    "title_en": "Boxes (cuboids)",
+    "skills": [
+     "ספירת קודקודים, מקצועות ופאות של תיבה",
+     "זיהוי פריסה של תיבה ושל קובייה",
+     "הבחנה בין אלכסון פאה לאלכסון התיבה"
+    ],
+    "source": "S4",
+    "source_ref": "ו.4, עמ' 91; ציוני דרך D.Geometriya"
+   },
+   {
+    "code": "MATH-4-17",
+    "strand": "גאומטריה",
+    "title_he": "סימטרייה",
+    "title_en": "Symmetry",
+    "skills": [
+     "זיהוי קו סימטרייה בצורה",
+     "הבחנה בין סימטרייה שיקופית לסיבובית",
+     "השלמת צורה לפי קו סימטרייה"
+    ],
+    "source": "S4",
+    "source_ref": "ז. עמ' 92; ציוני דרך D.Geometriya"
+   },
+   {
+    "code": "MATH-4-18",
+    "strand": "מדידות",
+    "title_he": "שטח והיקף מלבן",
+    "title_en": "Area and perimeter of rectangles",
+    "skills": [
+     "שימוש ביחידות סמ\"ר ומ\"ר",
+     "חישוב שטח מלבן לפי הנוסחה",
+     "חישוב היקף מלבן לפי הנוסחה",
+     "חישוב שטח של צורה המורכבת ממלבנים"
+    ],
+    "source": "S4",
+    "source_ref": "ח.1, עמ' 92; ציוני דרך D.Medidot"
+   },
+   {
+    "code": "MATH-4-19",
+    "strand": "מדידות",
+    "title_he": "נפח תיבה ושטח פנים",
+    "title_en": "Volume and surface area of a box",
+    "skills": [
+     "חישוב נפח תיבה כמכפלת שלושת הממדים",
+     "הכרת סמ\"ק, ליטר, מיליליטר ומ\"ק",
+     "חישוב שטח פנים של תיבה"
+    ],
+    "source": "S4",
+    "source_ref": "ח.2, עמ' 92-93; ציוני דרך D.Medidot"
+   },
+   {
+    "code": "MATH-4-20",
+    "strand": "מדידות",
+    "title_he": "לוח השנה וחישובי זמן",
+    "title_en": "Calendar and time calculations",
+    "skills": [
+     "חישוב משך זמן בשנים, בחודשים, בשבועות ובימים",
+     "קישור בין זמן לשברים, למשל רבע שעה = 15 דקות"
+    ],
+    "source": "S4",
+    "source_ref": "ח.3, עמ' 93; ציוני דרך D.Medidot"
+   }
+  ],
+  "5": [
+   {
+    "code": "MATH-5-01",
+    "strand": "שברים",
+    "title_he": "משמעויות השבר הפשוט (כולל שברים גדולים מ-1 ומספרים מעורבים)",
+    "title_en": "Meanings of fractions (incl. improper and mixed numbers)",
+    "skills": [
+     "סימון שבר על ישר המספרים",
+     "השוואת שברים בעזרת ישר המספרים",
+     "המרת שבר גדול מ-1 למספר מעורב ולהפך, למשל 23/6",
+     "הבנת השבר כמנת חילוק"
+    ],
+    "source": "S5",
+    "source_ref": "א.1, עמ' 98; ציוני דרך E.Shvarim"
+   },
+   {
+    "code": "MATH-5-02",
+    "strand": "שברים",
+    "title_he": "צמצום והרחבה",
+    "title_en": "Simplifying and expanding fractions",
+    "skills": [
+     "הרחבת שבר למכנה נתון",
+     "צמצום שבר",
+     "זיהוי שברים שווים"
+    ],
+    "source": "S5",
+    "source_ref": "א.2, עמ' 98-99; ציוני דרך E.Shvarim"
+   },
+   {
+    "code": "MATH-5-03",
+    "strand": "שברים",
+    "title_he": "חיבור וחיסור שברים והשוואת שברים",
+    "title_en": "Adding, subtracting and comparing fractions",
+    "skills": [
+     "מציאת מכנה משותף",
+     "חיבור וחיסור שברים עם מכנים שונים",
+     "חיבור וחיסור מספרים מעורבים",
+     "השוואת שני שברים וסידור שברים לפי גודל",
+     "השוואת שבר ל-0, ל-1/2 ול-1"
+    ],
+    "source": "S5",
+    "source_ref": "א.3, עמ' 98-100; ציוני דרך E.Shvarim"
+   },
+   {
+    "code": "MATH-5-04",
+    "strand": "שברים",
+    "title_he": "שאלות חיבור וחיסור שברים",
+    "title_en": "Fraction word problems (add/subtract)",
+    "skills": [
+     "פתרון שאלה מילולית בחיבור או בחיסור שברים"
+    ],
+    "source": "S5",
+    "source_ref": "א.4, עמ' 100; ציוני דרך E.Shvarim"
+   },
+   {
+    "code": "MATH-5-05",
+    "strand": "שברים",
+    "title_he": "משמעות המספר העשרוני",
+    "title_en": "Meaning of decimals",
+    "skills": [
+     "קריאה וכתיבה של מספר עשרוני במילים ובספרות",
+     "זיהוי ערך ספרה: עשיריות, מאיות, אלפיות",
+     "סימון מספר עשרוני על ישר המספרים",
+     "המרת שבר עשרוני לשבר פשוט שמכנהו 10, 100 או 1,000",
+     "הכרת האחוז כשם אחר למאית"
+    ],
+    "number_range": "עד אלפיות",
+    "source": "S5",
+    "source_ref": "א.5, עמ' 101; ציוני דרך E.Shvarim"
+   },
+   {
+    "code": "MATH-5-06",
+    "strand": "שברים",
+    "title_he": "חיבור וחיסור מספרים עשרוניים והשוואתם",
+    "title_en": "Adding, subtracting and comparing decimals",
+    "skills": [
+     "חיבור וחיסור מספרים עשרוניים בעל פה במקרים פשוטים",
+     "חיבור וחיסור במאונך עם 2 עד 3 ספרות אחרי הנקודה",
+     "עיגול מספר עשרוני",
+     "השוואת מספרים עשרוניים וסידורם לפי גודל"
+    ],
+    "number_range": "2-3 ספרות אחרי הנקודה",
+    "source": "S5",
+    "source_ref": "א.6, עמ' 101-104; ציוני דרך E.Shvarim"
+   },
+   {
+    "code": "MATH-5-07",
+    "strand": "שברים",
+    "title_he": "מעבר משבר פשוט לשבר עשרוני",
+    "title_en": "Converting fractions to decimals",
+    "skills": [
+     "כתיבת שבר שמכנהו 10, 100 או 1,000 כמספר עשרוני",
+     "הרחבת שבר (למשל 3/4, 2/5) למכנה 100 וכתיבתו כמספר עשרוני"
+    ],
+    "number_range": "שברים עשרוניים סופיים",
+    "source": "S5",
+    "source_ref": "א.7, עמ' 104; ציוני דרך E.Shvarim"
+   },
+   {
+    "code": "MATH-5-08",
+    "strand": "פעולות חשבון",
+    "title_he": "חיבור, חיסור וכפל – חזרה, הרחבה והעמקה",
+    "title_en": "Addition, subtraction and multiplication – extension",
+    "skills": [
+     "חיבור, חיסור וכפל במספרים גדולים",
+     "שימוש בחוקי הפעולות, בסדר הפעולות ובסוגריים",
+     "השוואת תוצאות תרגילים בלי לפתור"
+    ],
+    "number_range": "מספרים טבעיים גדולים",
+    "source": "S5",
+    "source_ref": "ב.1, עמ' 105; ציוני דרך E.Peulot"
+   },
+   {
+    "code": "MATH-5-09",
+    "strand": "פעולות חשבון",
+    "title_he": "חילוק במספר דו-ספרתי",
+    "title_en": "Division by a two-digit number",
+    "skills": [
+     "חילוק ארוך של מספר רב-ספרתי במספר דו-ספרתי",
+     "חילוק עם שארית במחלק דו-ספרתי"
+    ],
+    "number_range": "מחלק דו-ספרתי",
+    "source": "S5",
+    "source_ref": "ב.2, עמ' 106; ציוני דרך E.Peulot"
+   },
+   {
+    "code": "MATH-5-10",
+    "strand": "פעולות חשבון",
+    "title_he": "אומדן תוצאות של פעולות ואומדן כמויות",
+    "title_en": "Estimation",
+    "skills": [
+     "אומדן תוצאה של תרגיל בפעולות שונות",
+     "אומדן כמויות גדולות בהקשר יומיומי"
+    ],
+    "source": "S5",
+    "source_ref": "ב.3, עמ' 106; ציוני דרך E.Peulot"
+   },
+   {
+    "code": "MATH-5-11",
+    "strand": "פעולות חשבון",
+    "title_he": "שאלות כוללות (אינטגרטיביות)",
+    "title_en": "Multi-step word problems",
+    "skills": [
+     "פתרון שאלה רב-שלבית בארבע הפעולות במספרים טבעיים",
+     "פתרון שאלה המשלבת שברים ומספרים טבעיים"
+    ],
+    "source": "S5",
+    "source_ref": "ב.4, עמ' 107; ציוני דרך E.Peulot"
+   },
+   {
+    "code": "MATH-5-12",
+    "strand": "חקר נתונים",
+    "title_he": "חקר נתונים, ממוצע",
+    "title_en": "Data and the mean",
+    "skills": [
+     "קריאת טבלה ודיאגרמת עמודות כפולה",
+     "חישוב ממוצע של קבוצת מספרים",
+     "ידיעה שהממוצע אינו גדול מהמספר הגדול ביותר ואינו קטן מהקטן ביותר",
+     "הבנת שכיחות יחסית בטבלה"
+    ],
+    "source": "S5",
+    "source_ref": "ג. עמ' 107-108"
+   },
+   {
+    "code": "MATH-5-13",
+    "strand": "גאומטריה",
+    "title_he": "אלכסונים, מקבילות, מאונכות וזוויות",
+    "title_en": "Diagonals, parallel and perpendicular lines, angles",
+    "skills": [
+     "זיהוי ישרים מקבילים ומאונכים",
+     "אומדן ומדידה של זווית במעלות",
+     "זיהוי אלכסונים במצולע"
+    ],
+    "source": "S5",
+    "source_ref": "ד.1, עמ' 110-111; ציוני דרך E.Geometriya"
+   },
+   {
+    "code": "MATH-5-14",
+    "strand": "גאומטריה",
+    "title_he": "מרובעים: תכונות, מיון וקשרי הכלה",
+    "title_en": "Quadrilaterals: properties, classification, inclusion",
+    "skills": [
+     "זיהוי מקבילית, מלבן, מעוין, ריבוע, טרפז ודלתון לפי תכונות",
+     "קביעת קשרי הכלה (כל ריבוע הוא מלבן)",
+     "חקירת מרובעים לפי אלכסוניהם"
+    ],
+    "source": "S5",
+    "source_ref": "ד.2, עמ' 112; ציוני דרך E.Geometriya"
+   },
+   {
+    "code": "MATH-5-15",
+    "strand": "גאומטריה",
+    "title_he": "ריצוף במצולעים משוכללים חופפים",
+    "title_en": "Tessellation with regular polygons",
+    "skills": [
+     "קביעה אם אפשר לרצף במצולע משוכלל נתון (משולש, ריבוע, משושה)"
+    ],
+    "source": "S5",
+    "source_ref": "ד.3, עמ' 112-113; ציוני דרך E.Geometriya"
+   },
+   {
+    "code": "MATH-5-16",
+    "strand": "גאומטריה",
+    "title_he": "גבהים",
+    "title_en": "Heights (altitudes)",
+    "skills": [
+     "סרטוט וזיהוי גובה במשולש",
+     "סרטוט וזיהוי גובה במקבילית"
+    ],
+    "source": "S5",
+    "source_ref": "ד.4, עמ' 113; ציוני דרך E.Geometriya"
+   },
+   {
+    "code": "MATH-5-17",
+    "strand": "מדידות",
+    "title_he": "מדידות שטחים",
+    "title_en": "Area measurement",
+    "skills": [
+     "הבחנה בין היקף (יחידות אורך) לשטח (יחידות שטח)",
+     "שימוש ביחידות ממ\"ר, סמ\"ר, דצמ\"ר, מ\"ר ודונם",
+     "חישוב שטח מקבילית",
+     "חישוב שטח משולש, גם קהה זווית",
+     "מציאת צלע או גובה חסרים מתוך השטח"
+    ],
+    "source": "S5",
+    "source_ref": "ה. עמ' 114-115; ציוני דרך E.Medidot"
+   }
+  ],
+  "6": [
+   {
+    "code": "MATH-6-01",
+    "strand": "שברים",
+    "title_he": "שבר כמנת חילוק",
+    "title_en": "Fraction as division",
+    "skills": [
+     "כתיבת תוצאת חילוק כשבר, למשל 3 : 5 = 3/5",
+     "פתרון בעיה שבה השבר הוא מנת חילוק"
+    ],
+    "source": "S6",
+    "source_ref": "א.1, עמ' 118; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-02",
+    "strand": "שברים",
+    "title_he": "שברים ומספרים עשרוניים על ישר המספרים, צפיפות",
+    "title_en": "Fractions and decimals on the number line; density",
+    "skills": [
+     "מיקום שבר ומספר עשרוני על ישר המספרים",
+     "מציאת מספרים בין שני מספרים נתונים, למשל בין 0.11 ל-0.12",
+     "סידור שברים ומספרים עשרוניים לפי גודל"
+    ],
+    "source": "S6",
+    "source_ref": "א.2, עמ' 118; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-03",
+    "strand": "שברים",
+    "title_he": "כפל שברים",
+    "title_en": "Multiplying fractions",
+    "skills": [
+     "כפל שלם בשבר ובמספר מעורב",
+     "כפל שבר בשבר",
+     "כפל מספרים מעורבים",
+     "אומדן תוצאת כפל שברים"
+    ],
+    "source": "S6",
+    "source_ref": "א.3-4, עמ' 118-119; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-04",
+    "strand": "שברים",
+    "title_he": "כפל וחילוק מספרים עשרוניים ב-10, ב-100 וב-1,000",
+    "title_en": "Multiplying and dividing decimals by 10, 100, 1,000",
+    "skills": [
+     "כפל מספר עשרוני ב-10, ב-100 וב-1,000 בעל פה",
+     "חילוק מספר עשרוני ב-10, ב-100 וב-1,000 בעל פה",
+     "פתרון משוואה כמו __ × 100 = 35"
+    ],
+    "source": "S6",
+    "source_ref": "א.5, עמ' 119; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-05",
+    "strand": "שברים",
+    "title_he": "כפל מספרים עשרוניים",
+    "title_en": "Multiplying decimals",
+    "skills": [
+     "כפל שני מספרים עשרוניים",
+     "אומדן תוצאת כפל מספרים עשרוניים",
+     "פתרון בעיה מעשית בכפל מספרים עשרוניים"
+    ],
+    "source": "S6",
+    "source_ref": "א.6, עמ' 120-121; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-06",
+    "strand": "שברים",
+    "title_he": "חילוק מספרים עשרוניים",
+    "title_en": "Dividing decimals",
+    "skills": [
+     "חילוק במספר עשרוני בהזזת הנקודה",
+     "הבנה שחילוק במספר קטן מ-1 מגדיל את התוצאה"
+    ],
+    "source": "S6",
+    "source_ref": "א.7, עמ' 121; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-07",
+    "strand": "שברים",
+    "title_he": "חלק של כמות",
+    "title_en": "Fraction of a quantity",
+    "skills": [
+     "מציאת ערך החלק, למשל 3/4 מ-20",
+     "מציאת השבר שחלק מהווה מהכמות",
+     "מציאת הכמות השלמה כשידוע ערך החלק"
+    ],
+    "source": "S6",
+    "source_ref": "א.8-9, עמ' 121-123; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-08",
+    "strand": "שברים",
+    "title_he": "חילוק שברים פשוטים",
+    "title_en": "Dividing fractions",
+    "skills": [
+     "חילוק שלם בשבר יסודי, למשל 3 : 1/5",
+     "חילוק שבר בשבר",
+     "פתרון שאלה מילולית בחילוק שברים"
+    ],
+    "source": "S6",
+    "source_ref": "א.10, עמ' 124-125; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-09",
+    "strand": "שברים",
+    "title_he": "שבר עשרוני מחזורי",
+    "title_en": "Repeating decimals",
+    "skills": [
+     "הפיכת שבר פשוט למספר עשרוני",
+     "הבחנה בין שבר שייצוגו העשרוני סופי לשבר שייצוגו מחזורי, למשל 1/3"
+    ],
+    "source": "S6",
+    "source_ref": "א.11, עמ' 125; ציוני דרך F.Shvarim"
+   },
+   {
+    "code": "MATH-6-10",
+    "strand": "שברים",
+    "title_he": "אחוזים",
+    "title_en": "Percentages",
+    "skills": [
+     "המרה בין אחוז, שבר פשוט ומספר עשרוני, למשל 25% = 1/4 = 0.25",
+     "חישוב אחוז מכמות, למשל 20% מ-150",
+     "חישוב כמה אחוזים מהווה חלק מהשלם",
+     "שימוש באחוזים במצב מציאותי (הנחה)"
+    ],
+    "source": "S6",
+    "source_ref": "ב. עמ' 125-127; ציוני דרך F.Achuzim"
+   },
+   {
+    "code": "MATH-6-11",
+    "strand": "שברים",
+    "title_he": "יחס",
+    "title_en": "Ratio",
+    "skills": [
+     "ביטוי יחס במילים ובסמלים",
+     "השוואת יחסים",
+     "חלוקת כמות לפי יחס נתון"
+    ],
+    "source": "S6",
+    "source_ref": "ג. עמ' 127-128; ציוני דרך F.Yachas"
+   },
+   {
+    "code": "MATH-6-12",
+    "strand": "מדידות",
+    "title_he": "מידות עשרוניות",
+    "title_en": "Decimal measurement units",
+    "skills": [
+     "המרה בין מטר, סנטימטר ומילימטר",
+     "המרה בין טון, קילוגרם וגרם",
+     "המרה בין שקלים לאגורות",
+     "המרה בין סמ\"ר למ\"ר",
+     "המרה בין סמ\"ק (מ\"ל), ליטר ומ\"ק"
+    ],
+    "source": "S6",
+    "source_ref": "ד. עמ' 128-129; ציוני דרך F.Midot"
+   },
+   {
+    "code": "MATH-6-13",
+    "strand": "מדידות",
+    "title_he": "קנה מידה",
+    "title_en": "Scale",
+    "skills": [
+     "חישוב אורך במציאות לפי אורך במפה וקנה מידה",
+     "חישוב אורך במפה לפי אורך במציאות",
+     "מציאת קנה מידה"
+    ],
+    "source": "S6",
+    "source_ref": "ה. עמ' 130; ציוני דרך F.KnehMida"
+   },
+   {
+    "code": "MATH-6-14",
+    "strand": "מספרים",
+    "title_he": "מספרים ופעולות – הרחבה והעמקה",
+    "title_en": "Numbers and operations – consolidation",
+    "skills": [
+     "סימון מספרים טבעיים, שברים ומספרים עשרוניים על אותו ישר מספרים",
+     "שימוש בחוק הפילוג לחישוב בעל פה, למשל 5 × 2.3",
+     "השוואת תוצאות תרגילים בלי לחשב",
+     "סימון מספרים שליליים על ישר המספרים ומציאת מרחק, למשל בין 3- ל-5"
+    ],
+    "source": "S6",
+    "source_ref": "ו. עמ' 130-132; ציוני דרך F.Peulot"
+   },
+   {
+    "code": "MATH-6-15",
+    "strand": "פעולות חשבון",
+    "title_he": "שאלות כוללות (אינטגרטיביות)",
+    "title_en": "Multi-step word problems",
+    "skills": [
+     "פתרון שאלה רב-שלבית במספרים טבעיים",
+     "פתרון שאלת תנועה (דרך, מהירות, זמן)",
+     "פתרון שאלת הספק",
+     "פתרון שאלה המשלבת שברים, אחוזים ויחס"
+    ],
+    "source": "S6",
+    "source_ref": "ז. עמ' 132-134; ציוני דרך F.Peulot"
+   },
+   {
+    "code": "MATH-6-16",
+    "strand": "חקר נתונים",
+    "title_he": "חקר נתונים וניתוח סיכויים",
+    "title_en": "Data and probability",
+    "skills": [
+     "חישוב שכיחות ושכיחות יחסית",
+     "הערכת סיכוי של מאורע לפי שכיחות יחסית",
+     "שימוש בביטויים יותר סביר והסיכוי הוא"
+    ],
+    "source": "S6",
+    "source_ref": "ח. עמ' 135; ציוני דרך F.Netunim"
+   },
+   {
+    "code": "MATH-6-17",
+    "strand": "גאומטריה",
+    "title_he": "גופים",
+    "title_en": "3D solids",
+    "skills": [
+     "זיהוי מנסרה ישרה ופירמידה ישרה ומרכיביהן (בסיס, פאה, מקצוע, קודקוד)",
+     "זיהוי גליל וחרוט",
+     "התאמה בין גוף לפריסה שלו"
+    ],
+    "source": "S6",
+    "source_ref": "ט. עמ' 135-136"
+   },
+   {
+    "code": "MATH-6-18",
+    "strand": "מדידות",
+    "title_he": "מעגל ועיגול",
+    "title_en": "Circle",
+    "skills": [
+     "הכרת מרכז, רדיוס וקוטר",
+     "חישוב היקף מעגל לפי רדיוס או קוטר",
+     "חישוב שטח עיגול לפי רדיוס"
+    ],
+    "source": "S6",
+    "source_ref": "י.1, עמ' 136; ציוני דרך F.Medidot"
+   },
+   {
+    "code": "MATH-6-19",
+    "strand": "מדידות",
+    "title_he": "חישובי נפחים",
+    "title_en": "Volume",
+    "skills": [
+     "חישוב נפח תיבה",
+     "המרה בין יחידות נפח: סמ\"ק, ליטר, מ\"ק",
+     "חישוב נפח גליל",
+     "חישוב נפח מנסרה"
+    ],
+    "source": "S6",
+    "source_ref": "י.2, עמ' 138-139; ציוני דרך F.Medidot"
+   }
+  ]
+ }
+}

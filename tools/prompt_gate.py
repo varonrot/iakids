@@ -1814,6 +1814,91 @@ def gifted_quality_checks() -> list:
         return [f"gifted bank quality checks could not run: {e!r}"]
     return ["gifted.json: " + x for x in bank_solver.check(bank)]
 
+def subscription_button_checks() -> list:
+    """User report 2026-09-25: "ניהול מנוי" led to 404 — the workspaces called /api/create-portal-session on the
+    Hebrew TUTOR, which does not have it; it lives in the payments backend (backend/main.py)."""
+    bad = []
+    for rel in ("he/workspace/index.html", "he/games/workspace/index.html"):
+        t = (ROOT / rel).read_text(encoding="utf-8")
+        if "${TUTOR_API_BASE}/api/create-portal-session" in t:
+            bad.append(f"{rel}: 'ניהול מנוי' calls the tutor, which has no portal route: every parent gets 404 (user report 2026-09-25)")
+        if "${PAYMENTS_API_BASE}/api/create-portal-session" not in t or "const PAYMENTS_API_BASE" not in t:
+            bad.append(f"{rel}: 'ניהול מנוי' no longer calls the payments backend")
+        if 'window.location.href = "/he/#pricing"' not in t:
+            bad.append(f"{rel}: a family with no paid subscription gets an error instead of the plans page from 'ניהול מנוי'")
+    if "@app.post(\"/api/create-portal-session\")" not in (ROOT / "backend" / "main.py").read_text(encoding="utf-8"):
+        bad.append("backend/main.py lost /api/create-portal-session: 'ניהול מנוי' has nowhere to go")
+    return bad
+
+QBANK_PROMPT_SECTIONS = {"generate_item.txt": ["ORIGINAL ONLY", "Never reproduce, translate or paraphrase", "WRITE FOR THE GRADE",
+                                               "HEBREW", "Never singular male or female", "FOUR OPTIONS, ONE KEY", "ONE specific, common mistake",
+                                               "solution_expr", "{topic_code}", "{skills}", "{stem_max}"],
+                         "solve_item.txt": ["answer", "confident", "problem", "{grade}"]}
+
+
+def qbank_checks() -> list:
+    """The question bank (backend-ai-tutor-he/qbank, 2026-09-25): curriculum topic files, the licence registry, the
+    item validators (unit + negative tests), the generator prompt's must-keep sections, and no local item file
+    (items carry their answers; the repository is public) tracked by git."""
+    bad = []
+    qb = ROOT / "backend-ai-tutor-he" / "qbank"
+    if not qb.exists():
+        return bad
+    sys.path.insert(0, str(ROOT / "backend-ai-tutor-he"))
+    try:
+        import importlib
+        from qbank import store, validate as qv
+        importlib.reload(store); importlib.reload(qv)
+        topics, sources = store.load_topics(), store.load_sources()
+    except Exception as e:
+        return [f"qbank could not load: {e!r}"]
+    for sid, src in sources.items():
+        if src.get("licence_class") not in ("A", "B", "C") or not src.get("licence"):
+            bad.append(f"qbank/sources.json: {sid} has no licence or class")
+        if src.get("licence_class") == "A" and sid != "original" and not src.get("attribution"):
+            bad.append(f"qbank/sources.json: class-A source {sid} has no attribution line: adapted items could not credit it")
+    for bad_id in ("israeli-prep-sites", "cet"):
+        if sources.get(bad_id, {}).get("licence_class") != "C":
+            bad.append(f"qbank/sources.json: {bad_id} must stay class C (never copied, never adapted)")
+    seen = set()
+    for code, t in topics.items():
+        if not re.fullmatch(r"[A-Z]{3,4}-[1-6]-\d{2}", code):
+            bad.append(f"curriculum: topic code {code!r} is not SUBJ-<grade>-NN")
+        if not code.split("-")[1] == str(t["grade"]):
+            bad.append(f"curriculum: {code} sits under grade {t['grade']}")
+        if not t["title_he"] or not t["skills"] or not t["source_url"]:
+            bad.append(f"curriculum: {code} has no title, skills or source link")
+    if len(topics) < 100:
+        bad.append(f"curriculum: only {len(topics)} topics load: a curriculum file is missing or broken")
+    for fname, needles in QBANK_PROMPT_SECTIONS.items():
+        t = (qb / "prompts" / fname).read_text(encoding="utf-8") if (qb / "prompts" / fname).exists() else ""
+        for n in needles:
+            if n not in t:
+                bad.append(f"qbank/prompts/{fname} lost {n!r}: the generator would write items without that rule")
+    tracked = sh("git", "ls-files", "backend-ai-tutor-he/data/qbank").split()
+    if tracked:
+        bad.append(f"items with their answers are tracked by git (the repository is public): {tracked[:3]}")
+    # validators: a good item passes, each known defect is caught
+    good = {"id": "g1", "topic_code": "MATH-3-01", "subject": "math", "grade": 3, "purpose": "practice", "difficulty": 1,
+            "stem": "לנועה היו 24 מדבקות. היא קיבלה עוד 15 מדבקות. כמה מדבקות יש לה עכשיו?", "options": ["39", "9", "29", "49"],
+            "answer": 0, "why_wrong": {"1": "חיסרו במקום לחבר.", "2": "טעות בעשרות.", "3": "עשרה אחת יותר מדי."},
+            "explain": "מחברים 24 ועוד 15: עשרות 30, יחידות 9, ביחד 39.", "origin": "original_llm", "solution_expr": "24+15"}
+    if qv.validate_item(good, sources=sources):
+        bad.append(f"qbank validators reject a good item: {qv.validate_item(good, sources=sources)[:1]}")
+    must_fail = {
+        "a wrong key": dict(good, solution_expr="24+14"),
+        "singular address": dict(good, stem="בחר את התשובה: לנועה היו 24 מדבקות והיא קיבלה עוד 15. כמה יש לה?"),
+        "a class-B source": dict(good, origin="adapted_open", source_id="rama-meitzav", attribution="x"),
+        "an adapted gifted item": dict(good, purpose="gifted", origin="adapted_open", source_id="svamp", attribution="x"),
+        "a missing distractor explanation": dict(good, why_wrong={"1": "x", "2": "y"}),
+    }
+    for name, it in must_fail.items():
+        if not qv.validate_item(it, sources=sources):
+            bad.append(f"qbank validators accept an item with {name}")
+    if not qv.copy_risk(dict(good, id="g2"), {"blocked": qv.item_shingles(good)}):
+        bad.append("qbank copy check misses a verbatim copy")
+    return bad
+
 PAGES_PRIVATE = ["backend", "backend-ai-tutor-he", '"iakids_*_prompt*.txt"', '"V*_BACKUP"', "tools", "docs", "performance",
                  "supabase", "ops", '"*.md"', '"*.py"', '"*.sql"', '"*.sh"', '"*.env"']
 
@@ -1938,7 +2023,7 @@ def main():
         # live in code (the lesson screen, the coach handover, the media failure signal)
         # plus, for main.py, the render smoke that doubles as an import smoke — a route
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
-        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks() + english_page_checks() + homework_back_checks() + pages_privacy_checks()
+        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks() + english_page_checks() + homework_back_checks() + pages_privacy_checks() + subscription_button_checks()
               + (performance_checks(main_src) + request_cache_tests() if main_changed else [])
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
@@ -1961,7 +2046,7 @@ def main():
         fails = check_file(PROMPTS / name, name, main_src, head_version(name))
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
-    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + homework_back_checks() + pages_privacy_checks() + gifted_quality_checks() + persona_checks(main_src) + coverage_checks(main_src)
+    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + homework_back_checks() + pages_privacy_checks() + gifted_quality_checks() + subscription_button_checks() + qbank_checks() + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + security_checks(main_src) + required_entry_checks() + check_bank_checks() + topbar_stacking_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()

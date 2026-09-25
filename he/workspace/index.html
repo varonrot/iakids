@@ -30865,6 +30865,10 @@ function closeParentModal(){
 }
 </script>
 <script>
+// "ניהול מנוי" (2026-09-25, user: it led to 404): subscriptions and LemonSqueezy live in the PAYMENTS backend
+// (backend/main.py on Render), not in the Hebrew tutor. smarts-brains.online reaches it through nginx
+// (/payments-api/, that one route only) because the payments backend does not allow this origin in CORS.
+const PAYMENTS_API_BASE = location.hostname.endsWith("smarts-brains.online") ? location.origin + "/payments-api" : "https://iakids-backend.onrender.com";
 document.getElementById("manageSubscriptionBtn").onclick = async () => {
 
   try {
@@ -30873,12 +30877,12 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
     const session = sessionData.session;
 
     if (!session){
-      alert("Debe iniciar sesión nuevamente.");
+      alert("צריך להתחבר מחדש כדי לנהל את המנוי.");
       return;
     }
 
     const res = await fetch(
-      `${TUTOR_API_BASE}/api/create-portal-session`,
+      `${PAYMENTS_API_BASE}/api/create-portal-session`,
       {
         method: "POST",
         headers: {
@@ -30890,7 +30894,12 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
     if (!res.ok) {
       const errorText = await res.text();
       console.error("PORTAL ERROR:", res.status, errorText);
-      alert("Error backend: " + res.status);
+      // 404 "No Lemon subscription" (and 500 for an account with no subscription row): nothing to manage yet
+      if (res.status === 404 || res.status === 500) {
+        if (confirm("לא מצאנו מנוי בתשלום בחשבון הזה.\nלעבור לעמוד המנויים?")) window.location.href = "/he/#pricing";
+        return;
+      }
+      alert("לא הצלחנו לפתוח את ניהול המנוי כרגע. נסו שוב בעוד רגע, ואם זה חוזר כתבו לנו בתמיכה.");
       return;
     }
 
@@ -30901,7 +30910,7 @@ document.getElementById("manageSubscriptionBtn").onclick = async () => {
 
     if (!portalUrl){
       console.error("Missing portal URL:", json);
-      alert("Portal URL missing");
+      alert("לא הצלחנו לפתוח את ניהול המנוי כרגע. נסו שוב בעוד רגע.");
       return;
     }
 
@@ -54010,7 +54019,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07151"></script>
+<script src="/he/workspace/lesson-completion.js?v=07152"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54184,8 +54193,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.151</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.151";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.152</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.152";</script>
 
 <!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
      "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
@@ -55880,7 +55889,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07151"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07152"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example

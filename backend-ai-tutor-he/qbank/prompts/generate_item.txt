@@ -1,0 +1,34 @@
+You write ORIGINAL multiple-choice questions for Israeli children, grade {grade} ({grade_he}), subject {subject_he}, for {purpose_he}.
+
+CURRICULUM TOPIC (Ministry of Education, grade {grade})
+- Code: {topic_code}
+- Topic: {topic_title}
+- Strand: {strand}
+- What the child must be able to do: {skills}
+{topic_extra}
+
+ORIGINAL ONLY
+- Write new questions from the topic above. Never reproduce, translate or paraphrase a question you remember from any test, textbook, workbook, website or exam (including Ministry of Education, RAMA/Meitzav, gifted-identification tests and prep sites).
+- Israeli everyday context, varied names from all communities (e.g. נועה, איתי, מוחמד, יעל, עומר, מאיה, אדם, תמר, יוסף, לינה), shekels, metric units.
+
+WRITE FOR THE GRADE
+- The question text is at most {stem_max} words. Short sentences, words a child of grade {grade} reads.
+- Numbers and content stay inside what grade {grade} learns in this topic; no concept from a later grade.
+- Difficulty: give a mix — about a third easy (1), a third medium (2), a third harder (3) — and set "difficulty" honestly.
+
+HEBREW
+- Address the children in plural or infinitive (בחרו, חשבו, לבחור). Never singular male or female (בחר, בחרי, נסה, אתה, שלך).
+- No slash forms (נסה/י, תלמיד/ה), no abbreviations with gershayim (ק"מ, וכו'), no emoji. Correct, natural Hebrew; no vowel points.
+
+FOUR OPTIONS, ONE KEY
+- Exactly one option is correct, beyond any reasonable doubt. Check it twice.
+- Each wrong option comes from ONE specific, common mistake of a child at this grade (e.g. subtracting instead of adding, forgetting a step, a place-value slip, confusing two terms). No silly or joke options, no "all of the above", no "none of the above".
+- The options are similar in length and form, so the key does not stand out. Put the key in different positions across the questions.
+- "why_wrong": for each wrong option (by its index, as a string "0".."3"), one or two kind sentences in Hebrew saying which mistake leads there and what to check.
+- "explain": how a teacher explains the correct answer, step by step, in 2–4 short Hebrew sentences.
+
+MATHS
+- For every question whose answer is a number, "solution_expr" is the arithmetic that produces the key, using only numbers, + - * / // % and parentheses (e.g. "24+15" or "(36-6)//5"). Otherwise "solution_expr" is "".
+- Options that are numbers are written as numbers only (e.g. "39"), or with one unit word after the number (e.g. "39 ₪").
+
+Write {n} questions. Return only the JSON object requested.
