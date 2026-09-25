@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07150.86d85871">
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07151.86d85871">
 <!--
   היכרות עם מבחן המחוננים (2026-09-24): FAMILIARISATION, not a check and not a prediction. Five
   sections in the style of the first-stage screening (word pairs, missing words, word problems, numbers
@@ -41,6 +41,13 @@
 .mx{display:grid;grid-template-columns:repeat(3,auto);gap:6px;direction:rtl}
 .cellq{width:130px;height:130px;border:2px dashed #999;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#e08a00}
 .opt-shape{background:#fff;border-radius:12px;display:inline-flex}
+/* carpet (שטיח, official chapter 5c, 2026-09-25): tiles in a grid, a 2x2 patch missing; options are patches.
+   A picture, so it reads left to right like any drawing; the rule is the same in every direction. */
+.carpet{display:grid;gap:0;direction:ltr;border:3px solid #111;background:#fff}
+.carpet .ctile{border:1px solid #c8c8c8;display:flex;align-items:center;justify-content:center;width:50px;height:50px}
+.carpet .chole{border:3px dashed #e08a00;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;color:#e08a00;background:#fff8ec}
+.opt-patch{display:inline-grid;grid-template-columns:repeat(2,44px);direction:ltr;border:2px solid #111;background:#fff;border-radius:4px}
+.opt-patch span{border:1px solid #c8c8c8;display:flex;align-items:center;justify-content:center;width:44px;height:44px}
 .feedback{margin-top:12px;font-size:18px;line-height:1.7;color:#dbe7fb}
 .example{border:1px dashed var(--cyan);border-radius:16px;padding:12px;margin-top:10px}
 /* two columns on a wide screen: question + figure | answers (intro: explanation | worked example) */
@@ -73,7 +80,7 @@ main .gq-a .opts{gap:10px}
   <div class="ck-path" id="path"></div>
   <div id="app"></div>
 </main>
-<script src="/he/diagnostics/check-shell.js?v=07150.1d74a3b0"></script>
+<script src="/he/diagnostics/check-shell.js?v=07151.1d74a3b0"></script>
 <script>
 (function(){
   var C = window.IAKidsCheck, $app = document.getElementById("app"), kid = C.currentKid();
@@ -83,7 +90,7 @@ main .gq-a .opts{gap:10px}
     {id: "sentence", title: "אילו מילים חסרות?", hint: "השלמת משפטים"},
     {id: "wordprob", title: "מה הפתרון לבעיה?", hint: "בעיות מילוליות"},
     {id: "shapenum", title: "איזה מספר חסר?", hint: "מספרים בצורות"},
-    {id: "nextshape", title: "מה הצורה הבאה?", hint: "סדרות ולוחות של צורות"}
+    {id: "nextshape", title: "מה הצורה הבאה?", hint: "סדרות, לוחות ושטיחים של צורות"}
   ];
   var unit = null, queue = [], done = 0, right = 0, uid = 0;
 
@@ -186,6 +193,13 @@ main .gq-a .opts{gap:10px}
     if (f.layout && LAYOUT[f.layout]) return "<div class='paper'>" + LAYOUT[f.layout](f.cells || [], f) + "</div>";
     if (f.kind === "series") return "<div class='paper'><div class='row-shapes'>" + (f.series || []).map(function(s){ return shape(s); }).join("") + QCELL + "</div></div>";
     if (f.kind === "matrix") return "<div class='paper'><div class='mx'>" + (f.grid || []).map(function(s){ return s ? shape(s) : QCELL; }).join("") + "</div></div>";
+    if (f.kind === "carpet"){
+      var h = f.hole || {}, cols = ((f.tiles || [])[0] || []).length, out = "";
+      (f.tiles || []).forEach(function(row, r){ row.forEach(function(t, c){
+        if (t) out += "<div class='ctile' style='grid-row:" + (r + 1) + ";grid-column:" + (c + 1) + "'>" + shape(t, 44) + "</div>"; }); });
+      out += "<div class='chole' style='grid-row:" + (h.r + 1) + " / span " + (h.h || 2) + ";grid-column:" + (h.c + 1) + " / span " + (h.w || 2) + "'>?</div>";
+      return "<div class='paper'><div class='carpet' style='grid-template-columns:repeat(" + cols + ",50px)'>" + out + "</div></div>";
+    }
     return "";
   }
   function qHtml(it){
@@ -193,6 +207,7 @@ main .gq-a .opts{gap:10px}
     return "<p class='qbig'>" + q + "</p>" + (it.text ? "<p class='sent'>" + C.esc(it.text).replace(/_{3,}/g, "<span class='blank'></span>") + "</p>" : "") + figureHtml(it);
   }
   function optHtml(o){
+    if (o && o.patch) return "<span class='opt-patch'>" + o.patch.map(function(row){ return row.map(function(t){ return "<span>" + shape(t, 38) + "</span>"; }).join(""); }).join("") + "</span>";
     if (o && typeof o === "object" && !Array.isArray(o)) return "<span class='opt-shape'>" + shape(o, 68) + "</span>";
     return C.esc(Array.isArray(o) ? o.join(" … ") : String(o));
   }

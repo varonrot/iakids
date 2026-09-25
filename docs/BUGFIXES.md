@@ -2,6 +2,16 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Gifted bank: 10 shape items answerable without the question; new "carpet" items; bank quality gate (build 0.7.151)
+
+- **Symptom**: in 10 of the 12 "מה הצורה הבאה?" items the correct shape was the one option sharing the most features with the other three (every distractor was "the key with one feature changed"), so it could be picked without looking at the question — a child or an AI scores without understanding.
+- **Fix**: each of the 10 items' options rebuilt as 2x2 on the two features that matter (the key is right on both, each distractor is wrong on one or both and reflects a real mistake, with its own why_wrong). The correct shapes, their letters (A–D spread) and the explanations are unchanged.
+- **New**: the "carpet" (שטיח) kind from the official Stage B chapter 5 (research 2026-09-25, Ministry demo booklet): renderer in `he/diagnostics/gifted/` (carpet with a dashed 2x2 hole, patch options) and 3 original items (checkerboard, diagonal stripes, quarter-turn rotation), tiles generated from each pattern's formula. The server sends tiles and hole only (no answer, explanation or rule).
+- **Gate** (`tools/bank_solver.py`, `gifted_quality_checks`): key spread <= 40 % per section; context-blind items; every simple rule that fits a series / 3x3 grid / number shape / carpet must give the key and no second fitting rule may give another option; the carpet pattern must decide every missing tile (it caught two of the new carpets whose hole touched the edge — rebuilt 5x5). 8 negative tests.
+- **Not adopted**: ascending numeric options — in the word problems the key would never be D and would be A or C in 11 of 12.
+- **Verified**: solver clean on all 63 items; `prompt_gate --all` passes; carpets screenshotted in the real page (headless Chromium); `public_check_item` leaks nothing for a carpet.
+- **Build**: 0.7.151.
+
 ## 2026-09-25 — Project files private on iakids.app; homework gets a visible "חזרה" (build 0.7.150)
 
 - **Symptom 1 (user)**: in homework it was hard to understand how to go back — unlike every other screen, the homework header had no "חזרה"; the only exit was "חזרה למערך השיעורים" at the top of the lesson sidebar.

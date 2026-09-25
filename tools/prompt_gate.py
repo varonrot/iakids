@@ -1800,6 +1800,20 @@ def homework_back_checks() -> list:
         bad.append("workspace: the homework 'חזרה' button has no style: it does not look like the other screens' back button")
     return bad
 
+def gifted_quality_checks() -> list:
+    """The gifted familiarisation bank, checked like a test publisher would (tools/bank_solver.py, research
+    2026-09-25): the key is not concentrated on one letter, a shape item cannot be answered without the
+    question (10 of 12 could, fixed 2026-09-25), and every simple rule that fits a figure gives the key."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    try:
+        import importlib
+        import bank_solver
+        importlib.reload(bank_solver)
+        bank = json.loads((ROOT / "backend-ai-tutor-he" / "data" / "checks" / "gifted.json").read_text(encoding="utf-8"))
+    except Exception as e:
+        return [f"gifted bank quality checks could not run: {e!r}"]
+    return ["gifted.json: " + x for x in bank_solver.check(bank)]
+
 PAGES_PRIVATE = ["backend", "backend-ai-tutor-he", '"iakids_*_prompt*.txt"', '"V*_BACKUP"', "tools", "docs", "performance",
                  "supabase", "ops", '"*.md"', '"*.py"', '"*.sql"', '"*.sh"', '"*.env"']
 
@@ -1947,7 +1961,7 @@ def main():
         fails = check_file(PROMPTS / name, name, main_src, head_version(name))
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
-    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + homework_back_checks() + pages_privacy_checks() + persona_checks(main_src) + coverage_checks(main_src)
+    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + homework_back_checks() + pages_privacy_checks() + gifted_quality_checks() + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + security_checks(main_src) + required_entry_checks() + check_bank_checks() + topbar_stacking_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
