@@ -130,7 +130,30 @@
     if (force) { open(opener); check(true); }
     else check(false, true);
   }
-  window.IAKidsAuth = { requireChild, get child() { return activeChild; } };
+  async function topicDraftUser(childId) {
+    if (!sb || !activeChild || activeChild.id !== childId) throw new Error('Choose a child and sign in again.');
+    const {data: {user}, error: authError} = await sb.auth.getUser();
+    if (authError || !user) throw new Error('Your session expired. Please sign in again.');
+    return user;
+  }
+  async function loadTopicDraft(childId) {
+    await topicDraftUser(childId);
+    const {data, error: draftError} = await sb.from('2027_test_prep_topics')
+      .select('grade,subject,topics,custom_topics,test_date')
+      .eq('child_id', childId).eq('language', 'en').maybeSingle();
+    if (draftError) throw new Error('We couldn’t load your saved topics. Please try again.');
+    return data;
+  }
+  async function saveTopicDraft(childId, draft) {
+    const user = await topicDraftUser(childId);
+    const {error: draftError} = await sb.from('2027_test_prep_topics').upsert({
+      user_id: user.id, child_id: childId, language: 'en', grade: draft.grade,
+      subject: draft.subject, topics: draft.topics, custom_topics: draft.custom,
+      test_date: draft.date || null, updated_at: new Date().toISOString()
+    }, {onConflict: 'child_id,language'});
+    if (draftError) throw new Error('We couldn’t save your topics to your account. Please try again.');
+  }
+  window.IAKidsAuth = { requireChild, loadTopicDraft, saveTopicDraft, get child() { return activeChild; } };
   dialog.querySelector('.google-signin').addEventListener('click', async () => {
     if (busy) return;
     const button = dialog.querySelector('.google-signin');
