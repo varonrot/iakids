@@ -2,6 +2,11 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Test images added (no code change)
+
+- `backend/prompts/images.jpeg`, `backend/prompts/images2.png`: two images kept in the repo for testing, at the user's request. Not loaded by any code; not published on iakids.app (`backend/` is excluded in `_config.yml`), but readable in the public GitHub repository.
+- **Build**: unchanged (0.7.151) — no fix.
+
 ## 2026-09-25 — Gifted bank: 10 shape items answerable without the question; new "carpet" items; bank quality gate (build 0.7.151)
 
 - **Symptom**: in 10 of the 12 "מה הצורה הבאה?" items the correct shape was the one option sharing the most features with the other three (every distractor was "the key with one feature changed"), so it could be picked without looking at the question — a child or an AI scores without understanding.
