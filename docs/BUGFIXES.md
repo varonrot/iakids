@@ -2,6 +2,13 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Restore the English Recent Progress reference (eng-dashboard-6)
+
+- Symptom: the Recent Progress card showed an empty state rather than the four activity rows and encouragement strip in the approved reference image.
+- Fix: restore the four illustrative activity rows, right-aligned View all link, mint encouragement strip, and mobile visibility; refresh the dashboard stylesheet cache key.
+- Verification: markup and responsive style checks, plus live page inspection after deployment.
+- Build: eng-dashboard-6, English dashboard only. Activity values are illustrative and are not read from a child's learning record.
+
 
 ## 2026-09-25 — Restore complete English dashboard CSS and bugfix history (eng-dashboard-5)
 

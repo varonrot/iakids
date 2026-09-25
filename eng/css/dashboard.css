@@ -590,7 +590,7 @@ img{max-width:100%;display:block}
   .subject-card{grid-template-columns:40px 1fr;min-height:58px;padding:8px}
   .subject-thumb{width:40px;height:40px}
   .subject-chevron{display:none}
-  .recent-progress{display:none}
+  .recent-progress{display:flex;flex-direction:column}
   .mobile-bottom-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:60;
     height:68px;padding-bottom:env(safe-area-inset-bottom);
@@ -2328,25 +2328,20 @@ body{overflow-x:clip}
  .page-shell > .dashboard-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
  .dashboard-grid > .continue-learning,.dashboard-grid > .my-subjects{grid-column:auto}
  .dashboard-grid > .recent-progress{grid-column:1 / -1}
- .dashboard-grid .recent-progress .progress-list{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto;gap:0 18px}
+ .dashboard-grid .recent-progress .progress-list{grid-template-columns:1fr;grid-template-rows:repeat(4,1fr)}
  .dashboard-grid > .recent-progress{min-height:0}
 }
 
-/* Recent Progress first-use state: fill the panel with one clear next action. */
-.recent-progress .progress-empty-state{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:10px;padding:24px 22px;text-align:center;
-}
-.empty-state-art{
-  width:72px;height:72px;display:grid;place-items:center;border-radius:22px;
-  background:linear-gradient(145deg,#e7faf5,#d7f2ec);color:#0c9f98;
-}
-.empty-state-art svg{width:42px;height:42px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.progress-empty-state>strong{color:var(--navy);font-size:clamp(14px,.8vw,18px)}
-.progress-empty-state>p{max-width:270px;margin:0;color:#71859b;font-size:clamp(11px,.58vw,13px);line-height:1.55}
-.empty-state-cta{display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:0 18px;margin:8px 0 0;min-height:42px;height:auto;text-decoration:none;font-size:12px}
-.empty-state-cta span{font-size:17px;line-height:1}
+/* Keep the four activity rows and the encouragement strip visible together. */
+.recent-progress .text-link{font-size:clamp(12px,.7vw,16px);white-space:nowrap}
+.recent-progress .progress-list{min-width:0}
+.recent-progress .activity-icon{font-size:18px}
+.recent-progress .activity-meta.good{color:#0ba477}
+.recent-progress .progress-banner{margin-top:auto}
 @media(max-width:720px){
-  .recent-progress .progress-empty-state{min-height:260px;padding:28px 18px}
-  .empty-state-art{width:64px;height:64px}
+  .recent-progress .progress-list{display:block;padding:8px 14px}
+  .recent-progress .activity{grid-template-columns:38px minmax(0,1fr) auto;min-height:64px;gap:8px}
+  .recent-progress .activity strong{font-size:13px}
+  .recent-progress .activity small,.recent-progress .activity-meta{font-size:11px}
+  .recent-progress .progress-banner{margin:8px 14px 14px}
 }
