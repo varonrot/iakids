@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<script src="/assets/js/iakids-log-mode.js"></script>
+<script>if(window.self!==window.top)document.documentElement.classList.add("embedded");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מורה לאנגלית | IA KIDS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<!-- the shared look of the kids' pages (teacher portrait, cards, buttons, chips, dots): tools/stamp_check_shell.py -->
+<link rel="stylesheet" href="/he/diagnostics/check-shell.css?v=07149.86d85871">
+<!--
+  English voice tutor (2026-09-25, in testing). Hebrew explains, English is the subject.
+  Talks only to our API: /api/english/* (backend-ai-tutor-he/english_tutor.py) and /api/tutor/tts (the lesson
+  voice, cached). The child speaks through assets/js/iakids-dictation.js attached in ENGLISH (en-US).
+  Opened from the workspace menu ("מורה לאנגלית", badge בבדיקה) inside the center frame; the signed-in
+  session and the chosen child come from the workspace through IAKIDS_CHECK_BRIDGE.
+-->
+<style>
+/* only what the shared shell does not have: the conversation itself */
+.et-testing{color:#2a1600;background:linear-gradient(90deg,var(--orange),#ff7ab6)}
+.et-head{display:flex;align-items:center;gap:14px;margin:4px 0 8px}
+.et-head h1{font-size:26px;margin:0}
+.et-head .ck-teacher{margin:0}
+.ck-teacher.talking{animation:etTalk .9s ease-in-out infinite}
+@keyframes etTalk{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.et-min{margin-inline-start:auto;text-align:center;min-width:90px;font-size:13px;color:var(--muted)}
+.et-min b{display:block;font-size:24px;color:var(--text)}
+.et-bar{height:6px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}
+.et-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));transition:width .4s}
+.et-chat{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:16px;max-height:48vh;overflow-y:auto}
+.embedded .et-chat{max-height:none}
+.et-msg{max-width:88%;border-radius:18px;padding:12px 14px;line-height:1.6;font-size:19px}
+.et-msg.t{align-self:flex-start;background:var(--panel2);border:1px solid var(--line)}
+.et-msg.k{align-self:flex-end;background:rgba(56,229,108,.12);border:1px solid rgba(56,229,108,.35);direction:ltr;text-align:left}
+.et-replay{border:0;background:transparent;color:var(--cyan);cursor:pointer;font:inherit;font-size:15px;padding:0 8px}
+.et-target{display:flex;align-items:center;gap:12px;border-radius:20px;padding:16px 18px;margin-top:12px;
+  background:linear-gradient(135deg,rgba(40,215,255,.14),rgba(116,72,255,.16));border:1px solid rgba(40,215,255,.35)}
+.et-target .say{font-size:14px;color:var(--muted);font-weight:700}
+.et-target .en{direction:ltr;text-align:left;font-size:28px;font-weight:800;flex:1}
+.et-options{margin-top:10px}
+.et-options button{direction:ltr;font-size:20px;font-weight:800;padding:12px 20px}
+.et-fix{margin-top:10px;border-radius:16px;padding:12px 14px;background:rgba(255,176,58,.10);border:1px solid rgba(255,176,58,.35);font-size:16px;line-height:1.6}
+.et-fix .pair{direction:ltr;text-align:left;font-weight:800;font-size:18px}
+.et-fix s{color:#ffb4a8}.et-fix ins{color:#9ff5b8;text-decoration:none}
+.et-words{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.et-word{border-radius:12px;padding:6px 10px;background:rgba(116,72,255,.14);border:1px solid rgba(116,72,255,.35);font-size:15px}
+.et-word b{direction:ltr;unicode-bidi:isolate}
+.et-composer{display:flex;gap:8px;align-items:center;margin-top:12px}
+.et-composer input{flex:1;min-width:0;direction:ltr;text-align:left;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:16px;padding:14px;font:inherit;font-size:19px}
+.et-composer input:focus{outline:2px solid var(--cyan);outline-offset:1px}
+.et-mic{width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;font-size:24px;color:#02101f;background:linear-gradient(135deg,var(--cyan),var(--purple));flex:0 0 auto}
+.et-mic.iakids-mic-listening{box-shadow:0 0 0 6px rgba(40,215,255,.3);animation:etTalk .9s infinite}
+.et-mic.iakids-mic-unsupported{display:none}
+.et-mic:disabled,.et-composer .ck-btn:disabled{opacity:.45;cursor:default}
+.et-remember{direction:ltr;text-align:center;font-size:26px;font-weight:800;color:#dff6ff;margin:6px 0}
+.et-parent{margin-top:12px;padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px dashed var(--line);color:#c6d4ea;font-size:15px}
+[hidden]{display:none!important}
+@media (max-width:560px){.et-head h1{font-size:21px}.et-target .en{font-size:22px}.et-msg{font-size:17px;max-width:94%}}
+@media (prefers-reduced-motion:reduce){.ck-teacher.talking,.et-mic.iakids-mic-listening{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="et-head">
+    <img class="ck-teacher ck-teacher-sm" id="teacher" src="/assets/diagnostics/teacher.webp" alt="המורה" width="104" height="104">
+    <div>
+      <span class="ck-tag et-testing">בבדיקה</span>
+      <h1>מורה לאנגלית</h1>
+      <p class="ck-note" style="margin:2px 0 0">מדברים באנגלית, המורה מסבירה בעברית. בלי לחץ, מותר לטעות.</p>
+    </div>
+    <div class="et-min" id="minutes" hidden><b id="minLeft">-</b>דקות להיום<div class="et-bar"><i id="minBar" style="width:100%"></i></div></div>
+  </div>
+
+  <!-- start -->
+  <section class="ck-card ck-child" id="startCard" hidden>
+    <h1>על מה נדבר היום?</h1>
+    <p class="ck-say">בוחרים נושא ולוחצים "בואו נדבר". עונים במיקרופון או בהקלדה.</p>
+    <div class="ck-choice" id="topics" style="justify-content:center"></div>
+    <div class="ck-row"><button class="ck-btn ck-primary" id="goBtn" type="button">בואו נדבר</button></div>
+    <p class="ck-note" id="startHint"></p>
+  </section>
+
+  <!-- conversation -->
+  <section id="talk" hidden>
+    <div class="et-chat" id="chat" aria-live="polite"></div>
+    <div class="ck-dots" id="thinking" hidden aria-label="המורה חושבת"><span></span><span></span><span></span></div>
+    <div class="et-target" id="target" hidden>
+      <div style="flex:1;min-width:0"><div class="say" id="targetLabel">עכשיו תורך להגיד</div><div class="en" id="targetEn"></div></div>
+      <button class="ck-btn" type="button" id="hearTarget">שמיעה</button>
+    </div>
+    <div class="ck-choice et-options" id="options" hidden></div>
+    <div class="et-fix" id="fix" hidden></div>
+    <div class="et-words" id="words" hidden></div>
+    <form class="et-composer" id="composer" autocomplete="off">
+      <button class="et-mic" id="micBtn" type="button" title="לדבר באנגלית" aria-label="לדבר באנגלית">🎤</button>
+      <input id="answer" type="text" maxlength="1500" placeholder="Say it or type it…" aria-label="התשובה שלך באנגלית">
+      <button class="ck-btn ck-primary" id="sendBtn" type="submit">שליחה</button>
+    </form>
+    <div class="ck-row" style="justify-content:space-between">
+      <span class="ck-note">לוחצים על המיקרופון ומדברים באנגלית. המורה מחכה לך.</span>
+      <button class="ck-btn" id="endBtn" type="button">סיימתי להיום</button>
+    </div>
+  </section>
+
+  <!-- summary -->
+  <section class="ck-card ck-child ck-end" id="sumCard" hidden>
+    <img class="ck-star" src="/assets/diagnostics/done.webp" alt="" width="320" height="200">
+    <h1>כל הכבוד על השיחה!</h1>
+    <p class="ck-say"><b id="sumMin">-</b> דקות · <b id="sumWords">-</b> מילים חדשות · רמה <b id="sumLevel">-</b></p>
+    <p class="ck-note">משפט אחד לזכור:</p>
+    <div class="et-remember" id="sumRemember"></div>
+    <div class="et-words" id="sumWordList" style="justify-content:center"></div>
+    <div class="et-parent" id="sumParent"></div>
+    <div class="ck-row"><button class="ck-btn ck-primary" id="againBtn" type="button">עוד שיחה</button></div>
+  </section>
+
+  <!-- messages -->
+  <section class="ck-card ck-child" id="msgCard" hidden>
+    <img class="ck-teacher" src="/assets/diagnostics/teacher.webp" alt="המורה" width="112" height="112">
+    <h1 id="msgTitle"></h1><p class="ck-say" id="msgText"></p>
+  </section>
+</main>
+<script src="/assets/js/iakids-dictation.js?v=1"></script>
+<script>
+(function(){
+  "use strict";
+  var TOPICS = [["animals","חיות"],["colors","צבעים"],["food","אוכל"],["family","משפחה"],["school","בית ספר"],["games and hobbies","משחקים ותחביבים"],["my day","היום שלי"],["weather","מזג אוויר"]];
+  var LEVEL_HE = {beginner:"מתחילים", elementary:"בסיסית", intermediate:"מתקדמת"};
+  var API_PATHS = ["/api/english/", "/api/tutor/tts"];
+  var $ = function(id){ return document.getElementById(id); };
+  var state = {kid:null, session:null, topic:"animals", busy:false, limit:600, remaining:null, voiceTurn:0, player:null, cache:{}};
+
+  // ------------------------------------------------ the workspace: child + session (same bridge as the checks)
+  function parentWin(){ try { return window.parent && window.parent !== window ? window.parent : window; } catch(e){ return window; } }
+  function currentKid(){
+    try {
+      var p = parentWin(), b = p.IAKIDS_CHECK_BRIDGE;
+      var k = (b && b.kid && b.kid()) || p.CURRENT_KID || null;
+      if (k && k.id) return {id:String(k.id), name:String(k.child_name || k.name || "")};
+    } catch(e){}
+    return null;
+  }
+  function authToken(){
+    try {
+      var p = parentWin();
+      if (p.IAKIDS_CHECK_BRIDGE && p.IAKIDS_CHECK_BRIDGE.session)
+        return p.IAKIDS_CHECK_BRIDGE.session().then(function(r){ return (r && r.data && r.data.session && r.data.session.access_token) || null; });
+      var c = p.sb || p.supabaseClient;
+      if (!c || !c.auth) return Promise.resolve(null);
+      return c.auth.getSession().then(function(r){ return (r && r.data && r.data.session && r.data.session.access_token) || null; });
+    } catch(e){ return Promise.resolve(null); }
+  }
+  function apiBase(){
+    if (window.IAKIDS_ENGLISH_API) return window.IAKIDS_ENGLISH_API;          // local testing
+    // same-origin API behind nginx on smarts-brains.online, and on this machine for testing (an SSH tunnel)
+    if (location.hostname.endsWith("smarts-brains.online") || location.hostname === "localhost" || location.hostname === "127.0.0.1")
+      return location.origin + "/tutor-api";
+    return "https://iakids-ai-tutor-he.onrender.com";
+  }
+  // our API only, never the database
+  function request(method, path, body, asBlob){
+    if (!API_PATHS.some(function(p){ return path.indexOf(p) === 0; })) return Promise.reject(new Error("not an english route"));
+    return authToken().then(function(token){
+      if (!token) { var e = new Error("signed-out"); e.status = 401; throw e; }
+      var opts = {method:method, headers:{Authorization:"Bearer " + token}};
+      if (body){ opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+      return fetch(apiBase() + path, opts).then(function(r){
+        if (!r.ok) return r.json().catch(function(){ return {}; }).then(function(j){ var e = new Error("api " + r.status); e.status = r.status; e.body = j; throw e; });
+        return asBlob ? r.blob() : r.json();
+      });
+    });
+  }
+
+  // ------------------------------------------------ voice: the lesson voice (cached on the server), browser voice as fallback
+  function hush(){ state.voiceTurn++; try{ if (state.player){ state.player.pause(); state.player = null; } }catch(e){} try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} $("teacher").classList.remove("talking"); }
+  function browserSpeak(text, lang){
+    try { if (!window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(text); u.lang = lang || "he-IL"; u.rate = .95;
+      u.onend = function(){ $("teacher").classList.remove("talking"); }; $("teacher").classList.add("talking"); speechSynthesis.speak(u); } catch(e){}
+  }
+  function speak(text, lang){
+    text = String(text || "").trim().slice(0, 1500); hush(); if (!text) return;
+    var turn = state.voiceTurn;
+    if (!state.cache[text]) state.cache[text] = request("POST", "/api/tutor/tts", {kid_id: state.kid.id, text: text}, true)
+      .then(function(b){ return URL.createObjectURL(b); }).catch(function(e){ delete state.cache[text]; throw e; });
+    state.cache[text].then(function(url){
+      if (turn !== state.voiceTurn) return;
+      state.player = new Audio(url); $("teacher").classList.add("talking");
+      state.player.onended = function(){ $("teacher").classList.remove("talking"); };
+      return state.player.play();
+    }).catch(function(){ if (turn === state.voiceTurn) browserSpeak(text, lang); });
+  }
+
+  // ------------------------------------------------ screens
+  function show(id){ ["startCard","talk","sumCard","msgCard"].forEach(function(s){ $(s).hidden = s !== id; }); }
+  function message(title, text){ $("msgTitle").textContent = title; $("msgText").textContent = text; show("msgCard"); }
+  function setMinutes(remaining, limit){
+    if (typeof remaining !== "number") return;
+    state.remaining = remaining; if (limit) state.limit = limit;
+    $("minutes").hidden = false;
+    $("minLeft").textContent = Math.max(0, Math.ceil(remaining / 60));
+    $("minBar").style.width = Math.max(0, Math.min(100, 100 * remaining / (state.limit || 600))) + "%";
+  }
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function addMsg(who, text, replayText){
+    var m = el("div", "et-msg " + who);
+    m.appendChild(document.createTextNode(text));
+    if (replayText){ var b = el("button", "et-replay", "שוב"); b.type = "button"; b.onclick = function(){ speak(replayText); }; m.appendChild(b); }
+    $("chat").appendChild(m); $("chat").scrollTop = $("chat").scrollHeight;
+    if (window.self !== window.top) m.scrollIntoView({block:"nearest"});
+  }
+  function busy(on){
+    state.busy = on; $("thinking").hidden = !on;
+    ["sendBtn","micBtn","endBtn"].forEach(function(id){ $(id).disabled = on; });
+    Array.prototype.forEach.call($("options").querySelectorAll("button"), function(b){ b.disabled = on; });
+  }
+  function renderReply(res){
+    var r = res.reply || {};
+    addMsg("t", r.say_he || "", r.say_he);
+    speak(r.say_he);
+    $("targetEn").textContent = r.target_en || ""; $("target").hidden = !r.target_en;
+    $("targetLabel").textContent = r.task === "answer" ? "אפשר לענות למשל" : (r.task === "free" ? "עכשיו תורך" : "עכשיו תורך להגיד");
+    var o = $("options"); o.innerHTML = "";
+    (r.options || []).forEach(function(opt){ var b = el("button", null, opt); b.type = "button"; b.onclick = function(){ send(opt); }; o.appendChild(b); });
+    o.hidden = !(r.options && r.options.length);
+    var f = $("fix"); f.innerHTML = "";
+    if (r.correction){
+      var pair = el("div", "pair"); pair.appendChild(el("s", null, r.correction.said)); pair.appendChild(document.createTextNode("  →  ")); pair.appendChild(el("ins", null, r.correction.better));
+      f.appendChild(pair); f.appendChild(el("div", null, r.correction.why_he)); f.hidden = false;
+    } else f.hidden = true;
+    var w = $("words");
+    (r.new_words || []).forEach(function(x){ var c = el("span", "et-word"); c.appendChild(el("b", null, x.en)); c.appendChild(document.createTextNode(" · " + x.he)); w.appendChild(c); });
+    w.hidden = !w.children.length;
+    setMinutes(res.remaining_seconds);
+    $("answer").value = ""; $("answer").focus({preventScroll:true});
+  }
+  function fail(e){
+    busy(false);
+    if (e && e.status === 429){ hush(); message("נגמרו הדקות להיום", "המורה לאנגלית חוזרת מחר עם עוד דקות שיחה. בינתיים אפשר ללמוד בשיעורים ובמשחקים."); setMinutes(0); return; }
+    if (e && e.status === 503){ message("המורה לאנגלית עוד לא מוכנה בשרת הזה", "הדף בבדיקה: השירות עוד לא הופעל כאן. נסו שוב מאוחר יותר."); return; }
+    if (e && e.status === 401){ message("צריך להיכנס מתוך סביבת הלמידה", "פותחים את \"מורה לאנגלית\" מהתפריט בתוך סביבת הלמידה, עם הילד שנבחר."); return; }
+    if (e && e.status === 409){ state.session = null; show("startCard"); return; }
+    // the server does not have the English tutor yet (an older deploy answers 404): say so, never a blank page
+    if (e && e.status === 404){ message("המורה לאנגלית עוד לא הופעלה בשרת הזה", "הדף בבדיקה: השרת עוד לא עודכן עם המורה לאנגלית. נסו שוב אחרי העדכון."); return; }
+    if (!state.session){ message("לא הצלחנו להתחבר למורה לאנגלית", "נסו לרענן את הדף בעוד רגע."); return; }
+    addMsg("t", "משהו השתבש בחיבור. נסו לשלוח שוב.");
+  }
+
+  // ------------------------------------------------ actions
+  function start(){
+    if (state.busy) return;
+    hush(); $("chat").innerHTML = ""; $("words").innerHTML = ""; $("words").hidden = true; $("fix").hidden = true; $("target").hidden = true; $("options").hidden = true;
+    show("talk"); busy(true);
+    request("POST", "/api/english/session/start", {kid_id: state.kid.id, topic: state.topic}).then(function(res){
+      busy(false); state.session = res.session_id; renderReply(res);
+    }).catch(fail);
+  }
+  function send(text){
+    text = String(text || "").trim().slice(0, 1500);
+    if (!text || state.busy || !state.session) return;
+    hush(); addMsg("k", text); busy(true);
+    request("POST", "/api/english/turn", {kid_id: state.kid.id, session_id: state.session, message: text}).then(function(res){
+      busy(false); renderReply(res);
+    }).catch(fail);
+  }
+  function end(){
+    if (!state.session || state.busy) return;
+    hush(); busy(true);
+    request("POST", "/api/english/session/end", {kid_id: state.kid.id, session_id: state.session}).then(function(res){
+      busy(false); state.session = null;
+      var s = res.summary || {};
+      $("sumMin").textContent = s.minutes || 0; $("sumWords").textContent = (s.words || []).length; $("sumLevel").textContent = LEVEL_HE[s.level] || s.level || "";
+      $("sumRemember").textContent = s.remember_en || ""; $("sumParent").textContent = s.parent_note || "";
+      var wl = $("sumWordList"); wl.innerHTML = "";
+      (s.words || []).forEach(function(x){ var c = el("span", "et-word"); c.appendChild(el("b", null, x.en)); c.appendChild(document.createTextNode(" · " + x.he)); wl.appendChild(c); });
+      show("sumCard");
+      if (s.remember_en) speak(s.remember_en, "en-US");
+    }).catch(fail);
+  }
+
+  // ------------------------------------------------ wire up
+  TOPICS.forEach(function(t, i){
+    var b = el("button", i === 0 ? "on" : "", t[1]); b.type = "button"; b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.onclick = function(){ state.topic = t[0]; Array.prototype.forEach.call($("topics").children, function(x){ x.classList.remove("on"); x.setAttribute("aria-pressed", "false"); }); b.classList.add("on"); b.setAttribute("aria-pressed", "true"); };
+    $("topics").appendChild(b);
+  });
+  $("goBtn").onclick = start;
+  $("againBtn").onclick = function(){ show("startCard"); };
+  $("endBtn").onclick = end;
+  $("hearTarget").onclick = function(){ speak($("targetEn").textContent, "en-US"); };
+  $("composer").addEventListener("submit", function(e){ e.preventDefault(); send($("answer").value); });
+  // the child speaks ENGLISH here: the dictation script is attached with en-US, not the Hebrew default
+  if (window.IAKidsDictation) window.IAKidsDictation.attach({input: $("answer"), button: $("micBtn"), lang: "en-US", title: "לדבר באנגלית"});
+
+  state.kid = currentKid();
+  if (!state.kid){ message("צריך להיכנס מתוך סביבת הלמידה", "פותחים את \"מורה לאנגלית\" מהתפריט בתוך סביבת הלמידה, עם הילד שנבחר."); return; }
+  request("GET", "/api/english/allowance?kid_id=" + encodeURIComponent(state.kid.id)).then(function(a){
+    setMinutes(a.remaining_seconds, a.limit_seconds);
+    if (a.remaining_seconds <= 0) return fail({status:429});
+    $("startHint").textContent = "נשארו לך היום " + Math.ceil(a.remaining_seconds / 60) + " דקות שיחה";
+    show("startCard");
+  }).catch(fail);
+})();
+</script>
+</body>
+</html>

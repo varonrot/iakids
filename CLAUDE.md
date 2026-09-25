@@ -41,6 +41,9 @@ he/diagnostics/       "בדיקות ומעקב" hub (opened in the workspace cen
                       title when a question asks for it); POST /api/tutor/checks/score scores. `check_bank_checks` in
                       the gate validates every bank.
 backend-ai-tutor-he/prompts/homework/  homework coach, pedagogy, planner prompts + subjects/ (one module per subject, per grade)
+performance/          tutor API load tests: fake DB + fake models + its own tutor copy, every route profiled and
+                      ramped (run.py), --db prod for capped read-only prod passes; gate checks in static_checks.py;
+                      findings and the scaling plan in performance/REPORT.md
 parent-dashboard/     parent dashboard
 backend/              core FastAPI (chat, payments)
 backend-ai-tutor-he/  Hebrew tutor FastAPI (many main_vN.py versions — main.py is current)

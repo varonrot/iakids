@@ -13131,6 +13131,17 @@ window.iakidsAvatarUrl = function(key){
       <span class="side-badge new">חדש</span>
     </button>
 
+    <!-- 2026-09-25 (user): the English voice tutor, in testing (backend-ai-tutor-he/english_tutor.py) -->
+    <button class="side-item" id="englishTutorSidebarBtn" type="button" onclick="window.openDiagnosticsView ? window.openDiagnosticsView('/he/english-tutor/','englishTutorSidebarBtn') : (window.location.href='/he/english-tutor/')">
+      <i class="fa-solid fa-comments"></i>
+      <div class="side-text">
+        <span class="side-title">
+          מורה לאנגלית
+        </span>
+      </div>
+      <span class="side-badge testing">בבדיקה</span>
+    </button>
+
 
 
     <!-- משימות -->
@@ -53991,7 +54002,7 @@ function(audio){
 })();
 </script>
 
-<script src="/he/workspace/lesson-completion.js?v=07148"></script>
+<script src="/he/workspace/lesson-completion.js?v=07149"></script>
 <script id="iakidsSidebarHardReloadBootstrapV064">
 (function(){
 
@@ -54165,8 +54176,8 @@ function(audio){
 
 })();
 </script>
-<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.148</div>
-<script>window.IAKIDS_BUILD_VERSION = "0.7.148";</script>
+<div id="iakidsBuildStamp" style="position:fixed;left:8px;bottom:4px;z-index:99999;font:10px/1.2 Arial,sans-serif;color:rgba(255,255,255,.45);background:rgba(0,0,0,.28);padding:2px 5px;border-radius:5px;pointer-events:none;direction:ltr;">IAKIDS • build 0.7.149</div>
+<script>window.IAKIDS_BUILD_VERSION = "0.7.149";</script>
 
 <!-- מבחנים ואבחונים (2026-09-24): opens in the center of the workspace like the dashboard and
      "הקבצים שלי", not as a separate page. The hub itself lives once, in /he/diagnostics/, and is
@@ -54185,6 +54196,8 @@ function(audio){
 .side-badge.new{color:#04131f;background:linear-gradient(90deg,#28d7ff,#38e56c);box-shadow:0 0 12px rgba(40,215,255,.45);animation:sideBadgePulse 2.4s ease-in-out infinite}
 .side-badge.premium{color:#3a2500;background:linear-gradient(90deg,#ffd76a,#ffb03a);box-shadow:0 0 12px rgba(255,176,58,.45)}
 .side-badge.premium::before{content:"★ "}
+/* 2026-09-25 (user): "בבדיקה" - a feature open to families while it is still being tested; calm, no pulse */
+.side-badge.testing{color:#2a1600;background:linear-gradient(90deg,#ffb03a,#ff7ab6);box-shadow:0 0 10px rgba(255,122,182,.35)}
 @keyframes sideBadgePulse{0%,100%{box-shadow:0 0 6px rgba(40,215,255,.35)}50%{box-shadow:0 0 16px rgba(40,215,255,.75)}}
 @media (prefers-reduced-motion:reduce){.side-badge.new{animation:none}}
 </style>
@@ -54216,9 +54229,11 @@ window.IAKIDS_CHECK_BRIDGE = {
     main.appendChild(view); return view;
   }
   // the hub, or a practice page from the main menu (exam prep, gifted) in the same center frame
-  const VIEW_BTNS=['diagnosticsSidebarBtn','examPrepSidebarBtn','giftedSidebarBtn'];
+  const VIEW_BTNS=['diagnosticsSidebarBtn','examPrepSidebarBtn','giftedSidebarBtn','englishTutorSidebarBtn'];
+  // only our own pages open in this frame: the checks, and the English tutor (2026-09-25)
+  const VIEW_PATHS=['/he/diagnostics/','/he/english-tutor/'];
   function open(path, btnId){
-    path=(typeof path==='string' && path.indexOf('/he/diagnostics/')===0) ? path : '/he/diagnostics/';
+    path=(typeof path==='string' && VIEW_PATHS.some(p=>path.indexOf(p)===0)) ? path : '/he/diagnostics/';
     const el=ensureView(); if(!el){ window.location.href=path; return; }
     // the old exam-prep "coming soon" screen sits above this view (z 248 > 246): close it, or the
     // checks open behind it and the menu seems dead (user report 2026-09-24)
@@ -55853,7 +55868,7 @@ document.addEventListener('click',function(event){const item=event.target?.close
 
 <script src="/he/workspace/tasks-internal.js?v=0768"></script>
 <script src="/he/workspace/homework-remote-capture.js?v=0771"></script>
-<script src="/he/workspace/openai-clean-chat.js?v=07148"></script>
+<script src="/he/workspace/openai-clean-chat.js?v=07149"></script>
 
 <style id="IAKIDS_LESSON_COMPACT_LAPTOP_07110">
   /* Keep every lesson control inside short laptop viewports (for example

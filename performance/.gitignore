@@ -1,0 +1,4 @@
+results/logs/
+# one production lesson + table column names: local only (regenerate with make_fixtures.py). iakids.app publishes the repo.
+fixtures/seed.json
+*.log

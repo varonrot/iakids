@@ -29,6 +29,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PROMPTS = ROOT / "backend-ai-tutor-he" / "prompts"
 MAIN = ROOT / "backend-ai-tutor-he" / "main.py"
+# Route modules that register on main.app (`from main import app`). The gate reads them together with
+# main.py as ONE source, so every rule below (security, prompts, models, performance) covers their routes too.
+ROUTE_MODULES = [ROOT / "backend-ai-tutor-he" / "english_tutor.py"]
+
+
+def api_source() -> str:
+    return "\n\n".join(p.read_text(encoding="utf-8") for p in [MAIN] + ROUTE_MODULES if p.exists())
 PY = ROOT / "backend" / ".venv" / "bin" / "python"
 
 # every subject module: the core wins, it names its source, it has every grade, it says what is not taught yet
@@ -139,6 +146,14 @@ REQUIRED = {
     "homework/iakids_exam_practice_prompt.txt": {"placeholders": [], "sections": [
         "STAY INSIDE WHAT THE GRADE HAS LEARNED", "Never a concept from a later grade", "exactly one correct answer",
         "Compute every number twice", "Never write slash forms", '"why_wrong"', "topic_used"]},
+    # English tutor (english_tutor.py, 2026-09-25): Hebrew explains, English is the subject; one correction per
+    # turn and never shaming a mistake (the "learn without being embarrassed" promise); the level is kept.
+    "english/iakids_english_tutor_prompt.txt": {"placeholders": ["{level}", "{topic}", "{words_so_far}", "{child_first_name}"], "sections": [
+        "HEBREW EXPLAINS, ENGLISH IS THE SUBJECT", "AT MOST ONE CORRECTION PER TURN", "NEVER SHAME A MISTAKE",
+        "STAY AT THE CHILD'S LEVEL", "ONE SHORT ENGLISH TARGET", "SAFE TOPICS ONLY",
+        # voice-first (2026-09-25, first real conversation): the teacher invented a name, translated hello as
+        # "ברוך הבא", and gave the question as the thing to say
+        "SPOKEN CONVERSATION", "THE CHILD'S NAME", "TRANSLATIONS MUST BE EXACT", "THE TARGET IS WHAT THE CHILD SAYS"]},
     "iakids_visual_director_prompt.txt": {"placeholders": [], "sections": ["NO TEXT INSIDE IMAGES", "READING DIRECTION", "CHILD SAFETY", "IMAGE COUNT IS DYNAMIC", "reuse_previous"]},
 }
 FEMALE_VOICES = {"Aoede", "Kore", "Leda", "Zephyr", "Autonoe", "Callirrhoe", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Sulafat", "Vindemiatrix"}
@@ -617,7 +632,7 @@ def diagnostics_checks() -> list:
             fp = DIAGNOSTICS / name
             if fp.exists():
                 wants[name] = f"{name}?v=07{bm.group(1)}.{hashlib.sha1(fp.read_bytes()).hexdigest()[:8]}\""
-    for f in [DIAGNOSTICS / "index.html"] + sorted(DIAGNOSTICS.glob("*/index.html")):
+    for f in [DIAGNOSTICS / "index.html"] + sorted(DIAGNOSTICS.glob("*/index.html")) + [ROOT / "he" / "english-tutor" / "index.html"]:
         t = f.read_text(encoding="utf-8") if f.exists() else ""
         for name, want in wants.items():
             if "/he/diagnostics/" + name in t and want not in t:
@@ -664,7 +679,8 @@ def diagnostics_checks() -> list:
     return bad
 
 
-CHAT_INPUT_PAGES = ("he/workspace/index.html", "he/games/workspace/index.html", "frontend-v2/homework.html", "he/add-subject/index.html")
+CHAT_INPUT_PAGES = ("he/workspace/index.html", "he/games/workspace/index.html", "frontend-v2/homework.html", "he/add-subject/index.html",
+                    "he/english-tutor/index.html")
 
 
 def security_checks(main_src: str) -> list:
@@ -837,6 +853,7 @@ COMPLETION = ROOT / "he" / "workspace" / "lesson-completion-core.js"
 
 
 LOG_MODE_PAGES = (
+    "he/english-tutor/index.html",
     "he/workspace/index.html",
     "he/games/workspace/index.html",
     "he/parent-panel/index.html",
@@ -1432,6 +1449,81 @@ def pure_function_tests() -> list:
     return bad
 
 
+
+def performance_checks(main_src: str) -> list:
+    """performance/static_checks.py: every route has a performance test, no async route blocks the
+    event loop, the catalog is well formed, and the last run's database calls are within budget."""
+    sys.path.insert(0, str(ROOT / "performance"))
+    try:
+        import importlib
+        import static_checks
+        importlib.reload(static_checks)
+    except Exception as e:
+        return [f"performance: static_checks import failed: {e!r}"]
+    fails = static_checks.all_checks(main_src)
+    note = static_checks.stale_results_note()
+    if note:
+        print("note " + note)
+    rules = [
+        ("local_user = _jwt_verifier.verify(token)", 1, "every request asks Supabase Auth who the caller is again: one extra database round trip per request, per child (2026-09-25)"),
+        ("_rc.child_rows.get((user_id, kid_id))", 1, "the child's row is read from the database on every request again (2026-09-25)"),
+        ("_rc.child_rows.drop(", 1, "a parent renames a child and the teacher keeps using the old name for a minute: the child cache is not dropped on /api/kid/update (2026-09-25)"),
+        ("_rc.media_enqueues.get(dedupe_key)", 1, "every lesson poll re-sends the same media jobs to the database (2026-09-25)"),
+    ]
+    for needle, n, why in rules:
+        if main_src.count(needle) < n:
+            fails.append(f"main.py: {why} (missing {needle!r})")
+    return fails
+
+
+def request_cache_tests() -> list:
+    """Unit tests of request_cache.py: a token is accepted locally only when the project's key signed it,
+    for the right audience and issuer, and has not expired; anything else falls back to Supabase Auth."""
+    sys.path.insert(0, str(ROOT / "backend-ai-tutor-he"))
+    bad = []
+    try:
+        import time as _t
+        import jwt as _jwt
+        from cryptography.hazmat.primitives.asymmetric import ec
+        import request_cache as rc
+    except Exception as e:
+        return [f"request_cache import failed: {e!r}"]
+    key, other = ec.generate_private_key(ec.SECP256R1()), ec.generate_private_key(ec.SECP256R1())
+    v = rc.LocalJWTVerifier("https://proj.supabase.co")
+    v._keys = {"k1": key.public_key()}
+    v._fetched_at = _t.monotonic()
+    v._refresh = lambda force=False: None          # no network in the gate
+    now = int(_t.time())
+    base = {"sub": "u1", "email": "p@x.com", "aud": "authenticated", "role": "authenticated",
+            "iss": "https://proj.supabase.co/auth/v1", "iat": now, "exp": now + 600}
+
+    def tok(claims=None, k=key, kid="k1", alg="ES256"):
+        c = {**base, **(claims or {})}
+        if alg == "HS256":
+            return _jwt.encode(c, "legacy-hs256-test-secret-32-bytes!!", algorithm="HS256", headers={"kid": kid})
+        return _jwt.encode(c, k, algorithm=alg, headers={"kid": kid})
+
+    def expect(cond, msg):
+        if not cond:
+            bad.append("request_cache: " + msg)
+    u = v.verify(tok())
+    expect(u is not None and u.id == "u1" and u.email == "p@x.com", "a valid token was not accepted locally")
+    expect(v.verify(tok({"exp": now - 60})) is None, "an EXPIRED token was accepted: a logged-out child keeps access")
+    expect(v.verify(tok({"aud": "anon"})) is None, "a token for another audience was accepted")
+    expect(v.verify(tok({"iss": "https://evil.supabase.co/auth/v1"})) is None, "a token from another project was accepted")
+    expect(v.verify(tok(k=other)) is None, "a token signed by a different key was accepted: anyone could forge a login")
+    expect(v.verify(tok(kid="nope")) is None, "a token with an unknown key id was accepted")
+    expect(v.verify(tok(alg="HS256")) is None, "a legacy HS256 token was verified locally instead of by Supabase Auth")
+    expect(v.verify("not.a.token") is None and v.verify("") is None, "garbage was accepted")
+    c = rc.TTLCache("t", 0.2)
+    c.put("a", {"x": 1})
+    got = c.get("a"); got["x"] = 2
+    expect(c.get("a") == {"x": 1}, "a caller that edits a cached row changes it for the next child")
+    _t.sleep(0.25)
+    expect(c.get("a") is None, "a cache entry outlived its time")
+    return bad
+
+
 ENV_KEYS = ("OPENAI_API_KEY", "GEMINI_API_KEY", "SUPABASE_SERVICE_ROLE_KEY", "OPENROUTER_API_KEY")
 
 
@@ -1562,6 +1654,136 @@ print("\n".join(bad) if bad else "RENDER_OK")
     return ["render smoke: " + l for l in lines if not l.endswith("RENDER_OK")]
 
 
+def english_tutor_tests() -> list:
+    """english_tutor.py (2026-09-25): the daily allowance is enforced BEFORE the model is called, the
+    child's text is size-limited, a session belongs to its child, spoken corrections are capped, the level
+    moves one step at a time, turn time is bounded, the prompt renders and the parent line is built.
+    Runs the real routes through FastAPI's TestClient with the database and the model swapped out."""
+    code = r"""
+import os, sys, io, contextlib, re
+os.chdir("backend-ai-tutor-he"); sys.path.insert(0, ".")
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+    import main
+    import english_tutor as et
+from types import SimpleNamespace
+from datetime import datetime, timezone, timedelta
+from fastapi.testclient import TestClient
+bad = []
+def expect(c, m):
+    if not c: bad.append(m)
+# the prompt renders: level, topic and words are filled, no {placeholder} left
+r = et.english_teacher_rules("elementary", "animals", [{"en": "dog", "he": "כלב"}], "נועה")
+expect(not re.findall(r"\{(level|topic|words_so_far|child_first_name)\}", r) and "elementary" in r and "animals" in r and "dog" in r,
+       "the English teacher's prompt is sent with an unfilled {placeholder}: the teacher does not know the level or topic")
+expect("נועה" in r and "unknown" in et.english_teacher_rules("beginner", "x", [], ""),
+       "the English teacher does not get the child's first name (2026-09-25: it invented 'אורי' for a girl)")
+import inspect
+expect("first_name)" in inspect.getsource(et.english_teacher_reply),
+       "english_teacher_reply() no longer passes the child's first name: the teacher invents one")
+# level: one step at a time, never out of range
+expect(et._next_level("beginner", "up") == "elementary" and et._next_level("beginner", "down") == "beginner"
+       and et._next_level("intermediate", "up") == "intermediate" and et._next_level("elementary", "same") == "elementary",
+       "the English level jumps or leaves its range")
+# turn time: bounded
+now = datetime.now(timezone.utc)
+expect(et._turn_seconds(None) == et.TURN_SECONDS_MIN and et._turn_seconds((now - timedelta(hours=2)).isoformat()) == et.TURN_SECONDS_MAX
+       and 25 <= et._turn_seconds((now - timedelta(seconds=30)).isoformat()) <= 35,
+       "English turn time is not bounded: a child who leaves the tab open burns the whole daily allowance")
+# corrections: at most ENGLISH_MAX_SPOKEN_CORRECTIONS spoken, the rest only shown
+reply = {"say_he": "כמעט!", "target_en": "I like dogs", "correction": {"said": "I like dog", "better": "I like dogs", "why_he": "רבים"},
+         "new_words": [{"en": "dog", "he": "כלב"}], "level_signal": "same"}
+sess = {"history": [], "words": [{"en": "dog", "he": "כלב"}], "turns": 0, "seconds_used": 0, "level": "beginner",
+        "spoken_corrections": et.ENGLISH_MAX_SPOKEN_CORRECTIONS, "last_turn_at": None}
+patch, extra = et._apply_turn(sess, "I like dog", reply)
+expect(extra["speak_correction"] is False and patch["spoken_corrections"] == et.ENGLISH_MAX_SPOKEN_CORRECTIONS,
+       "the teacher keeps correcting out loud after the cap: the child hears 'mistake' again and again")
+expect(len(patch["words"]) == 1 and len(patch["history"]) == 2, "English words are counted twice or the turn is not recorded")
+sess["spoken_corrections"] = 0
+patch, extra = et._apply_turn(sess, "I like dog", reply)
+expect(extra["speak_correction"] is True and patch["spoken_corrections"] == 1, "the first correction is not spoken")
+summ = et.english_summary({"child_name": "נועה כהן"}, {**sess, **patch, "seconds_used": 240})
+expect("4 דקות" in summ["parent_note"] and "dog" in summ["parent_note"] and summ["remember_en"] == "I like dogs",
+       "the parent line or the 'remember this' line of an English session is wrong")
+# routes, with the database and the model swapped out
+called = {"model": 0}
+async def fake_reply(*a, **k):
+    called["model"] += 1
+    return dict(reply)
+state = {"remaining": 0, "status": "active", "kid": "k1"}
+et.english_teacher_reply = fake_reply
+et.authenticate_user = lambda a: SimpleNamespace(id="u1", email="p@x.com")
+et.get_child_by_id = lambda uid, kid: {"id": kid, "child_name": "נועה", "gender": "female"}
+et.english_allowance = lambda uid, kid: {"used_seconds": 600, "limit_seconds": 600, "remaining_seconds": state["remaining"], "paid": False}
+def load(uid, kid, sid):
+    if kid != state["kid"]:
+        raise main.HTTPException(status_code=404, detail="session not found")
+    return {"id": sid, "kid_id": kid, "status": state["status"], "level": "beginner", "history": [], "words": [],
+            "turns": 0, "seconds_used": 0, "spoken_corrections": 0, "last_turn_at": None}
+et._load_session = load
+et._save_session = lambda sid, patch: None
+c = TestClient(main.app)
+H = {"Authorization": "Bearer x"}
+r = c.post("/api/english/turn", json={"kid_id": "k1", "session_id": "s1", "message": "hello"}, headers=H)
+expect(r.status_code == 429 and called["model"] == 0,
+       f"a child with no English minutes left still gets a teacher reply (status {r.status_code}, model calls {called['model']}): the free allowance does not cap the AI bill")
+state["remaining"] = 300
+r = c.post("/api/english/turn", json={"kid_id": "k1", "session_id": "s1", "message": "x" * 1501}, headers=H)
+expect(r.status_code == 422 and called["model"] == 0, f"a 1,501-character English message reached the teacher (status {r.status_code})")
+r = c.post("/api/english/turn", json={"kid_id": "k2", "session_id": "s1", "message": "hello"}, headers=H)
+expect(r.status_code == 404 and called["model"] == 0, f"a session of another child was used (status {r.status_code})")
+state["status"] = "ended"
+r = c.post("/api/english/turn", json={"kid_id": "k1", "session_id": "s1", "message": "hello"}, headers=H)
+expect(r.status_code == 409 and called["model"] == 0, f"an ended English session kept talking (status {r.status_code})")
+state["status"] = "active"
+r = c.post("/api/english/turn", json={"kid_id": "k1", "session_id": "s1", "message": "I like dog"}, headers=H)
+expect(r.status_code == 200 and called["model"] == 1 and r.json().get("reply", {}).get("target_en") == "I like dogs",
+       f"a normal English turn failed (status {r.status_code})")
+print("\n".join(bad) if bad else "ENGLISH_OK")
+"""
+    env = dict(os.environ, APP_ENV=os.environ.get("APP_ENV", "prod"), OPS_METRICS_ENABLED="0", AI_COSTS_ENABLED="0",
+               RATE_LIMIT_PER_MINUTE="1000000")
+    for k in ENV_KEYS:
+        env[k] = "gate-dummy-key"
+    env["SUPABASE_URL"] = env.get("SUPABASE_URL") or "https://gate.supabase.co"
+    r = subprocess.run([str(PY), "-c", code], cwd=ROOT, capture_output=True, text=True, env=env, timeout=180)
+    if r.returncode != 0:
+        return [f"english tutor tests crashed: {(r.stderr or r.stdout)[-500:]}"]
+    lines = [l.strip() for l in r.stdout.strip().splitlines() if l.strip()]
+    if lines and lines[-1].endswith("ENGLISH_OK"):
+        return []
+    return ["english tutor: " + re.sub(r"^.*?\] ", "", l) for l in lines if not l.endswith("ENGLISH_OK")][-8:]
+
+def english_page_checks() -> list:
+    """The English tutor page (he/english-tutor/, 2026-09-25) and its menu item in the workspace."""
+    bad = []
+    page = ROOT / "he" / "english-tutor" / "index.html"
+    ws = (ROOT / "he" / "workspace" / "index.html").read_text(encoding="utf-8")
+    if not page.exists():
+        return ["he/english-tutor/index.html is missing: the menu item 'מורה לאנגלית' opens an empty frame"]
+    t = page.read_text(encoding="utf-8")
+    if "window.openDiagnosticsView('/he/english-tutor/','englishTutorSidebarBtn')" not in ws:
+        bad.append("workspace: the menu item 'מורה לאנגלית' is gone or no longer opens the English tutor (2026-09-25)")
+    if not re.search(r'id="englishTutorSidebarBtn"(?:.|\n){0,700}?<span class="side-badge testing">בבדיקה</span>', ws):
+        bad.append("workspace: the English tutor lost its 'בבדיקה' badge: families think a feature in testing is finished (2026-09-25)")
+    if ".side-badge.testing{" not in ws:
+        bad.append("workspace: the 'בבדיקה' badge has no style: it shows as plain text")
+    if "'/he/english-tutor/'" not in ws[ws.find("const VIEW_PATHS"):ws.find("const VIEW_PATHS") + 200]:
+        bad.append("workspace: the center view no longer allows /he/english-tutor/: the menu item opens the checks hub instead")
+    if 'allow="microphone"' not in ws:
+        bad.append("workspace: the center frame lost microphone permission: the child cannot speak to the English tutor")
+    if re.search(r"\.from\(|supabase\.co|createClient\(", t):
+        bad.append("he/english-tutor: the page talks to the database directly (the UI talks to our API only, 2026-09-17)")
+    if 'var API_PATHS = ["/api/english/", "/api/tutor/tts"];' not in t:
+        bad.append("he/english-tutor: the page may call routes other than /api/english/ and /api/tutor/tts")
+    if "e.status === 404" not in t or "if (!state.session){ message(" not in t:
+        bad.append("he/english-tutor: a server without the English routes (404) or a failed first call leaves the page EMPTY (user report 2026-09-25)")
+    if 'lang: "en-US"' not in t:
+        bad.append("he/english-tutor: dictation is not attached in English: 'I like dogs' is heard as Hebrew and arrives garbled")
+    if 'id="chatInput"' in t or "data-dictation-for" in t:
+        bad.append("he/english-tutor: the dictation script would auto-attach in HEBREW to this box (#chatInput / data-dictation-for)")
+    return bad
+
 def changed_prompts(staged: bool) -> list:
     args = ["git", "diff", "--cached", "--name-only"] if staged else ["git", "diff", "--name-only", "HEAD"]
     names = sh(*args).split()
@@ -1595,7 +1817,7 @@ def main():
     ap.add_argument("--fast", action="store_true", help="skip the render smoke (no main import)")
     ap.add_argument("--check-file"); ap.add_argument("--as", dest="as_name")
     a = ap.parse_args()
-    main_src = MAIN.read_text(encoding="utf-8")
+    main_src = api_source()
 
     if a.pre_bash:
         try:
@@ -1655,7 +1877,8 @@ def main():
 
     names = live_prompt_names() if a.all else changed_prompts(a.staged)
     changed_files = sh("git", "diff", "--cached" if a.staged else "HEAD", "--name-only").split()
-    main_changed = "backend-ai-tutor-he/main.py" in changed_files
+    main_changed = ("backend-ai-tutor-he/main.py" in changed_files
+                    or any(str(p.relative_to(ROOT)) in changed_files for p in ROUTE_MODULES))
     workspace_changed = "he/workspace/index.html" in changed_files
     if not names and not main_changed and not workspace_changed:
         print("prompt gate: no prompt, main.py or workspace changes")
@@ -1665,13 +1888,14 @@ def main():
         # live in code (the lesson screen, the coach handover, the media failure signal)
         # plus, for main.py, the render smoke that doubles as an import smoke — a route
         # decorator on the wrong function took prod down for 4 minutes on 2026-09-15.
-        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
+        cf = (learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks() + english_page_checks()
+              + (performance_checks(main_src) + request_cache_tests() if main_changed else [])
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
           + client_secrets_checks() + browser_db_budget_checks()
           + browser_query_shape_checks())
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
-        rf = [] if (a.fast or not main_changed) else render_smoke()
+        rf = [] if (a.fast or not main_changed) else render_smoke() + english_tutor_tests()
         if main_changed:
             print(("FAIL " if rf else "ok   ") + "render/import smoke for main.py")
         if cf or rf:
@@ -1687,7 +1911,7 @@ def main():
         fails = check_file(PROMPTS / name, name, main_src, head_version(name))
         print(("FAIL " if fails else "ok   ") + name)
         all_fails += fails
-    pf = (pure_function_tests() + persona_checks(main_src) + coverage_checks(main_src)
+    pf = (pure_function_tests() + request_cache_tests() + performance_checks(main_src) + english_page_checks() + persona_checks(main_src) + coverage_checks(main_src)
           + code_rule_checks(main_src) + child_prompt_gender_checks(main_src) + reply_slash_form_checks(main_src) + homework_checks() + diagnostics_checks() + security_checks(main_src) + required_entry_checks() + check_bank_checks() + topbar_stacking_checks() + model_config_checks(main_src) + prompt_usage_checks(main_src)
           + learning_coach_checks(main_src) + media_failure_checks(main_src) + workspace_checks()
           + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
@@ -1706,6 +1930,9 @@ def main():
         cr = learning_coach_round_tests()
         print(("FAIL " if cr else "ok   ") + "learning coach rounds (limit, final round, answer handover)")
         all_fails += cr
+        et = english_tutor_tests()
+        print(("FAIL " if et else "ok   ") + "english tutor (allowance before the model, limits, ownership, corrections)")
+        all_fails += et
     if a.all:
         ef = env_file_checks()
         print(("FAIL " if ef else "ok   ") + "env file keys (present, clean ASCII, no glued variable)")

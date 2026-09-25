@@ -1,0 +1,291 @@
+{
+ "run": "20260925-063236-cores-fake-w2-cpu0-1",
+ "db": "fake",
+ "scale": 1.0,
+ "workers": 2,
+ "cpus": "0-1",
+ "db_latency_ms": 100.0,
+ "routes": {
+  "visuals": {
+   "kind": "read",
+   "status": 200,
+   "ms": 120.1,
+   "cpu_ms": 20.0,
+   "db_calls": 1,
+   "db_calls_cold": 19,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1,
+    "POST storage/v1/object": 15
+   },
+   "db_ms": 101.4,
+   "db_by": {
+    "GET table:lesson_units_content": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null,
+   "steps": [
+    {
+     "requests": 361,
+     "rps": 35.91,
+     "p50": 197.8,
+     "p90": 522.43,
+     "p95": 1265.5,
+     "p99": 1860.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 65.6,
+     "cpu_ms_per_req": 18.31,
+     "rss_peak_mb": 327,
+     "loop_lag_p95_ms": 24.3,
+     "loop_lag_max_ms": 47.5,
+     "p95_limit_ms": 800,
+     "broke": [
+      "p95 1266 > 800 ms (3x one-user p50 198)"
+     ]
+    }
+   ],
+   "max_ok_conc": 0,
+   "max_ok_rps": 0,
+   "cpu_ms_per_req": 18.31,
+   "limit": [
+    "p95 1266 > 800 ms (3x one-user p50 198)"
+   ]
+  },
+  "check-set": {
+   "kind": "read",
+   "status": 200,
+   "ms": 305.6,
+   "cpu_ms": 110.0,
+   "db_calls": 2,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 201.9,
+   "db_by": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null,
+   "steps": [
+    {
+     "requests": 1173,
+     "rps": 116.48,
+     "p50": 65.86,
+     "p90": 89.7,
+     "p95": 161.6,
+     "p99": 219.05,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 74.1,
+     "cpu_ms_per_req": 6.37,
+     "rss_peak_mb": 329,
+     "loop_lag_p95_ms": 22.1,
+     "loop_lag_max_ms": 31.4,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 2242,
+     "rps": 222.69,
+     "p50": 124.0,
+     "p90": 248.46,
+     "p95": 440.3,
+     "p99": 593.76,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 132.3,
+     "cpu_ms_per_req": 5.95,
+     "rss_peak_mb": 334,
+     "loop_lag_p95_ms": 352.5,
+     "loop_lag_max_ms": 511.1,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 2780,
+     "rps": 277.12,
+     "p50": 203.92,
+     "p90": 428.21,
+     "p95": 600.9,
+     "p99": 738.99,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 64,
+     "cpu_pct": 156.0,
+     "cpu_ms_per_req": 5.64,
+     "rss_peak_mb": 339,
+     "loop_lag_p95_ms": 213.6,
+     "loop_lag_max_ms": 281.4,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 2582,
+     "rps": 255.77,
+     "p50": 406.09,
+     "p90": 779.92,
+     "p95": 1018.9,
+     "p99": 1210.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 128,
+     "cpu_pct": 148.0,
+     "cpu_ms_per_req": 5.81,
+     "rss_peak_mb": 347,
+     "loop_lag_p95_ms": 681.7,
+     "loop_lag_max_ms": 695.3,
+     "p95_limit_ms": 800,
+     "broke": [
+      "p95 1019 > 800 ms (3x one-user p50 66)",
+      "event loop blocked (lag p95 682 ms)"
+     ]
+    }
+   ],
+   "max_ok_conc": 64,
+   "max_ok_rps": 277.12,
+   "cpu_ms_per_req": 5.88,
+   "limit": [
+    "p95 1019 > 800 ms (3x one-user p50 66)",
+    "event loop blocked (lag p95 682 ms)"
+   ]
+  },
+  "kid-get": {
+   "kind": "read",
+   "status": 200,
+   "ms": 7.7,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null,
+   "steps": [
+    {
+     "requests": 1378,
+     "rps": 137.17,
+     "p50": 56.89,
+     "p90": 69.93,
+     "p95": 95.4,
+     "p99": 115.86,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 67.8,
+     "cpu_ms_per_req": 4.95,
+     "rss_peak_mb": 347,
+     "loop_lag_p95_ms": 22.7,
+     "loop_lag_max_ms": 252.8,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 2634,
+     "rps": 262.13,
+     "p50": 116.98,
+     "p90": 190.83,
+     "p95": 312.0,
+     "p99": 409.01,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 140.6,
+     "cpu_ms_per_req": 5.38,
+     "rss_peak_mb": 346,
+     "loop_lag_p95_ms": 98.3,
+     "loop_lag_max_ms": 120.6,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 2848,
+     "rps": 283.54,
+     "p50": 206.62,
+     "p90": 413.84,
+     "p95": 513.9,
+     "p99": 593.94,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 64,
+     "cpu_pct": 146.9,
+     "cpu_ms_per_req": 5.2,
+     "rss_peak_mb": 347,
+     "loop_lag_p95_ms": 377.5,
+     "loop_lag_max_ms": 511.8,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 3513,
+     "rps": 349.41,
+     "p50": 315.99,
+     "p90": 610.1,
+     "p95": 745.0,
+     "p99": 852.89,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 128,
+     "cpu_pct": 164.3,
+     "cpu_ms_per_req": 4.72,
+     "rss_peak_mb": 348,
+     "loop_lag_p95_ms": 403.6,
+     "loop_lag_max_ms": 515.7,
+     "p95_limit_ms": 800,
+     "broke": []
+    }
+   ],
+   "max_ok_conc": 128,
+   "max_ok_rps": 349.41,
+   "cpu_ms_per_req": 5.075,
+   "limit": [
+    "not reached"
+   ]
+  }
+ },
+ "box": {
+  "cpus": 2,
+  "mem_total_mb": 1967,
+  "tutor_rss_idle_mb": 309
+ },
+ "summary": {
+  "per_child_cpu_ms_per_min": 18.8,
+  "per_child_db_calls_per_min": 1.0,
+  "children_per_process_cpu_bound": 2231,
+  "children_per_box_if_one_process_per_core": 4463,
+  "db_calls_per_sec_at_1000_children": 16.7,
+  "mix_routes_not_measured": [
+   "active-lesson-state",
+   "unit-lesson",
+   "lesson-intro",
+   "audio",
+   "hero-image",
+   "structured-lesson",
+   "openai-clean-chat",
+   "tts"
+  ]
+ },
+ "main_sha": "beec4393c12a7edc",
+ "tutor_dir": "/opt/iakids/backend-ai-tutor-he"
+}

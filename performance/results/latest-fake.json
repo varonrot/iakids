@@ -1,0 +1,1409 @@
+{
+ "run": "20260925-083842-english-turn-fake",
+ "db": "fake",
+ "scale": 1.0,
+ "db_latency_ms": 100.0,
+ "routes": {
+  "health": {
+   "kind": "health",
+   "status": 200,
+   "ms": 10.1,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "active-lesson-state": {
+   "kind": "read",
+   "status": 200,
+   "ms": 114.0,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:kids_profiles": 1,
+    "GET table:learning_coach_sessions": 1
+   },
+   "db_ms": 102.9,
+   "db_by": {
+    "GET table:learning_coach_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "unit-lesson": {
+   "kind": "media",
+   "status": 200,
+   "ms": 341.6,
+   "cpu_ms": 30.0,
+   "db_calls": 3,
+   "db_calls_cold": 5,
+   "db_by_cold": {
+    "GET table:kid_personal_media": 2,
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 1,
+    "POST rpc:media_jobs_enqueue": 1
+   },
+   "db_ms": 303.8,
+   "db_by": {
+    "GET table:kid_personal_media": 2,
+    "GET table:lesson_units_content": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "hero-image": {
+   "kind": "media",
+   "status": 200,
+   "ms": 137.2,
+   "cpu_ms": 30.0,
+   "db_calls": 1,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 1
+   },
+   "db_ms": 101.0,
+   "db_by": {
+    "GET table:lesson_units_content": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "visuals": {
+   "kind": "read",
+   "status": 200,
+   "ms": 125.8,
+   "cpu_ms": 20.0,
+   "db_calls": 1,
+   "db_calls_cold": 16,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 15
+   },
+   "db_ms": 105.3,
+   "db_by": {
+    "GET table:lesson_units_content": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "audio": {
+   "kind": "media",
+   "status": 200,
+   "ms": 134.7,
+   "cpu_ms": 40.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1
+   },
+   "db_ms": 101.4,
+   "db_by": {
+    "GET table:lesson_units_content": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "structured-lesson": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1342.8,
+   "cpu_ms": 60.0,
+   "db_calls": 10,
+   "db_calls_cold": 12,
+   "db_by_cold": {
+    "GET table:tutor_sessions": 1,
+    "GET table:kid_lesson_progress": 1,
+    "POST table:kid_lesson_progress": 1,
+    "GET table:lesson_units_content": 1,
+    "PATCH table:kid_lesson_progress": 1,
+    "GET table:learning_coach_sessions": 1,
+    "POST table:learning_coach_sessions": 1,
+    "GET table:kid_lesson_history": 1,
+    "PATCH table:learning_coach_sessions": 1,
+    "POST table:kid_lesson_history": 1,
+    "PATCH table:tutor_sessions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_ms": 1013.0,
+   "db_by": {
+    "GET table:tutor_sessions": 1,
+    "GET table:kid_lesson_progress": 1,
+    "PATCH table:kid_lesson_progress": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_coach_sessions": 1,
+    "GET table:kid_lesson_history": 1,
+    "PATCH table:learning_coach_sessions": 1,
+    "POST table:kid_lesson_history": 1,
+    "PATCH table:tutor_sessions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_writes": 4,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "tutor-chat": {
+   "kind": "model",
+   "status": 200,
+   "ms": 873.5,
+   "cpu_ms": 50.0,
+   "db_calls": 6,
+   "db_calls_cold": 6,
+   "db_by_cold": {
+    "GET table:tutor_sessions": 1,
+    "GET table:kids_memory": 1,
+    "GET table:kids_chats": 1,
+    "POST table:kids_chats": 1,
+    "PATCH table:tutor_sessions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_ms": 612.0,
+   "db_by": {
+    "GET table:tutor_sessions": 1,
+    "GET table:kids_memory": 1,
+    "GET table:kids_chats": 1,
+    "POST table:kids_chats": 1,
+    "PATCH table:tutor_sessions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_writes": 2,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "openai-clean-chat": {
+   "kind": "model",
+   "status": 200,
+   "ms": 733.9,
+   "cpu_ms": 20.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "tts": {
+   "kind": "model",
+   "status": 200,
+   "ms": 11.0,
+   "cpu_ms": 0.0,
+   "db_calls": 0,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET storage/v1/object": 1
+   },
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "check-set": {
+   "kind": "read",
+   "status": 200,
+   "ms": 9.7,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-get": {
+   "kind": "read",
+   "status": 200,
+   "ms": 5.8,
+   "cpu_ms": 20.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "units": {
+   "kind": "read",
+   "status": 200,
+   "ms": 116.2,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:learning_lessons": 1,
+    "GET table:lesson_units_content": 1
+   },
+   "db_ms": 101.4,
+   "db_by": {
+    "GET table:lesson_units_content": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "lesson-intro": {
+   "kind": "read",
+   "status": 200,
+   "ms": 854.6,
+   "cpu_ms": 80.0,
+   "db_calls": 9,
+   "db_calls_cold": 13,
+   "db_by_cold": {
+    "GET table:subscriptions": 1,
+    "GET table:kid_personal_media": 3,
+    "POST table:kid_personal_media": 1,
+    "POST rpc:media_jobs_enqueue": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:kid_unit_lesson_progress": 2,
+    "PATCH table:kid_unit_lesson_progress": 1,
+    "GET table:tutor_sessions": 1,
+    "POST table:tutor_sessions": 1,
+    "GET table:lesson_intro_templates": 1
+   },
+   "db_ms": 909.8,
+   "db_by": {
+    "GET table:kid_personal_media": 2,
+    "GET table:lesson_units_content": 1,
+    "GET storage/v1/object": 1,
+    "GET table:kid_unit_lesson_progress": 2,
+    "PATCH table:kid_unit_lesson_progress": 1,
+    "GET table:tutor_sessions": 1,
+    "GET table:lesson_intro_templates": 1
+   },
+   "db_writes": 1,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "unit-lesson-closing": {
+   "kind": "model",
+   "status": 200,
+   "ms": 248.1,
+   "cpu_ms": 20.0,
+   "db_calls": 2,
+   "db_calls_cold": 5,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "GET table:kid_lesson_history": 2,
+    "GET table:learning_coach_sessions": 1,
+    "POST table:kid_lesson_history": 1
+   },
+   "db_ms": 208.0,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "GET table:kid_lesson_history": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "regenerate-transition": {
+   "kind": "media",
+   "status": 200,
+   "ms": 1393.8,
+   "cpu_ms": 100.0,
+   "db_calls": 3,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1,
+    "DELETE storage/v1/object": 1
+   },
+   "db_ms": 309.1,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1,
+    "DELETE storage/v1/object": 1
+   },
+   "db_writes": 2,
+   "model_calls": 4,
+   "prod_safe": false,
+   "error": null
+  },
+  "shared-transition": {
+   "kind": "read",
+   "status": 200,
+   "ms": 6.2,
+   "cpu_ms": 0.0,
+   "db_calls": 0,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "POST storage/v1/object": 1
+   },
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "reset-unit-lesson": {
+   "kind": "write",
+   "status": 200,
+   "ms": 646.4,
+   "cpu_ms": 30.0,
+   "db_calls": 6,
+   "db_calls_cold": 6,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "DELETE table:learning_coach_sessions": 1,
+    "DELETE table:kid_lesson_history": 1,
+    "PATCH table:kid_unit_lesson_progress": 1,
+    "GET table:kid_lesson_progress": 1,
+    "PATCH table:kid_lesson_progress": 1
+   },
+   "db_ms": 606.5,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "DELETE table:learning_coach_sessions": 1,
+    "DELETE table:kid_lesson_history": 1,
+    "PATCH table:kid_unit_lesson_progress": 1,
+    "GET table:kid_lesson_progress": 1,
+    "PATCH table:kid_lesson_progress": 1
+   },
+   "db_writes": 4,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-coach": {
+   "kind": "model",
+   "status": 200,
+   "ms": 809.6,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-coach-v2": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1268.8,
+   "cpu_ms": 20.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-turn": {
+   "kind": "model",
+   "status": 200,
+   "ms": 638.4,
+   "cpu_ms": 30.0,
+   "db_calls": 3,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET table:tutor_sessions": 1,
+    "POST table:kids_chats": 1,
+    "PATCH table:tutor_sessions": 1
+   },
+   "db_ms": 305.6,
+   "db_by": {
+    "GET table:tutor_sessions": 1,
+    "POST table:kids_chats": 1,
+    "PATCH table:tutor_sessions": 1
+   },
+   "db_writes": 2,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-session-start": {
+   "kind": "write",
+   "status": 200,
+   "ms": 116.3,
+   "cpu_ms": 20.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "POST table:homework_sessions": 1
+   },
+   "db_ms": 101.2,
+   "db_by": {
+    "POST table:homework_sessions": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-analyze": {
+   "kind": "model",
+   "status": 403,
+   "ms": 8.4,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"Invalid storage path\"}"
+  },
+  "curriculum-chat": {
+   "kind": "model",
+   "status": 200,
+   "ms": 802.0,
+   "cpu_ms": 60.0,
+   "db_calls": 5,
+   "db_calls_cold": 6,
+   "db_by_cold": {
+    "GET table:kid_custom_subjects": 1,
+    "POST table:kid_custom_subjects": 1,
+    "GET table:kid_custom_curriculums": 1,
+    "POST table:kid_custom_curriculums": 1,
+    "POST table:kid_custom_curriculum_versions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_ms": 507.6,
+   "db_by": {
+    "GET table:kid_custom_subjects": 1,
+    "GET table:kid_custom_curriculums": 1,
+    "PATCH table:kid_custom_curriculums": 1,
+    "POST table:kid_custom_curriculum_versions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_writes": 2,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "curriculum-approve": {
+   "kind": "write",
+   "status": 404,
+   "ms": 114.6,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET table:kid_custom_subjects": 1
+   },
+   "db_ms": 100.9,
+   "db_by": {
+    "GET table:kid_custom_subjects": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"Custom subject not found\"}"
+  },
+  "stt": {
+   "kind": "model",
+   "status": 200,
+   "ms": 110.3,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "check-score": {
+   "kind": "read",
+   "status": 200,
+   "ms": 7.6,
+   "cpu_ms": 20.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "check-tts": {
+   "kind": "model",
+   "status": 200,
+   "ms": 7.5,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET storage/v1/object": 1
+   },
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "exam-practice-start": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1042.3,
+   "cpu_ms": 30.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 201.7,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "exam-practice-answer": {
+   "kind": "read",
+   "status": 404,
+   "ms": 7.2,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": "{\"detail\":\"practice set expired\"}"
+  },
+  "kid-list": {
+   "kind": "read",
+   "status": 200,
+   "ms": 111.6,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET table:kids_profiles": 1
+   },
+   "db_ms": 101.0,
+   "db_by": {
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-lessons": {
+   "kind": "read",
+   "status": 200,
+   "ms": 325.4,
+   "cpu_ms": 20.0,
+   "db_calls": 3,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET table:kid_unit_lesson_progress": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1
+   },
+   "db_ms": 303.8,
+   "db_by": {
+    "GET table:kid_unit_lesson_progress": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-achievements": {
+   "kind": "read",
+   "status": 200,
+   "ms": 319.8,
+   "cpu_ms": 10.0,
+   "db_calls": 3,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET table:kid_unit_lesson_progress": 1,
+    "GET table:learning_lessons": 1,
+    "GET table:kid_game_sessions": 1
+   },
+   "db_ms": 302.7,
+   "db_by": {
+    "GET table:kid_unit_lesson_progress": 1,
+    "GET table:learning_lessons": 1,
+    "GET table:kid_game_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-files": {
+   "kind": "read",
+   "status": 200,
+   "ms": 216.4,
+   "cpu_ms": 10.0,
+   "db_calls": 2,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:homework_uploads": 1,
+    "GET table:homework_sessions": 1
+   },
+   "db_ms": 202.8,
+   "db_by": {
+    "GET table:homework_uploads": 1,
+    "GET table:homework_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-update": {
+   "kind": "write",
+   "status": 200,
+   "ms": 214.7,
+   "cpu_ms": 10.0,
+   "db_calls": 2,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "PATCH table:kids_profiles": 1
+   },
+   "db_ms": 201.8,
+   "db_by": {
+    "GET table:kids_profiles": 1,
+    "PATCH table:kids_profiles": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "kid-create": {
+   "kind": "write",
+   "status": 200,
+   "ms": 320.7,
+   "cpu_ms": 10.0,
+   "db_calls": 3,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET table:kids_profiles": 1,
+    "GET table:subscriptions": 1,
+    "POST table:kids_profiles": 1
+   },
+   "db_ms": 302.7,
+   "db_by": {
+    "GET table:kids_profiles": 1,
+    "GET table:subscriptions": 1,
+    "POST table:kids_profiles": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-whoami": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 5.2,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 0,
+   "db_by_cold": {},
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lessons-quality": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 221.0,
+   "cpu_ms": 20.0,
+   "db_calls": 2,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1
+   },
+   "db_ms": 203.1,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-approve": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 228.1,
+   "cpu_ms": 20.0,
+   "db_calls": 2,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_ms": 203.1,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-recheck": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 462.5,
+   "cpu_ms": 50.0,
+   "db_calls": 4,
+   "db_calls_cold": 4,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 2,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_ms": 506.3,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 2,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 3,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-regenerate": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 531.5,
+   "cpu_ms": 20.0,
+   "db_calls": 5,
+   "db_calls_cold": 5,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 2,
+    "GET table:media_jobs": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_ms": 505.0,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 2,
+    "GET table:media_jobs": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 3,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-image-approve": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 217.1,
+   "cpu_ms": 10.0,
+   "db_calls": 2,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_ms": 202.0,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-image-regenerate": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 322.2,
+   "cpu_ms": 10.0,
+   "db_calls": 3,
+   "db_calls_cold": 4,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "DELETE storage/v1/object": 1,
+    "POST rpc:media_jobs_enqueue": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_ms": 303.1,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "DELETE storage/v1/object": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 2,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-media": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 216.7,
+   "cpu_ms": 20.0,
+   "db_calls": 2,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 1
+   },
+   "db_ms": 202.9,
+   "db_by": {
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "english-allowance": {
+   "kind": "read",
+   "status": 200,
+   "ms": 111.9,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 4,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:english_tutor_sessions": 1,
+    "GET table:subscriptions": 1
+   },
+   "db_ms": 100.9,
+   "db_by": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null,
+   "steps": [
+    {
+     "requests": 86,
+     "rps": 8.52,
+     "p50": 113.42,
+     "p90": 128.15,
+     "p95": 146.6,
+     "p99": 161.38,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 12.1,
+     "cpu_ms_per_req": 14.19,
+     "rss_peak_mb": 141,
+     "loop_lag_p95_ms": 12.8,
+     "loop_lag_max_ms": 23.2,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 610,
+     "rps": 60.56,
+     "p50": 128.88,
+     "p90": 153.01,
+     "p95": 165.1,
+     "p99": 174.79,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 60.0,
+     "cpu_ms_per_req": 9.92,
+     "rss_peak_mb": 144,
+     "loop_lag_p95_ms": 25.0,
+     "loop_lag_max_ms": 35.8,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 830,
+     "rps": 82.61,
+     "p50": 349.62,
+     "p90": 481.21,
+     "p95": 610.8,
+     "p99": 714.56,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 95.2,
+     "cpu_ms_per_req": 11.57,
+     "rss_peak_mb": 151,
+     "loop_lag_p95_ms": 155.8,
+     "loop_lag_max_ms": 272.8,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 588,
+     "rps": 58.47,
+     "p50": 954.14,
+     "p90": 1540.0,
+     "p95": 1978.9,
+     "p99": 2330.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 64,
+     "cpu_pct": 94.7,
+     "cpu_ms_per_req": 16.31,
+     "rss_peak_mb": 157,
+     "loop_lag_p95_ms": 245.0,
+     "loop_lag_max_ms": 343.9,
+     "p95_limit_ms": 800,
+     "broke": [
+      "p95 1979 > 800 ms (3x one-user p50 113)"
+     ]
+    }
+   ],
+   "max_ok_conc": 32,
+   "max_ok_rps": 82.61,
+   "cpu_ms_per_req": 12.879999999999999,
+   "limit": [
+    "p95 1979 > 800 ms (3x one-user p50 113)"
+   ]
+  },
+  "english-start": {
+   "kind": "model",
+   "status": 200,
+   "ms": 5065.5,
+   "cpu_ms": 50.0,
+   "db_calls": 4,
+   "db_calls_cold": 4,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 2,
+    "POST table:english_tutor_sessions": 1,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_ms": 606.6,
+   "db_by": {
+    "GET table:english_tutor_sessions": 2,
+    "POST table:english_tutor_sessions": 1,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_writes": 2,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null,
+   "steps": [
+    {
+     "requests": 2,
+     "rps": 0.13,
+     "p50": 6280.0,
+     "p90": 6280.0,
+     "p95": 6280.0,
+     "p99": 6280.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 4.2,
+     "cpu_ms_per_req": 315.0,
+     "rss_peak_mb": 157,
+     "loop_lag_p95_ms": 14.9,
+     "loop_lag_max_ms": 24.1,
+     "p95_limit_ms": 18840,
+     "broke": []
+    },
+    {
+     "requests": 20,
+     "rps": 1.33,
+     "p50": 4610.0,
+     "p90": 6220.0,
+     "p95": 6275.6,
+     "p99": 6320.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 9.2,
+     "cpu_ms_per_req": 69.5,
+     "rss_peak_mb": 156,
+     "loop_lag_p95_ms": 16.8,
+     "loop_lag_max_ms": 47.5,
+     "p95_limit_ms": 18840,
+     "broke": []
+    },
+    {
+     "requests": 76,
+     "rps": 5.05,
+     "p50": 5150.0,
+     "p90": 6370.0,
+     "p95": 6753.3,
+     "p99": 7060.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 32.8,
+     "cpu_ms_per_req": 65.53,
+     "rss_peak_mb": 158,
+     "loop_lag_p95_ms": 36.5,
+     "loop_lag_max_ms": 342.6,
+     "p95_limit_ms": 18840,
+     "broke": []
+    },
+    {
+     "requests": 120,
+     "rps": 7.98,
+     "p50": 6500.0,
+     "p90": 8240.0,
+     "p95": 8534.4,
+     "p99": 8770.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 64,
+     "cpu_pct": 65.6,
+     "cpu_ms_per_req": 83.08,
+     "rss_peak_mb": 163,
+     "loop_lag_p95_ms": 363.1,
+     "loop_lag_max_ms": 529.1,
+     "p95_limit_ms": 18840,
+     "broke": []
+    },
+    {
+     "requests": 138,
+     "rps": 9.14,
+     "p50": 11950.0,
+     "p90": 13980.0,
+     "p95": 14313.3,
+     "p99": 14580.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 128,
+     "cpu_pct": 81.6,
+     "cpu_ms_per_req": 90.29,
+     "rss_peak_mb": 182,
+     "loop_lag_p95_ms": 1281.5,
+     "loop_lag_max_ms": 1381.5,
+     "p95_limit_ms": 18840,
+     "broke": [
+      "event loop blocked (lag p95 1282 ms)"
+     ]
+    }
+   ],
+   "max_ok_conc": 64,
+   "max_ok_rps": 7.98,
+   "cpu_ms_per_req": 83.08,
+   "limit": [
+    "event loop blocked (lag p95 1282 ms)"
+   ]
+  },
+  "english-turn": {
+   "kind": "model",
+   "status": 200,
+   "ms": 3782.3,
+   "cpu_ms": 80.0,
+   "db_calls": 3,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 2,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_ms": 507.6,
+   "db_by": {
+    "GET table:english_tutor_sessions": 2,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_writes": 1,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null,
+   "steps": [
+    {
+     "requests": 2,
+     "rps": 0.13,
+     "p50": 5890.0,
+     "p90": 5890.0,
+     "p95": 5890.0,
+     "p99": 5890.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 3.5,
+     "cpu_ms_per_req": 265.0,
+     "rss_peak_mb": 181,
+     "loop_lag_p95_ms": 16.3,
+     "loop_lag_max_ms": 41.8,
+     "p95_limit_ms": 17670,
+     "broke": []
+    },
+    {
+     "requests": 20,
+     "rps": 1.33,
+     "p50": 5170.0,
+     "p90": 6410.0,
+     "p95": 6460.0,
+     "p99": 6500.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 10.9,
+     "cpu_ms_per_req": 82.5,
+     "rss_peak_mb": 180,
+     "loop_lag_p95_ms": 30.9,
+     "loop_lag_max_ms": 175.2,
+     "p95_limit_ms": 17670,
+     "broke": []
+    },
+    {
+     "requests": 68,
+     "rps": 4.53,
+     "p50": 5820.0,
+     "p90": 7250.0,
+     "p95": 7516.7,
+     "p99": 7730.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 37.1,
+     "cpu_ms_per_req": 82.21,
+     "rss_peak_mb": 181,
+     "loop_lag_p95_ms": 95.1,
+     "loop_lag_max_ms": 872.3,
+     "p95_limit_ms": 17670,
+     "broke": []
+    },
+    {
+     "requests": 121,
+     "rps": 8.06,
+     "p50": 6350.0,
+     "p90": 9460.0,
+     "p95": 9715.6,
+     "p99": 9920.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 64,
+     "cpu_pct": 66.0,
+     "cpu_ms_per_req": 82.56,
+     "rss_peak_mb": 183,
+     "loop_lag_p95_ms": 331.4,
+     "loop_lag_max_ms": 2214.7,
+     "p95_limit_ms": 17670,
+     "broke": []
+    },
+    {
+     "requests": 147,
+     "rps": 9.74,
+     "p50": 11190.0,
+     "p90": 13800.0,
+     "p95": 13966.7,
+     "p99": 14100.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 128,
+     "cpu_pct": 86.8,
+     "cpu_ms_per_req": 90.27,
+     "rss_peak_mb": 190,
+     "loop_lag_p95_ms": 1880.3,
+     "loop_lag_max_ms": 3185.3,
+     "p95_limit_ms": 17670,
+     "broke": [
+      "event loop blocked (lag p95 1880 ms)"
+     ]
+    }
+   ],
+   "max_ok_conc": 64,
+   "max_ok_rps": 8.06,
+   "cpu_ms_per_req": 82.56,
+   "limit": [
+    "event loop blocked (lag p95 1880 ms)"
+   ]
+  },
+  "english-end": {
+   "kind": "write",
+   "status": 200,
+   "ms": 120.4,
+   "cpu_ms": 20.0,
+   "db_calls": 1,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 1,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_ms": 102.1,
+   "db_by": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "english-sessions": {
+   "kind": "read",
+   "status": 200,
+   "ms": 121.2,
+   "cpu_ms": 20.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_ms": 101.4,
+   "db_by": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null,
+   "steps": [
+    {
+     "requests": 80,
+     "rps": 7.96,
+     "p50": 121.06,
+     "p90": 132.57,
+     "p95": 160.6,
+     "p99": 183.01,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 13.7,
+     "cpu_ms_per_req": 17.25,
+     "rss_peak_mb": 226,
+     "loop_lag_p95_ms": 12.7,
+     "loop_lag_max_ms": 20.7,
+     "p95_limit_ms": 1000,
+     "broke": []
+    },
+    {
+     "requests": 455,
+     "rps": 45.16,
+     "p50": 168.19,
+     "p90": 221.25,
+     "p95": 331.2,
+     "p99": 419.19,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 65.4,
+     "cpu_ms_per_req": 14.51,
+     "rss_peak_mb": 224,
+     "loop_lag_p95_ms": 54.2,
+     "loop_lag_max_ms": 227.8,
+     "p95_limit_ms": 1000,
+     "broke": []
+    },
+    {
+     "requests": 537,
+     "rps": 53.31,
+     "p50": 530.17,
+     "p90": 892.64,
+     "p95": 1063.4,
+     "p99": 1200.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 86.5,
+     "cpu_ms_per_req": 16.28,
+     "rss_peak_mb": 211,
+     "loop_lag_p95_ms": 411.5,
+     "loop_lag_max_ms": 603.0,
+     "p95_limit_ms": 1000,
+     "broke": [
+      "p95 1063 > 1000 ms (3x one-user p50 121)"
+     ]
+    }
+   ],
+   "max_ok_conc": 8,
+   "max_ok_rps": 45.16,
+   "cpu_ms_per_req": 16.28,
+   "limit": [
+    "p95 1063 > 1000 ms (3x one-user p50 121)"
+   ]
+  }
+ },
+ "box": {
+  "cpus": 2,
+  "mem_total_mb": 1967,
+  "tutor_rss_idle_mb": 137
+ },
+ "summary": {
+  "per_child_cpu_ms_per_min": 0.0,
+  "per_child_db_calls_per_min": 0.0,
+  "children_per_process_cpu_bound": null,
+  "children_per_box_if_one_process_per_core": null,
+  "db_calls_per_sec_at_1000_children": 0.0,
+  "mix_routes_not_measured": [
+   "active-lesson-state",
+   "unit-lesson",
+   "lesson-intro",
+   "visuals",
+   "audio",
+   "hero-image",
+   "structured-lesson",
+   "openai-clean-chat",
+   "tts",
+   "kid-get"
+  ]
+ },
+ "workers": 1,
+ "cpus": "all",
+ "main_sha": "d561f7bd80617465",
+ "tutor_dir": "/opt/iakids/backend-ai-tutor-he"
+}

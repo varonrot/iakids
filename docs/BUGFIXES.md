@@ -2,6 +2,19 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-25 — Tutor capacity: request caches, event-loop fixes, performance tests; English voice tutor (in testing) (build 0.7.149)
+
+- **Symptom (measured)**: one tutor process held ~155 children in a lesson; the main chat (`openai-clean-chat`) froze every other child's request for up to 14 s under load, a lesson open blocked the server at 8 children, and every request made two Supabase round trips (Auth + the child's row) before any work — ~28 database calls per child per minute.
+- **Cause**: three `async` routes called Supabase synchronously on the event loop (`openai_clean_chat`, `homework_coach_v2`, the lesson open); `authenticate_user` asked Supabase Auth on every request; child, subscription and curriculum rows were re-read every time; the same media jobs were re-enqueued on every poll.
+- **Fix**:
+  - `backend-ai-tutor-he/request_cache.py`: login tokens verified locally against the project's JWKS (ES256), Supabase Auth only as fallback (`AUTH_LOCAL_JWT=0` turns it off); child row 60 s (dropped on `/api/kid/update`), subscription 60 s, curriculum 5 min, media-enqueue memo 60 s (`REQUEST_CACHE=0` turns all off). Lesson rows are not cached (the worker changes them while a child polls).
+  - The three blocking calls run through the threadpool.
+  - New `performance/` folder: fake Supabase + fake models + its own tutor copy, every route profiled and ramped (`run.py`), capped read-only production pass (`--db prod`), report (`REPORT.md`, Hebrew PDF via `report_pdf.py`).
+- **English voice tutor (in testing)**: new module `backend-ai-tutor-he/english_tutor.py` (5 routes under `/api/english/`, registered on the same app; nothing existing changed), prompt `prompts/english/iakids_english_tutor_prompt.txt`, table `english_tutor_sessions` (migration + rollback; applied to production by the user 2026-09-25, verified: browser key denied). 10 free minutes a day (checked before the model is called), one correction per turn / at most 3 spoken per session, level adjusts itself, parent line per session. Page `he/english-tutor/` on the shared check-shell look (teacher portrait), English dictation (en-US), lesson voice via `/api/tutor/tts`; menu item "מורה לאנגלית" with the new badge `side-badge testing` ("בבדיקה").
+- **Gate** (`tools/prompt_gate.py`): reads `main.py` + route modules as one source; every route needs a performance test and a DB-call budget (`performance/routes.py`); no async route may block the event loop; token-verification unit tests (expired / forged / wrong audience / legacy HS256); English tutor behaviour tests (429 before any model call, size limit, ownership, ended session, correction cap, level steps, bounded turn time, the child's name reaches the prompt); English page checks (menu item + badge, view path, microphone, en-US dictation, API-only, no blank page on 404). Each rule negative-tested. Pre-commit trigger extended to the new files (`tools/install_hooks.sh`).
+- **Verified**: production DB before/after on 6 read-only routes (same box): 2.5–6x requests/s, one-user latency 350–490 ms → 120–130 ms; DB calls per child 27.7 → 12.8/min; English turn 82 ms CPU, 3 DB calls, 64 conversations at once; real-model English conversations (girl, beginner) incl. a prompt-injection attempt; page screenshots; `prompt_gate --all` passes; deployed with `tools/deploy_tutor.sh` (web 200, startup complete, worker active), `/api/english/allowance` answers 401 without login.
+- **Build**: 0.7.149.
+
 ## 2026-09-25 — Fit the English dashboard into a desktop viewport (eng-dashboard-7)
 
 - Symptom: the bottom dashboard row was cut off on a 1915×987 browser screenshot, requiring vertical scrolling to see the full page.

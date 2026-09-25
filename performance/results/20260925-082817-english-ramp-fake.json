@@ -1,0 +1,409 @@
+{
+ "run": "20260925-082817-english-ramp-fake",
+ "db": "fake",
+ "scale": 1.0,
+ "workers": 1,
+ "cpus": "all",
+ "db_latency_ms": 100.0,
+ "routes": {
+  "english-allowance": {
+   "kind": "read",
+   "status": 200,
+   "ms": 113.9,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_calls_cold": 4,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:english_tutor_sessions": 1,
+    "GET table:subscriptions": 1
+   },
+   "db_ms": 100.8,
+   "db_by": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null,
+   "steps": [
+    {
+     "requests": 89,
+     "rps": 8.87,
+     "p50": 111.59,
+     "p90": 116.02,
+     "p95": 121.7,
+     "p99": 126.21,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 9.9,
+     "cpu_ms_per_req": 11.24,
+     "rss_peak_mb": 141,
+     "loop_lag_p95_ms": 8.0,
+     "loop_lag_max_ms": 8.5,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 556,
+     "rps": 55.24,
+     "p50": 140.79,
+     "p90": 172.58,
+     "p95": 200.6,
+     "p99": 222.94,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 59.9,
+     "cpu_ms_per_req": 10.86,
+     "rss_peak_mb": 145,
+     "loop_lag_p95_ms": 33.0,
+     "loop_lag_max_ms": 45.0,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 728,
+     "rps": 72.23,
+     "p50": 419.47,
+     "p90": 568.81,
+     "p95": 663.0,
+     "p99": 738.43,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 97.6,
+     "cpu_ms_per_req": 13.54,
+     "rss_peak_mb": 154,
+     "loop_lag_p95_ms": 239.5,
+     "loop_lag_max_ms": 303.0,
+     "p95_limit_ms": 800,
+     "broke": []
+    },
+    {
+     "requests": 643,
+     "rps": 63.99,
+     "p50": 847.48,
+     "p90": 1430.0,
+     "p95": 2018.9,
+     "p99": 2490.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 64,
+     "cpu_pct": 95.8,
+     "cpu_ms_per_req": 15.05,
+     "rss_peak_mb": 163,
+     "loop_lag_p95_ms": 399.3,
+     "loop_lag_max_ms": 404.3,
+     "p95_limit_ms": 800,
+     "broke": [
+      "p95 2019 > 800 ms (3x one-user p50 112)"
+     ]
+    }
+   ],
+   "max_ok_conc": 32,
+   "max_ok_rps": 72.23,
+   "cpu_ms_per_req": 12.39,
+   "limit": [
+    "p95 2019 > 800 ms (3x one-user p50 112)"
+   ]
+  },
+  "english-start": {
+   "kind": "model",
+   "status": 200,
+   "ms": 4172.9,
+   "cpu_ms": 60.0,
+   "db_calls": 4,
+   "db_calls_cold": 4,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 2,
+    "POST table:english_tutor_sessions": 1,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_ms": 608.3,
+   "db_by": {
+    "GET table:english_tutor_sessions": 2,
+    "POST table:english_tutor_sessions": 1,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_writes": 2,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null,
+   "steps": [
+    {
+     "requests": 3,
+     "rps": 0.2,
+     "p50": 4650.0,
+     "p90": 5410.0,
+     "p95": 5410.0,
+     "p99": 5410.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 5.4,
+     "cpu_ms_per_req": 270.0,
+     "rss_peak_mb": 163,
+     "loop_lag_p95_ms": 17.8,
+     "loop_lag_max_ms": 270.2,
+     "p95_limit_ms": 13950,
+     "broke": []
+    },
+    {
+     "requests": 21,
+     "rps": 1.39,
+     "p50": 5020.0,
+     "p90": 5840.0,
+     "p95": 5973.3,
+     "p99": 6080.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 10.9,
+     "cpu_ms_per_req": 78.1,
+     "rss_peak_mb": 162,
+     "loop_lag_p95_ms": 19.0,
+     "loop_lag_max_ms": 27.4,
+     "p95_limit_ms": 13950,
+     "broke": []
+    },
+    {
+     "requests": 71,
+     "rps": 4.71,
+     "p50": 5560.0,
+     "p90": 7110.0,
+     "p95": 7354.4,
+     "p99": 7550.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 39.3,
+     "cpu_ms_per_req": 83.8,
+     "rss_peak_mb": 181,
+     "loop_lag_p95_ms": 108.0,
+     "loop_lag_max_ms": 509.2,
+     "p95_limit_ms": 13950,
+     "broke": []
+    },
+    {
+     "requests": 84,
+     "rps": 5.57,
+     "p50": 8810.0,
+     "p90": 10890.0,
+     "p95": 11273.3,
+     "p99": 11580.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 64,
+     "cpu_pct": 77.4,
+     "cpu_ms_per_req": 140.12,
+     "rss_peak_mb": 247,
+     "loop_lag_p95_ms": 632.0,
+     "loop_lag_max_ms": 997.8,
+     "p95_limit_ms": 13950,
+     "broke": [
+      "event loop blocked (lag p95 632 ms)"
+     ]
+    }
+   ],
+   "max_ok_conc": 32,
+   "max_ok_rps": 4.71,
+   "cpu_ms_per_req": 83.8,
+   "limit": [
+    "event loop blocked (lag p95 632 ms)"
+   ]
+  },
+  "english-turn": {
+   "kind": "model",
+   "status": 200,
+   "ms": 4665.4,
+   "cpu_ms": 60.0,
+   "db_calls": 3,
+   "db_calls_cold": 3,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 2,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_ms": 505.7,
+   "db_by": {
+    "GET table:english_tutor_sessions": 2,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_writes": 1,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null,
+   "steps": [
+    {
+     "requests": 129,
+     "rps": 8.57,
+     "p50": 114.72,
+     "p90": 121.24,
+     "p95": 134.9,
+     "p99": 145.82,
+     "errors": 129,
+     "non2xx": 129,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 16.3,
+     "cpu_ms_per_req": 19.07,
+     "rss_peak_mb": 248,
+     "loop_lag_p95_ms": 13.2,
+     "loop_lag_max_ms": 23.7,
+     "p95_limit_ms": 9000,
+     "broke": [
+      "errors 100%"
+     ]
+    }
+   ],
+   "max_ok_conc": 0,
+   "max_ok_rps": 0,
+   "cpu_ms_per_req": 19.07,
+   "limit": [
+    "errors 100%"
+   ]
+  },
+  "english-end": {
+   "kind": "write",
+   "status": 200,
+   "ms": 120.4,
+   "cpu_ms": 20.0,
+   "db_calls": 1,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 1,
+    "PATCH table:english_tutor_sessions": 1
+   },
+   "db_ms": 102.1,
+   "db_by": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "english-sessions": {
+   "kind": "read",
+   "status": 200,
+   "ms": 121.2,
+   "cpu_ms": 20.0,
+   "db_calls": 1,
+   "db_calls_cold": 1,
+   "db_by_cold": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_ms": 101.4,
+   "db_by": {
+    "GET table:english_tutor_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null,
+   "steps": [
+    {
+     "requests": 80,
+     "rps": 7.96,
+     "p50": 121.06,
+     "p90": 132.57,
+     "p95": 160.6,
+     "p99": 183.01,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 1,
+     "cpu_pct": 13.7,
+     "cpu_ms_per_req": 17.25,
+     "rss_peak_mb": 226,
+     "loop_lag_p95_ms": 12.7,
+     "loop_lag_max_ms": 20.7,
+     "p95_limit_ms": 1000,
+     "broke": []
+    },
+    {
+     "requests": 455,
+     "rps": 45.16,
+     "p50": 168.19,
+     "p90": 221.25,
+     "p95": 331.2,
+     "p99": 419.19,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 8,
+     "cpu_pct": 65.4,
+     "cpu_ms_per_req": 14.51,
+     "rss_peak_mb": 224,
+     "loop_lag_p95_ms": 54.2,
+     "loop_lag_max_ms": 227.8,
+     "p95_limit_ms": 1000,
+     "broke": []
+    },
+    {
+     "requests": 537,
+     "rps": 53.31,
+     "p50": 530.17,
+     "p90": 892.64,
+     "p95": 1063.4,
+     "p99": 1200.0,
+     "errors": 0,
+     "non2xx": 0,
+     "socket_errors": 0,
+     "conc": 32,
+     "cpu_pct": 86.5,
+     "cpu_ms_per_req": 16.28,
+     "rss_peak_mb": 211,
+     "loop_lag_p95_ms": 411.5,
+     "loop_lag_max_ms": 603.0,
+     "p95_limit_ms": 1000,
+     "broke": [
+      "p95 1063 > 1000 ms (3x one-user p50 121)"
+     ]
+    }
+   ],
+   "max_ok_conc": 8,
+   "max_ok_rps": 45.16,
+   "cpu_ms_per_req": 16.28,
+   "limit": [
+    "p95 1063 > 1000 ms (3x one-user p50 121)"
+   ]
+  }
+ },
+ "box": {
+  "cpus": 2,
+  "mem_total_mb": 1967,
+  "tutor_rss_idle_mb": 138
+ },
+ "summary": {
+  "per_child_cpu_ms_per_min": 0.0,
+  "per_child_db_calls_per_min": 0.0,
+  "children_per_process_cpu_bound": null,
+  "children_per_box_if_one_process_per_core": null,
+  "db_calls_per_sec_at_1000_children": 0.0,
+  "mix_routes_not_measured": [
+   "active-lesson-state",
+   "unit-lesson",
+   "lesson-intro",
+   "visuals",
+   "audio",
+   "hero-image",
+   "structured-lesson",
+   "openai-clean-chat",
+   "tts",
+   "kid-get"
+  ]
+ },
+ "main_sha": "d561f7bd80617465",
+ "tutor_dir": "/opt/iakids/backend-ai-tutor-he"
+}

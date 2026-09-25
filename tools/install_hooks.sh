@@ -14,7 +14,7 @@ PY="$ROOT/backend/.venv/bin/python"
 cat > "$ROOT/.git/hooks/pre-commit" <<'HOOK'
 #!/usr/bin/env bash
 # prompt gate: blocks a commit that breaks a prompt rule, a code rule or the lesson screen
-if git diff --cached --name-only | grep -qE '^(backend-ai-tutor-he/(prompts/.*\.txt|main\.py)|he/workspace/index\.html|tools/prompt_gate\.py)$'; then
+if git diff --cached --name-only | grep -qE '^(backend-ai-tutor-he/(prompts/.*\.txt|main\.py|english_tutor\.py|request_cache\.py)|he/workspace/index\.html|tools/prompt_gate\.py|performance/(routes|static_checks)\.py|performance/results/latest-fake\.json)$'; then
   echo "prompt gate: running tools/prompt_gate.py --staged"
   backend/.venv/bin/python tools/prompt_gate.py --staged || { echo "commit blocked by prompt gate"; exit 1; }
 fi

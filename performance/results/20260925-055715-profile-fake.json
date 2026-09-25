@@ -1,0 +1,828 @@
+{
+ "run": "20260925-055715-profile-fake",
+ "db": "fake",
+ "scale": 0.05,
+ "db_latency_ms": 100.0,
+ "routes": {
+  "health": {
+   "kind": "health",
+   "status": 200,
+   "ms": 8.5,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_ms": 105.9,
+   "db_by": {
+    "POST table:service_metrics": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "units": {
+   "kind": "read",
+   "status": 200,
+   "ms": 339.8,
+   "cpu_ms": 30.0,
+   "db_calls": 3,
+   "db_ms": 308.3,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:learning_lessons": 1,
+    "GET table:lesson_units_content": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "active-lesson-state": {
+   "kind": "read",
+   "status": 200,
+   "ms": 325.9,
+   "cpu_ms": 20.0,
+   "db_calls": 3,
+   "db_ms": 303.1,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:learning_coach_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "lesson-intro": {
+   "kind": "read",
+   "status": 404,
+   "ms": 1694.3,
+   "cpu_ms": 60.0,
+   "db_calls": 16,
+   "db_ms": 1614.8,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:subscriptions": 1,
+    "GET table:kid_personal_media": 3,
+    "POST table:kid_personal_media": 1,
+    "POST rpc:media_jobs_enqueue": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1,
+    "GET table:kid_unit_lesson_progress": 2,
+    "PATCH table:kid_unit_lesson_progress": 1,
+    "GET table:tutor_sessions": 1,
+    "POST table:tutor_sessions": 1,
+    "GET table:lesson_intro_templates": 1
+   },
+   "db_writes": 4,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"Intro template not found\"}"
+  },
+  "unit-lesson": {
+   "kind": "media",
+   "status": 200,
+   "ms": 1199.6,
+   "cpu_ms": 80.0,
+   "db_calls": 13,
+   "db_ms": 1315.5,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:subscriptions": 1,
+    "GET table:kid_personal_media": 2,
+    "POST rpc:media_jobs_enqueue": 3,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1,
+    "POST storage/v1/object": 1,
+    "POST rpc:request_log_insert": 1,
+    "GET table:ai_calls": 1
+   },
+   "db_writes": 4,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "unit-lesson-closing": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1922.0,
+   "cpu_ms": 100.0,
+   "db_calls": 8,
+   "db_ms": 808.5,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:kid_lesson_history": 2,
+    "GET table:learning_lessons": 1,
+    "GET table:learning_coach_sessions": 1,
+    "POST table:kid_lesson_history": 1
+   },
+   "db_writes": 1,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "regenerate-transition": {
+   "kind": "media",
+   "status": 200,
+   "ms": 4231.7,
+   "cpu_ms": 100.0,
+   "db_calls": 9,
+   "db_ms": 914.6,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1,
+    "POST rpc:request_log_insert": 1,
+    "POST rpc:ai_calls_insert": 1,
+    "PATCH table:lesson_units_content": 1,
+    "DELETE storage/v1/object": 1,
+    "POST rpc:media_jobs_enqueue": 1
+   },
+   "db_writes": 3,
+   "model_calls": 4,
+   "prod_safe": false,
+   "error": null
+  },
+  "hero-image": {
+   "kind": "media",
+   "status": 200,
+   "ms": 543.2,
+   "cpu_ms": 30.0,
+   "db_calls": 5,
+   "db_ms": 505.6,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1,
+    "POST storage/v1/object": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "visuals": {
+   "kind": "read",
+   "status": 200,
+   "ms": 2009.7,
+   "cpu_ms": 70.0,
+   "db_calls": 21,
+   "db_ms": 2123.3,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1,
+    "POST storage/v1/object": 15,
+    "POST rpc:request_log_insert": 1,
+    "POST rpc:ai_calls_insert": 1
+   },
+   "db_writes": 15,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "audio": {
+   "kind": "media",
+   "status": 200,
+   "ms": 434.8,
+   "cpu_ms": 30.0,
+   "db_calls": 4,
+   "db_ms": 403.9,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "shared-transition": {
+   "kind": "read",
+   "status": 200,
+   "ms": 109.5,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_ms": 101.2,
+   "db_by": {
+    "POST storage/v1/object": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "structured-lesson": {
+   "kind": "model",
+   "status": 200,
+   "ms": 2479.2,
+   "cpu_ms": 100.0,
+   "db_calls": 15,
+   "db_ms": 1516.1,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:learning_lessons": 1,
+    "GET table:tutor_sessions": 1,
+    "GET table:kid_lesson_progress": 1,
+    "POST table:kid_lesson_progress": 1,
+    "GET table:lesson_units_content": 1,
+    "PATCH table:kid_lesson_progress": 1,
+    "GET table:learning_coach_sessions": 1,
+    "POST table:learning_coach_sessions": 1,
+    "GET table:kid_lesson_history": 1,
+    "PATCH table:learning_coach_sessions": 1,
+    "POST table:kid_lesson_history": 1,
+    "PATCH table:tutor_sessions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_writes": 6,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "reset-unit-lesson": {
+   "kind": "write",
+   "status": 200,
+   "ms": 963.9,
+   "cpu_ms": 40.0,
+   "db_calls": 11,
+   "db_ms": 1113.4,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:learning_lessons": 1,
+    "GET table:lesson_units_content": 1,
+    "DELETE table:learning_coach_sessions": 1,
+    "DELETE table:kid_lesson_history": 1,
+    "POST rpc:request_log_insert": 1,
+    "POST rpc:ai_calls_insert": 1,
+    "PATCH table:kid_unit_lesson_progress": 1,
+    "GET table:kid_lesson_progress": 1,
+    "PATCH table:kid_lesson_progress": 1
+   },
+   "db_writes": 4,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "tutor-chat": {
+   "kind": "model",
+   "status": 200,
+   "ms": 2206.4,
+   "cpu_ms": 60.0,
+   "db_calls": 8,
+   "db_ms": 811.2,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:tutor_sessions": 1,
+    "GET table:kids_memory": 1,
+    "GET table:kids_chats": 1,
+    "POST table:kids_chats": 1,
+    "PATCH table:tutor_sessions": 1,
+    "POST rpc:increment_usage_summary": 1
+   },
+   "db_writes": 2,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "openai-clean-chat": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1010.7,
+   "cpu_ms": 20.0,
+   "db_calls": 2,
+   "db_ms": 201.7,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-coach": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1037.1,
+   "cpu_ms": 30.0,
+   "db_calls": 4,
+   "db_ms": 405.1,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "POST rpc:request_log_insert": 1,
+    "POST rpc:ai_calls_insert": 1
+   },
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-coach-v2": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1114.0,
+   "cpu_ms": 20.0,
+   "db_calls": 2,
+   "db_ms": 201.4,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-turn": {
+   "kind": "model",
+   "status": 200,
+   "ms": 1662.4,
+   "cpu_ms": 50.0,
+   "db_calls": 5,
+   "db_ms": 506.1,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:tutor_sessions": 1,
+    "POST table:kids_chats": 1,
+    "PATCH table:tutor_sessions": 1
+   },
+   "db_writes": 2,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-session-start": {
+   "kind": "write",
+   "status": 200,
+   "ms": 320.4,
+   "cpu_ms": 10.0,
+   "db_calls": 4,
+   "db_ms": 404.1,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "POST table:homework_sessions": 1,
+    "POST table:service_metrics": 1
+   },
+   "db_writes": 2,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "homework-analyze": {
+   "kind": "model",
+   "status": 403,
+   "ms": 223.2,
+   "cpu_ms": 30.0,
+   "db_calls": 4,
+   "db_ms": 404.7,
+   "db_by": {
+    "POST rpc:request_log_insert": 1,
+    "POST rpc:ai_calls_insert": 1,
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"Invalid storage path\"}"
+  },
+  "curriculum-chat": {
+   "kind": "model",
+   "status": 500,
+   "ms": 1485.2,
+   "cpu_ms": 40.0,
+   "db_calls": 2,
+   "db_ms": 201.7,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": "{\"detail\":\"Curriculum Builder failed\"}"
+  },
+  "curriculum-approve": {
+   "kind": "write",
+   "status": 404,
+   "ms": 325.7,
+   "cpu_ms": 20.0,
+   "db_calls": 3,
+   "db_ms": 303.6,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:kid_custom_subjects": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"Custom subject not found\"}"
+  },
+  "tts": {
+   "kind": "model",
+   "status": 200,
+   "ms": 333.8,
+   "cpu_ms": 20.0,
+   "db_calls": 3,
+   "db_ms": 304.4,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET storage/v1/object": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "stt": {
+   "kind": "model",
+   "status": 200,
+   "ms": 224.6,
+   "cpu_ms": 40.0,
+   "db_calls": 1,
+   "db_ms": 102.0,
+   "db_by": {
+    "GET auth/v1/user": 1
+   },
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
+  },
+  "check-set": {
+   "kind": "read",
+   "status": 200,
+   "ms": 220.1,
+   "cpu_ms": 10.0,
+   "db_calls": 2,
+   "db_ms": 202.3,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "check-score": {
+   "kind": "read",
+   "status": 200,
+   "ms": 219.8,
+   "cpu_ms": 20.0,
+   "db_calls": 4,
+   "db_ms": 404.0,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "POST rpc:request_log_insert": 1,
+    "POST rpc:ai_calls_insert": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "check-tts": {
+   "kind": "model",
+   "status": 200,
+   "ms": 321.0,
+   "cpu_ms": 20.0,
+   "db_calls": 3,
+   "db_ms": 302.1,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET storage/v1/object": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "exam-practice-start": {
+   "kind": "model",
+   "status": 502,
+   "ms": 1329.3,
+   "cpu_ms": 20.0,
+   "db_calls": 2,
+   "db_ms": 202.1,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": "{\"detail\":\"no practice questions\"}"
+  },
+  "exam-practice-answer": {
+   "kind": "read",
+   "status": 422,
+   "ms": 5.6,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": "{\"detail\":[{\"type\":\"int_parsing\",\"loc\":[\"body\",\"answer\"],\"msg\":\"Input should be a valid integer, unable to parse string as an integer\",\"input\":\"א\"}]}"
+  },
+  "kid-list": {
+   "kind": "read",
+   "status": 200,
+   "ms": 217.0,
+   "cpu_ms": 10.0,
+   "db_calls": 2,
+   "db_ms": 202.2,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-lessons": {
+   "kind": "read",
+   "status": 200,
+   "ms": 540.7,
+   "cpu_ms": 30.0,
+   "db_calls": 5,
+   "db_ms": 506.0,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:kid_unit_lesson_progress": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-achievements": {
+   "kind": "read",
+   "status": 200,
+   "ms": 536.6,
+   "cpu_ms": 30.0,
+   "db_calls": 7,
+   "db_ms": 706.8,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:kid_unit_lesson_progress": 1,
+    "GET table:learning_lessons": 1,
+    "POST rpc:request_log_insert": 1,
+    "GET table:kid_game_sessions": 1,
+    "POST rpc:ai_calls_insert": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-files": {
+   "kind": "read",
+   "status": 200,
+   "ms": 427.7,
+   "cpu_ms": 30.0,
+   "db_calls": 4,
+   "db_ms": 403.8,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:homework_uploads": 1,
+    "GET table:homework_sessions": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-get": {
+   "kind": "read",
+   "status": 200,
+   "ms": 215.1,
+   "cpu_ms": 10.0,
+   "db_calls": 2,
+   "db_ms": 201.7,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "kid-update": {
+   "kind": "write",
+   "status": 200,
+   "ms": 323.3,
+   "cpu_ms": 10.0,
+   "db_calls": 3,
+   "db_ms": 303.9,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "PATCH table:kids_profiles": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "kid-create": {
+   "kind": "write",
+   "status": 200,
+   "ms": 430.6,
+   "cpu_ms": 20.0,
+   "db_calls": 4,
+   "db_ms": 404.0,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:subscriptions": 1,
+    "POST table:kids_profiles": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-whoami": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 118.0,
+   "cpu_ms": 10.0,
+   "db_calls": 1,
+   "db_ms": 100.5,
+   "db_by": {
+    "GET auth/v1/user": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lessons-quality": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 327.3,
+   "cpu_ms": 20.0,
+   "db_calls": 3,
+   "db_ms": 303.5,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:lesson_units_content": 1,
+    "GET table:learning_lessons": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-approve": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 341.3,
+   "cpu_ms": 30.0,
+   "db_calls": 3,
+   "db_ms": 305.3,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-recheck": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 538.4,
+   "cpu_ms": 40.0,
+   "db_calls": 5,
+   "db_ms": 505.3,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 2,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 3,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-regenerate": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 641.9,
+   "cpu_ms": 30.0,
+   "db_calls": 6,
+   "db_ms": 606.7,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 2,
+    "GET table:media_jobs": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 3,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-image-approve": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 324.3,
+   "cpu_ms": 10.0,
+   "db_calls": 3,
+   "db_ms": 302.7,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:lesson_units_content": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-image-regenerate": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 539.2,
+   "cpu_ms": 20.0,
+   "db_calls": 5,
+   "db_ms": 508.0,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:lesson_units_content": 1,
+    "DELETE storage/v1/object": 1,
+    "POST rpc:media_jobs_enqueue": 1,
+    "PATCH table:lesson_units_content": 1
+   },
+   "db_writes": 3,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  },
+  "admin-lesson-media": {
+   "kind": "admin",
+   "status": 200,
+   "ms": 324.8,
+   "cpu_ms": 30.0,
+   "db_calls": 3,
+   "db_ms": 303.2,
+   "db_by": {
+    "GET auth/v1/user": 1,
+    "GET table:lesson_units_content": 1,
+    "POST storage/v1/object": 1
+   },
+   "db_writes": 1,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": null
+  }
+ },
+ "box": {
+  "cpus": 2,
+  "mem_total_mb": 1967,
+  "tutor_rss_idle_mb": 137
+ },
+ "summary": {
+  "per_child_cpu_ms_per_min": 267.2,
+  "per_child_db_calls_per_min": 50.7,
+  "children_per_process_cpu_bound": 157,
+  "children_per_box_if_one_process_per_core": 314,
+  "db_calls_per_sec_at_1000_children": 845.0,
+  "mix_routes_not_measured": []
+ }
+}

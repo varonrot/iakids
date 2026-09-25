@@ -17,7 +17,8 @@ def expected() -> dict:
 
 
 def pages():
-    return [DIAG / "index.html"] + sorted(DIAG.glob("*/index.html"))
+    # the English tutor (2026-09-25) is built on the same shell look, so it is stamped with the same address
+    return [DIAG / "index.html"] + sorted(DIAG.glob("*/index.html")) + [ROOT / "he" / "english-tutor" / "index.html"]
 
 
 def main():
