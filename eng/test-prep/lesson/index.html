@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#e9f8f5">
+  <title>Lesson | IA KIDS ENG</title>
+  <link rel="icon" type="image/png" href="../../assets/brand/iakids-eng-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./lesson.css?v=20260926-1">
+</head>
+<body>
+  <header class="lesson-header">
+    <a class="brand" href="../../" aria-label="IA KIDS ENG home"><img src="../../assets/brand/iakids-eng-mark.png" alt=""><span>IA KIDS <b>ENG</b></span></a>
+    <span class="header-divider" aria-hidden="true"></span>
+    <span class="header-location">Test Prep <span aria-hidden="true">›</span> <span id="headerSubject">Math</span> <span aria-hidden="true">›</span> <span id="headerGrade">Grade 5</span></span>
+    <span class="header-learner"><span class="learner-avatar" aria-hidden="true">✦</span><span id="learnerName">Learner</span></span>
+  </header>
+
+  <main class="lesson-shell" id="lessonApp" hidden>
+    <aside class="lesson-sidebar" aria-label="Lesson steps">
+      <a class="back-link" href="../../#test-prep">← Back to Test Prep</a>
+      <div class="sidebar-heading"><span>YOUR LESSON</span><h1 id="sidebarTitle">Dividing fractions</h1><p id="sidebarContext">Math · Grade 5</p></div>
+      <ol class="step-list" id="stepList">
+        <li class="is-current"><span class="step-number">1</span><span><strong>See the idea</strong><small>A short visual explanation</small></span></li>
+        <li><span class="step-number">2</span><span><strong>Try together</strong><small>One guided example</small></span></li>
+        <li><span class="step-number">3</span><span><strong>Your turn</strong><small>One question to check</small></span></li>
+      </ol>
+      <div class="sidebar-progress"><span id="sidebarProgressLabel">1 of 3 steps</span><div class="progress-track"><span id="sidebarProgressBar"></span></div></div>
+    </aside>
+
+    <section class="lesson-center" aria-label="Lesson visual">
+      <div class="scene">
+        <div class="scene-top"><span class="eyebrow" id="sceneEyebrow">SEE THE IDEA</span><span class="scene-counter" id="sceneCounter">Step 1 of 3</span></div>
+        <div class="scene-copy"><h2 id="sceneTitle">Dividing fractions</h2><p id="sceneLead"></p></div>
+        <div class="visual-stage" role="img" aria-label="A pizza divided into four equal pieces. Three quarters remain. Two quarters make one half, and the third quarter is half of another half.">
+          <div class="visual-glow"></div><div class="plate"><div class="pizza"><span class="pizza-cross"></span><span class="pizza-cutout"></span><span class="pizza-basil basil-one"></span><span class="pizza-basil basil-two"></span><span class="pizza-basil basil-three"></span></div></div><div class="fraction-model" id="fractionModel" hidden></div>
+          <div class="visual-note note-half"><span>2 quarters</span><strong>= one half</strong></div>
+          <div class="visual-note note-quarter"><span>1 quarter</span><strong>= half of a half</strong></div>
+          <div class="equation">¾ ÷ ½ <span>= ?</span></div>
+        </div>
+        <p class="scene-takeaway" id="sceneTakeaway">Two quarters make a half. The last quarter is half of another half.</p>
+      </div>
+      <nav class="scene-footer" aria-label="Lesson progress"><span class="footer-dot is-current">1 <span>See the idea</span></span><span class="footer-line"></span><span class="footer-dot">2 <span>Try together</span></span><span class="footer-line"></span><span class="footer-dot">3 <span>Your turn</span></span></nav>
+    </section>
+
+    <aside class="guide-panel" aria-label="Learning guide">
+      <div class="guide-head"><div class="guide-icon" aria-hidden="true">✦</div><div><strong>Your learning guide</strong><small>One step at a time</small></div></div>
+      <div class="guide-message" id="guideMessage"></div>
+      <div class="guide-spacer"></div>
+      <div class="guide-question"><span class="question-label" id="questionLabel">A QUICK CHECK</span><h2 id="questionText">How many halves fit into three quarters?</h2><div class="answer-options" id="answerOptions" role="group" aria-label="Choose an answer"></div><p class="answer-feedback" id="answerFeedback" role="status" hidden></p><button class="hint-button" id="hintButton" type="button">♧ Need a hint?</button><p class="hint-copy" id="hintCopy" hidden></p><button class="check-button" id="checkButton" type="button" disabled>Check answer →</button></div>
+    </aside>
+  </main>
+
+  <main class="lesson-empty" id="lessonEmpty" hidden><div class="empty-card"><span class="empty-mark">✦</span><h1>Your lesson is ready when you are.</h1><p>Start from Test Prep so we can load the right lesson for your child.</p><a href="../../#test-prep">Open Test Prep →</a></div></main>
+  <script src="./lesson.js?v=20260926-1" defer></script>
+</body>
+</html>
