@@ -80,7 +80,13 @@
       <p class="prep-quiz-hint" hidden></p>
       <p class="prep-quiz-feedback" role="status" hidden></p>
       <div class="prep-quiz-actions"><button class="prep-quiz-hint-button" type="button">♧ Need a hint?</button><button class="prep-primary prep-quiz-submit" type="button" disabled>Check answer →</button></div>
-    </div></div><footer class="prep-plan-footer"><span>✓ Your topic list is saved for this child.</span><div><p>Learning activities are coming next.</p><button class="prep-primary prep-start-quiz" type="button">Start quick check →</button></div></footer></section>
+    </div><section class="prep-lesson" hidden>
+      <div class="prep-quiz-head"><strong>LEARN THE IDEA</strong><span>Step 2 of 4</span></div>
+      <h3 class="prep-lesson-headline"></h3><p class="prep-lesson-opening"></p>
+      <div class="prep-lesson-visual"><strong>See the groups</strong><p>3/4 ÷ 1/2 = 1½</p><div class="prep-quiz-bars"></div></div>
+      <ol class="prep-lesson-steps"></ol><p class="prep-lesson-takeaway"></p>
+      <button class="prep-secondary prep-lesson-back" type="button">← Review quick check</button>
+    </section></div><footer class="prep-plan-footer"><span>✓ Your topic list is saved for this child.</span><div><p>Learning activities are coming next.</p><button class="prep-primary prep-start-quiz" type="button">Start quick check →</button></div></footer></section>
     <input type="file" data-prep-input="photo" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>
     <input type="file" data-prep-input="file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp,.heic,.heif" hidden>`;
   dialog.querySelector('.prep-hero img').src = new URL('assets/hero/test-prep-hero.webp', base).href;
@@ -206,6 +212,7 @@
     const hintButton = dialog.querySelector('.prep-quiz-hint-button');
     const submit = dialog.querySelector('.prep-quiz-submit');
     panel.hidden = false;
+    bars.hidden = false;
     choices.replaceChildren();
     hint.hidden = true;
     feedback.hidden = true;
@@ -214,11 +221,13 @@
       count.textContent = '3 of 3 answered';
       dialog.querySelector('.prep-quiz-question').textContent = 'Quick check complete!';
       equation.textContent = score + ' of 3 correct';
-      bars.innerHTML = '';
+      bars.replaceChildren();
+      bars.hidden = true;
       feedback.textContent = score === 3 ? 'Great work! You’re ready to build on this idea.' : 'Nice effort. The next step will help you understand the tricky parts.';
       feedback.hidden = false;
-      hintButton.hidden = true;
-      submit.textContent = 'Review answers';
+      hintButton.textContent = 'Review answers';
+      hintButton.hidden = false;
+      submit.textContent = 'Learn the idea →';
       submit.disabled = false;
       return;
     }
@@ -240,6 +249,7 @@
     hint.textContent = question.hint;
     quizHintUsed = answer?.hint_used || false;
     hint.hidden = !quizHintUsed;
+    hintButton.textContent = '♧ Need a hint?';
     hintButton.hidden = !!answer;
     if (answer) {
       feedback.textContent = (answer.is_correct ? 'Correct! ' : 'The answer is ' + question.correct + '. ') + question.explanation;
@@ -276,12 +286,56 @@
       button.disabled = false;
     }
   }
+  function renderLesson(content) {
+    dialog.querySelector('.prep-lesson-headline').textContent = content.headline;
+    dialog.querySelector('.prep-lesson-opening').textContent = content.opening;
+    dialog.querySelector('.prep-lesson-takeaway').textContent = content.takeaway;
+    dialog.querySelector('.prep-lesson-visual .prep-quiz-bars').innerHTML =
+      renderFractionBar([3,4], 'prep-quiz-bar-top') + renderFractionBar([1,2], 'prep-quiz-bar-bottom');
+    const steps = dialog.querySelector('.prep-lesson-steps');
+    steps.replaceChildren();
+    content.steps.forEach((step, index) => {
+      const item = document.createElement('li');
+      const heading = document.createElement('strong');
+      const body = document.createElement('p');
+      heading.textContent = (index + 1) + '. ' + step.title;
+      body.textContent = step.body;
+      item.append(heading, body);
+      steps.append(item);
+    });
+    dialog.querySelector('.prep-quiz').hidden = true;
+    dialog.querySelector('.prep-lesson').hidden = false;
+    dialog.classList.remove('prep-quiz-active');
+    dialog.classList.add('prep-lesson-active');
+    const cards = dialog.querySelectorAll('.prep-plan-steps li');
+    cards.forEach((card, i) => card.classList.toggle('prep-plan-active', i === 1));
+  }
+  async function startLesson() {
+    if (quizBusy || quizIndex < fractionQuestions.length) return;
+    quizBusy = true;
+    const button = dialog.querySelector('.prep-quiz-submit');
+    const childId = topicChildId;
+    button.disabled = true;
+    button.textContent = 'Preparing your lesson…';
+    try {
+      const lesson = await window.IAKidsAuth.loadTestPrepLesson(childId);
+      if (!dialog.open || childId !== topicChildId) return;
+      renderLesson(lesson);
+    } catch (error) {
+      const feedback = dialog.querySelector('.prep-quiz-feedback');
+      feedback.textContent = error.message;
+      feedback.classList.add('prep-quiz-incorrect');
+      feedback.hidden = false;
+      button.textContent = 'Try lesson again →';
+      button.disabled = false;
+    } finally {
+      quizBusy = false;
+    }
+  }
   async function submitQuickCheck() {
     if (quizBusy || !quizDraft) return;
     if (quizIndex >= fractionQuestions.length) {
-      quizIndex = 0;
-      quizChoice = null;
-      renderQuickCheck();
+      await startLesson();
       return;
     }
     const question = fractionQuestions[quizIndex];
@@ -316,8 +370,10 @@
   function renderPlan(draft) {
     const child = window.IAKidsAuth?.child;
     quizDraft = draft;
-    dialog.classList.remove('prep-quiz-active');
+    dialog.classList.remove('prep-quiz-active', 'prep-lesson-active');
     dialog.querySelector('.prep-quiz').hidden = true;
+    dialog.querySelector('.prep-lesson').hidden = true;
+    dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === 0));
     const supported = supportsQuickCheck(draft);
     dialog.querySelector('.prep-start-quiz').disabled = !supported;
     dialog.querySelector('.prep-plan-footer p').textContent = supported ? 'A short visual check is ready.' : 'Interactive questions for these topics are coming next.';
@@ -371,7 +427,11 @@
     if (event.target.closest('.prep-edit-topics')) view('topics');
     if (event.target.closest('.prep-start-quiz')) startQuickCheck();
     if (event.target.closest('.prep-quiz-submit')) submitQuickCheck();
-    if (event.target.closest('.prep-quiz-hint-button') && quizIndex < fractionQuestions.length) { quizHintUsed = true; const hint = dialog.querySelector('.prep-quiz-hint'); hint.textContent = fractionQuestions[quizIndex].hint; hint.hidden = false; }
+    if (event.target.closest('.prep-quiz-hint-button')) {
+      if (quizIndex >= fractionQuestions.length) { quizIndex = 0; quizChoice = null; renderQuickCheck(); }
+      else { quizHintUsed = true; const hint = dialog.querySelector('.prep-quiz-hint'); hint.textContent = fractionQuestions[quizIndex].hint; hint.hidden = false; }
+    }
+    if (event.target.closest('.prep-lesson-back')) { dialog.querySelector('.prep-lesson').hidden = true; dialog.classList.remove('prep-lesson-active'); dialog.classList.add('prep-quiz-active'); dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === 0)); quizIndex = fractionQuestions.length; renderQuickCheck(); }
     const choice = event.target.closest('.prep-quiz-choice');
     if (choice && !quizBusy && !quizRows.has(fractionQuestions[quizIndex]?.key)) { quizChoice = choice.dataset.choice; dialog.querySelectorAll('.prep-quiz-choice').forEach(button => button.setAttribute('aria-pressed', String(button === choice))); dialog.querySelector('.prep-quiz-submit').disabled = false; }
     else if (event.target.closest('.prep-back')) view('start');
