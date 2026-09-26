@@ -23830,6 +23830,9 @@ async def tutor_stt(body: TutorSTTRequest, authorization: str = Header(None)):
 # English voice tutor.
 import english_tutor  # noqa: E402,F401
 
+# Adaptive English Test Prep after the Grade 5 fraction quick check.
+import test_prep_2027  # noqa: E402,F401
+
 # Question-bank admin review (2026-09-25): new routes in their own module, registered on this app.
 import qbank_admin  # noqa: E402,F401
 # Admin lock-out: an address that keeps failing the admin check is locked for a while.
