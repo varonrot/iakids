@@ -143,3 +143,23 @@
   .prep-quiz{padding:18px}
   .prep-quiz .prep-quiz-question{font-size:22px}
 }
+
+.prep-plan-layout>.prep-lesson{grid-column:2;grid-row:1;min-width:0}
+.prep-lesson-active .prep-plan-focus,.prep-lesson-active .prep-plan-footer{display:none}
+.prep-lesson{padding:20px;border-radius:15px;background:linear-gradient(135deg,#eafaf7,#f4fbf9)}
+.prep-lesson-headline{margin:14px 0 6px;font-size:clamp(20px,2.3vw,27px);line-height:1.2}
+.prep-lesson-opening{margin:0 0 12px;font-size:14px}
+.prep-lesson-visual{padding:12px;border-radius:10px;background:#fff}
+.prep-lesson-visual>strong{font-size:13px;color:#008f98}
+.prep-lesson-visual>p{margin:4px 0;font-size:22px;font-weight:800;color:#101e45}
+.prep-lesson-visual .prep-quiz-bars{margin:0;padding:0}
+.prep-lesson-steps{display:grid;gap:9px;margin:13px 0;padding:0;list-style:none}
+.prep-lesson-steps li{padding:10px 12px;border-radius:9px;background:#fff}
+.prep-lesson-steps strong{color:#101e45;font-size:14px}
+.prep-lesson-steps p{margin:3px 0 0;font-size:13px}
+.prep-lesson .prep-lesson-takeaway{padding:11px 12px;border-radius:9px;background:#d8f6ee;color:#166c70;font-size:13px;font-weight:600}
+.prep-lesson .prep-lesson-back{padding:8px 12px;font-size:13px}
+@media(max-width:640px){
+  .prep-plan-layout>.prep-lesson{grid-column:1;grid-row:auto}
+  .prep-lesson-active .prep-plan-roadmap{display:none}
+}
