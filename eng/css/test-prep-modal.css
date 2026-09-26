@@ -107,6 +107,10 @@
 .prep-plan-steps{gap:17px}
 .prep-plan-steps li{position:relative;min-height:78px}
 .prep-plan-steps li:not(:last-child)::after{content:"";position:absolute;left:35px;top:calc(100% + 1px);height:15px;border-left:2px dashed #afc8db}
+.prep-learn-step-button{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:transparent;color:inherit;cursor:pointer}
+.prep-learn-step-button:disabled{cursor:default}
+.prep-lesson-ready:hover{border-color:#00a2a9;box-shadow:0 4px 14px #007f841c}
+.prep-learn-step-button:focus-visible{outline:3px solid #008f98;outline-offset:3px}
 .prep-plan-icon{display:grid;place-items:center;flex:none;width:52px;height:45px;margin-left:0;padding-left:12px;border-left:1px solid #dce9ef}
 .prep-plan-icon svg{width:36px;height:36px}
 .prep-plan-icon-1{color:#009fa7}.prep-plan-icon-2{color:#ffad22}.prep-plan-icon-3{color:#6451cd}.prep-plan-icon-4{color:#f25382}
