@@ -71,6 +71,7 @@
     </div><p class="prep-error" role="alert" hidden></p><footer class="prep-footer"><button class="prep-secondary" type="button" data-prep-close>Cancel</button><p>We’ll help you build a study plan from your material.</p></footer></div></section>
     <section class="prep-step" data-prep-view="file" hidden><button class="prep-back" type="button">← Back</button><h2 id="prepFileTitle">Your material</h2><p class="prep-filename"></p><img class="prep-preview" alt="Selected worksheet preview" hidden><p class="prep-notice">Your file is selected for preview only. Study-plan creation from uploaded material is coming next. Nothing has been uploaded.</p><button type="button" class="prep-secondary" data-prep-action="replace">Choose another file</button></section>
     <section class="prep-step prep-topics-step" data-prep-view="topics" hidden><button class="prep-back" type="button">← Back</button><h2 id="prepTopicsTitle">Choose topics</h2><p class="prep-learner" aria-live="polite"></p><form id="prepTopicsForm"><label for="prepSubject">Subject</label><select id="prepSubject" required><option>Math</option><option>English</option><option>Science</option><option>Hebrew</option><option>History</option><option>Geography</option><option>Other</option></select><label for="prepTopicSearch">Search topics</label><input id="prepTopicSearch" type="search" placeholder="Search topics for this grade" autocomplete="off"><div class="prep-topic-heading"><strong>Select topics to prepare</strong><span class="prep-topic-count" aria-live="polite">0 selected</span></div><div class="prep-topic-list" role="group" aria-label="Topics for this grade"></div><p class="prep-topic-empty" hidden>No matching topics. Add your own below.</p><div class="prep-add-topic"><label for="prepCustomTopic">Another topic</label><div><input id="prepCustomTopic" maxlength="100" placeholder="Add a topic from your test" autocomplete="off"><button type="button" class="prep-secondary" id="prepAddTopic">Add</button></div></div><label for="prepTestDate">Test date (optional)</label><input id="prepTestDate" type="date"><p class="prep-status" role="status"></p><footer class="prep-topic-footer"><span class="prep-topic-summary">0 topics selected</span><button class="prep-primary" type="submit" disabled>Keep topic list →</button></footer></form></section>
+    <section class="prep-step prep-plan-step" data-prep-view="plan" hidden><button class="prep-back prep-edit-topics" type="button">← Edit topics</button><h2 id="prepPlanTitle">Let’s get ready!</h2><p class="prep-plan-subtitle"></p><div class="prep-plan-layout"><div class="prep-plan-roadmap"><p class="prep-plan-kicker">YOUR PATH</p><ol class="prep-plan-steps"><li class="prep-plan-active"><span class="prep-plan-number">1</span><div><strong>Quick check</strong><small>See what you already know.</small></div></li><li><span class="prep-plan-number">2</span><div><strong>Learn the idea</strong><small>Build understanding step by step.</small></div></li><li><span class="prep-plan-number">3</span><div><strong>Practice together</strong><small>Work through guided examples.</small></div></li><li><span class="prep-plan-number">4</span><div><strong>Try it yourself</strong><small>Check your readiness.</small></div></li></ol></div><aside class="prep-plan-focus"><p class="prep-plan-kicker">YOUR TOPICS</p><h3 class="prep-plan-subject"></h3><p class="prep-plan-intro">We’ll start with your first topic and adapt the next steps as you learn.</p><div class="prep-plan-chips" aria-label="Saved topics"></div><p class="prep-plan-date" hidden></p></aside></div><footer class="prep-plan-footer"><span>✓ Your topic list is saved for this child.</span><div><p>Learning activities are coming next.</p><button class="prep-primary" type="button" disabled>Start quick check →</button></div></footer></section>
     <input type="file" data-prep-input="photo" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>
     <input type="file" data-prep-input="file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp,.heic,.heif" hidden>`;
   dialog.querySelector('.prep-hero img').src = new URL('assets/hero/test-prep-hero.webp', base).href;
@@ -170,9 +171,27 @@
       });
     }
   }
+  function renderPlan(draft) {
+    const child = window.IAKidsAuth?.child;
+    const name = child?.child_name?.trim() || 'learner';
+    dialog.querySelector('#prepPlanTitle').textContent = `Let’s get ready, ${name}!`;
+    dialog.querySelector('.prep-plan-subtitle').textContent = `Your plan for ${draft.subject} · Grade ${draft.grade}`;
+    dialog.querySelector('.prep-plan-subject').textContent = draft.subject;
+    const chips = dialog.querySelector('.prep-plan-chips');
+    chips.replaceChildren();
+    draft.topics.forEach(topic => {
+      const chip = document.createElement('span');
+      chip.textContent = topic;
+      chips.append(chip);
+    });
+    const date = dialog.querySelector('.prep-plan-date');
+    date.hidden = !draft.date;
+    if (draft.date) date.textContent = `Test date: ${new Date(`${draft.date}T12:00:00`).toLocaleDateString('en', {year:'numeric', month:'long', day:'numeric'})}`;
+  }
   function view(name) {
     dialog.querySelectorAll('[data-prep-view]').forEach(el => { el.hidden = el.dataset.prepView !== name; });
-    dialog.setAttribute('aria-labelledby', name === 'start' ? 'prepTitle' : name === 'file' ? 'prepFileTitle' : 'prepTopicsTitle');
+    dialog.setAttribute('aria-labelledby', name === 'start' ? 'prepTitle' : name === 'file' ? 'prepFileTitle' : name === 'plan' ? 'prepPlanTitle' : 'prepTopicsTitle');
+    dialog.classList.toggle('prep-plan-open', name === 'plan');
     dialog.scrollTop = 0;
     if (name === 'topics') setupTopics();
     dialog.querySelector(`[data-prep-view="${name}"] button`)?.focus();
@@ -201,7 +220,8 @@
   });
   dialog.addEventListener('click', event => {
     if (event.target.closest('.prep-close,[data-prep-close]')) dialog.close();
-    if (event.target.closest('.prep-back')) view('start');
+    if (event.target.closest('.prep-edit-topics')) view('topics');
+    else if (event.target.closest('.prep-back')) view('start');
     const action = event.target.closest('[data-prep-action]')?.dataset.prepAction;
     if (action === 'topics') view('topics');
     if (['photo', 'file', 'replace'].includes(action)) {
@@ -282,17 +302,24 @@
     event.preventDefault();
     if (!selectedTopics.size || selectedTopics.size > 30 || !topicChildId) return;
     const childId = topicChildId;
+    const revision = topicRevision;
+    const draft = {
+      grade: topicChildGrade, subject: subjectField.value, topics: [...selectedTopics],
+      custom: [...customTopics], date: dialog.querySelector('#prepTestDate').value
+    };
     const button = topicsForm.querySelector('[type="submit"]');
     button.disabled = true;
     button.textContent = 'Saving…';
     saveTopicDraft();
     dialog.querySelector('.prep-status').textContent = '';
     try {
-      await window.IAKidsAuth.saveTopicDraft(childId, {
-        grade: topicChildGrade, subject: subjectField.value, topics: [...selectedTopics],
-        custom: customTopics, date: dialog.querySelector('#prepTestDate').value
-      });
-      if (topicChildId === childId) dialog.querySelector('.prep-status').textContent = 'Saved to your account for this child. Study-plan creation is coming next.';
+      await window.IAKidsAuth.saveTopicDraft(childId, draft);
+      if (dialog.open && topicChildId === childId && topicRevision === revision) {
+        renderPlan(draft);
+        view('plan');
+      } else if (topicChildId === childId) {
+        dialog.querySelector('.prep-status').textContent = 'Your selections changed while saving. Save again to continue.';
+      }
     } catch (error) {
       if (topicChildId === childId) dialog.querySelector('.prep-status').textContent = error.message;
     } finally {
