@@ -71,7 +71,7 @@
     </div><p class="prep-error" role="alert" hidden></p><footer class="prep-footer"><button class="prep-secondary" type="button" data-prep-close>Cancel</button><p>We’ll help you build a study plan from your material.</p></footer></div></section>
     <section class="prep-step" data-prep-view="file" hidden><button class="prep-back" type="button">← Back</button><h2 id="prepFileTitle">Your material</h2><p class="prep-filename"></p><img class="prep-preview" alt="Selected worksheet preview" hidden><p class="prep-notice">Your file is selected for preview only. Study-plan creation from uploaded material is coming next. Nothing has been uploaded.</p><button type="button" class="prep-secondary" data-prep-action="replace">Choose another file</button></section>
     <section class="prep-step prep-topics-step" data-prep-view="topics" hidden><button class="prep-back" type="button">← Back</button><h2 id="prepTopicsTitle">Choose topics</h2><p class="prep-learner" aria-live="polite"></p><form id="prepTopicsForm"><label for="prepSubject">Subject</label><select id="prepSubject" required><option>Math</option><option>English</option><option>Science</option><option>Hebrew</option><option>History</option><option>Geography</option><option>Other</option></select><label for="prepTopicSearch">Search topics</label><input id="prepTopicSearch" type="search" placeholder="Search topics for this grade" autocomplete="off"><div class="prep-topic-heading"><strong>Select topics to prepare</strong><span class="prep-topic-count" aria-live="polite">0 selected</span></div><div class="prep-topic-list" role="group" aria-label="Topics for this grade"></div><p class="prep-topic-empty" hidden>No matching topics. Add your own below.</p><div class="prep-add-topic"><label for="prepCustomTopic">Another topic</label><div><input id="prepCustomTopic" maxlength="100" placeholder="Add a topic from your test" autocomplete="off"><button type="button" class="prep-secondary" id="prepAddTopic">Add</button></div></div><label for="prepTestDate">Test date (optional)</label><input id="prepTestDate" type="date"><p class="prep-status" role="status"></p><footer class="prep-topic-footer"><span class="prep-topic-summary">0 topics selected</span><button class="prep-primary" type="submit" disabled>Keep topic list →</button></footer></form></section>
-    <section class="prep-step prep-plan-step" data-prep-view="plan" hidden><button class="prep-back prep-edit-topics" type="button">← Edit topics</button><h2 id="prepPlanTitle">Let’s get ready!</h2><p class="prep-plan-subtitle"></p><div class="prep-plan-layout"><div class="prep-plan-roadmap"><p class="prep-plan-kicker">YOUR PATH</p><ol class="prep-plan-steps"><li class="prep-plan-active"><span class="prep-plan-number">1</span><span class="prep-plan-icon prep-plan-icon-1"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="7" width="21" height="26" rx="3"/><path d="M14 7.5h2.2a2.3 2.3 0 0 1 4.6 0H23v4H14zM13 18l2 2 3-3m3 2h4M13 26l2 2 3-3m3 2h4"/></svg></span><div><strong>Quick check</strong><small>See what you already know.</small></div></li><li><span class="prep-plan-number">2</span><span class="prep-plan-icon prep-plan-icon-2"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 23c-.5-2-4-4.2-4-9a10 10 0 1 1 20 0c0 4.8-3.5 7-4 9M13 25h10m-9 4h8m-6 3h4M18 23v-7m-3-2c0 3 6 3 6 0"/></svg></span><div><strong>Learn the idea</strong><small>Build understanding step by step.</small></div></li><li><span class="prep-plan-number">3</span><span class="prep-plan-icon prep-plan-icon-3"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="9" r="4"/><circle cx="7" cy="18" r="3"/><circle cx="29" cy="18" r="3"/><path d="M10 31v-4a8 8 0 0 1 16 0v4H10Zm-7 0v-4a5 5 0 0 1 5-5m25 9v-4a5 5 0 0 0-5-5"/></svg></span><div><strong>Practice together</strong><small>Work through guided examples.</small></div></li><li><span class="prep-plan-number">4</span><span class="prep-plan-icon prep-plan-icon-4"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="22" width="5" height="10" rx="1"/><rect x="15" y="16" width="5" height="16" rx="1"/><rect x="25" y="6" width="5" height="26" rx="1"/></svg></span><div><strong>Try it yourself</strong><small>Check your readiness.</small></div></li></ol></div><aside class="prep-plan-focus"><p class="prep-plan-kicker">YOUR TOPICS</p><h3 class="prep-plan-subject"></h3><p class="prep-plan-intro">We’ll start with your first topic and adapt the next steps as you learn.</p><div class="prep-plan-chips" aria-label="Saved topics"></div><p class="prep-plan-date" hidden></p></aside><div class="prep-quiz" hidden>
+    <section class="prep-step prep-plan-step" data-prep-view="plan" hidden><button class="prep-back prep-edit-topics" type="button">← Edit topics</button><h2 id="prepPlanTitle">Let’s get ready!</h2><p class="prep-plan-subtitle"></p><div class="prep-plan-layout"><div class="prep-plan-roadmap"><p class="prep-plan-kicker">YOUR PATH</p><ol class="prep-plan-steps"><li class="prep-plan-active"><span class="prep-plan-number">1</span><span class="prep-plan-icon prep-plan-icon-1"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="7" width="21" height="26" rx="3"/><path d="M14 7.5h2.2a2.3 2.3 0 0 1 4.6 0H23v4H14zM13 18l2 2 3-3m3 2h4M13 26l2 2 3-3m3 2h4"/></svg></span><div><strong>Quick check</strong><small>See what you already know.</small></div></li><li class="prep-learn-step"><span class="prep-plan-number">2</span><span class="prep-plan-icon prep-plan-icon-2"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 23c-.5-2-4-4.2-4-9a10 10 0 1 1 20 0c0 4.8-3.5 7-4 9M13 25h10m-9 4h8m-6 3h4M18 23v-7m-3-2c0 3 6 3 6 0"/></svg></span><div><strong>Learn the idea</strong><small>Build understanding step by step.</small></div><button class="prep-learn-step-button" type="button" aria-label="Open Learn the idea lesson" disabled></button></li><li><span class="prep-plan-number">3</span><span class="prep-plan-icon prep-plan-icon-3"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="9" r="4"/><circle cx="7" cy="18" r="3"/><circle cx="29" cy="18" r="3"/><path d="M10 31v-4a8 8 0 0 1 16 0v4H10Zm-7 0v-4a5 5 0 0 1 5-5m25 9v-4a5 5 0 0 0-5-5"/></svg></span><div><strong>Practice together</strong><small>Work through guided examples.</small></div></li><li><span class="prep-plan-number">4</span><span class="prep-plan-icon prep-plan-icon-4"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="22" width="5" height="10" rx="1"/><rect x="15" y="16" width="5" height="16" rx="1"/><rect x="25" y="6" width="5" height="26" rx="1"/></svg></span><div><strong>Try it yourself</strong><small>Check your readiness.</small></div></li></ol></div><aside class="prep-plan-focus"><p class="prep-plan-kicker">YOUR TOPICS</p><h3 class="prep-plan-subject"></h3><p class="prep-plan-intro">We’ll start with your first topic and adapt the next steps as you learn.</p><div class="prep-plan-chips" aria-label="Saved topics"></div><p class="prep-plan-date" hidden></p></aside><div class="prep-quiz" hidden>
       <div class="prep-quiz-head"><strong>QUICK CHECK</strong><span class="prep-quiz-count"></span></div>
       <h3 class="prep-quiz-question"></h3>
       <div class="prep-quiz-equation" aria-label="Fraction division"></div>
@@ -269,6 +269,9 @@
     if (quizIndex < 0) quizIndex = fractionQuestions.length;
     quizChoice = null;
     const complete = quizIndex === fractionQuestions.length;
+    dialog.querySelector('.prep-learn-step-button').disabled = !complete;
+    dialog.querySelector('.prep-learn-step').classList.toggle('prep-lesson-ready', complete);
+    dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === (complete ? 1 : 0)));
     dialog.querySelector('.prep-start-quiz').textContent = complete ? 'Continue learning →' : quizIndex > 0 ? 'Continue quick check →' : 'Start quick check →';
     dialog.querySelector('.prep-plan-footer p').textContent = complete ? 'Your quick check is saved. Your next step is ready.' : quizIndex > 0 ? 'Your answers are saved. Pick up where you left off.' : 'A short visual check is ready.';
   }
@@ -294,7 +297,9 @@
     if (!quizDraft || !supportsQuickCheck(quizDraft) || quizBusy) return;
     quizBusy = true;
     const button = dialog.querySelector('.prep-start-quiz');
+    const lessonCard = dialog.querySelector('.prep-learn-step-button');
     button.disabled = true;
+    lessonCard.disabled = true;
     button.textContent = 'Loading…';
     try {
       const rows = await window.IAKidsAuth.loadQuickCheck(topicChildId, 'Dividing fractions');
@@ -311,6 +316,7 @@
     } finally {
       quizBusy = false;
       button.disabled = false;
+      if (dialog.open) lessonCard.disabled = quizIndex < fractionQuestions.length;
     }
   }
   function renderLesson(content) {
@@ -416,6 +422,8 @@
     dialog.querySelector('.prep-quiz').hidden = true;
     dialog.querySelector('.prep-lesson').hidden = true;
     dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === 0));
+    dialog.querySelector('.prep-learn-step-button').disabled = true;
+    dialog.querySelector('.prep-learn-step').classList.remove('prep-lesson-ready');
     const supported = supportsQuickCheck(draft);
     dialog.querySelector('.prep-start-quiz').disabled = !supported;
     dialog.querySelector('.prep-start-quiz').textContent = 'Start quick check →';
@@ -470,6 +478,7 @@
     if (event.target.closest('.prep-close,[data-prep-close]')) dialog.close();
     if (event.target.closest('.prep-edit-topics')) view('topics');
     if (event.target.closest('.prep-start-quiz')) startQuickCheck();
+    if (event.target.closest('.prep-learn-step-button:not(:disabled)')) startQuickCheck();
     if (event.target.closest('.prep-quiz-submit')) submitQuickCheck();
     if (event.target.closest('.prep-quiz-hint-button')) {
       if (quizIndex >= fractionQuestions.length) { quizIndex = 0; quizChoice = null; renderQuickCheck(); }
