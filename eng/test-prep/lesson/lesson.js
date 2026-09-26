@@ -3,6 +3,14 @@
   const handoffKey = 'iakids.eng.lesson-workspace.v1';
   let payload;
   try { payload = JSON.parse(sessionStorage.getItem(handoffKey) || 'null'); } catch {}
+  if (!payload && new URLSearchParams(location.search).get('demo') === '1') {
+    payload = {
+      version:1, at:Date.now(), child:{id:'preview', child_name:'Alona'},
+      draft:{subject:'Math', grade:5, topics:['Dividing fractions']},
+      lesson:{headline:'Understanding Dividing Fractions', opening:'Look at the pizza. How many half-pizza portions fit into three quarters?'}
+    };
+    document.body.classList.add('is-preview');
+  }
   if (!payload || payload.version !== 1 || !payload.child?.id || !payload.lesson?.headline || Date.now() - payload.at > 24 * 60 * 60 * 1000 || Date.now() < payload.at) {
     document.getElementById('lessonEmpty').hidden = false;
     return;
