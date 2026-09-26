@@ -103,3 +103,11 @@
   .prep-plan-footer>div{text-align:left}
   .prep-plan-step .prep-plan-footer .prep-primary{width:100%}
 }
+
+.prep-plan-steps{gap:17px}
+.prep-plan-steps li{position:relative;min-height:78px}
+.prep-plan-steps li:not(:last-child)::after{content:"";position:absolute;left:35px;top:calc(100% + 1px);height:15px;border-left:2px dashed #afc8db}
+.prep-plan-icon{display:grid;place-items:center;flex:none;width:52px;height:45px;margin-left:0;padding-left:12px;border-left:1px solid #dce9ef}
+.prep-plan-icon svg{width:36px;height:36px}
+.prep-plan-icon-1{color:#009fa7}.prep-plan-icon-2{color:#ffad22}.prep-plan-icon-3{color:#6451cd}.prep-plan-icon-4{color:#f25382}
+@media(max-width:640px){.prep-plan-steps li{gap:11px}.prep-plan-icon{width:45px;padding-left:9px}.prep-plan-icon svg{width:31px;height:31px}.prep-plan-steps li:not(:last-child)::after{left:31px}}
