@@ -305,11 +305,12 @@
       const rows = await window.IAKidsAuth.loadQuickCheck(topicChildId, 'Dividing fractions');
       if (!dialog.open || topicChildId !== window.IAKidsAuth?.child?.id) return;
       syncQuickCheckRows(rows);
-      dialog.classList.add('prep-quiz-active');
-      renderQuickCheck();
       if (quizIndex === fractionQuestions.length) {
         quizBusy = false;
         await startLesson();
+      } else {
+        dialog.classList.add('prep-quiz-active');
+        renderQuickCheck();
       }
     } catch (error) {
       dialog.querySelector('.prep-plan-footer p').textContent = error.message;
@@ -370,12 +371,17 @@
       if (!dialog.open || childId !== topicChildId) return;
       renderLesson(lesson);
     } catch (error) {
-      const feedback = dialog.querySelector('.prep-quiz-feedback');
-      feedback.textContent = error.message;
-      feedback.classList.add('prep-quiz-incorrect');
-      feedback.hidden = false;
-      button.textContent = 'Try lesson again →';
-      button.disabled = false;
+      if (dialog.classList.contains('prep-quiz-active')) {
+        const feedback = dialog.querySelector('.prep-quiz-feedback');
+        feedback.textContent = error.message;
+        feedback.classList.add('prep-quiz-incorrect');
+        feedback.hidden = false;
+        button.textContent = 'Try lesson again →';
+        button.disabled = false;
+      } else {
+        dialog.querySelector('.prep-plan-footer p').textContent = error.message;
+        dialog.querySelector('.prep-start-quiz').textContent = 'Try to continue →';
+      }
     } finally {
       quizBusy = false;
     }
