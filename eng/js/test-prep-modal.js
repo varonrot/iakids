@@ -314,6 +314,21 @@
     }
   }
   function renderLesson(content) {
+    const child = window.IAKidsAuth?.child;
+    if (child?.id && quizDraft?.grade === 5 && quizDraft?.subject === 'Math') {
+      try {
+        sessionStorage.setItem('iakids.eng.lesson-workspace.v1', JSON.stringify({
+          version: 1, at: Date.now(),
+          child: {id: child.id, child_name: child.child_name},
+          draft: quizDraft, lesson: content
+        }));
+        dialog.close();
+        location.assign(new URL('test-prep/lesson/', base).href);
+        return;
+      } catch (error) {
+        console.warn('Lesson workspace handoff failed; showing the lesson here.', error);
+      }
+    }
     dialog.querySelector('.prep-lesson-headline').textContent = content.headline;
     dialog.querySelector('.prep-lesson-opening').textContent = content.opening;
     dialog.querySelector('.prep-lesson-takeaway').textContent = content.takeaway;
