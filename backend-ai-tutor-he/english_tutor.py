@@ -37,7 +37,7 @@ from starlette.concurrency import run_in_threadpool
 
 from main import (CHAT_TEXT_MAX, HISTORY_ITEM_MAX, HISTORY_ITEMS_MAX, LimitedRequest, ai_context, aclient, app,
                   authenticate_user, get_child_by_id, guard_reply_payload, hebrew_child_prompt_block,
-                  is_paid_active_subscription, llm_model, lq, sb, supabase_with_retry)
+                  is_paid_active_subscription, llm_model, lq, sb, spend_daily_budget, supabase_with_retry)
 
 ENGLISH_TUTOR_ENABLED = os.getenv("ENGLISH_TUTOR_ENABLED", "1") not in ("0", "false", "no")
 ENGLISH_TUTOR_MODEL = llm_model(os.getenv("ENGLISH_TUTOR_MODEL", "gpt-4o-mini"))
@@ -163,6 +163,13 @@ def _clip(history: list) -> list:
     return out[-HISTORY_ITEMS_MAX:]
 
 
+def known_topic(topic) -> str | None:
+    """One of TOPICS, or None. 2026-09-26 security review: the topic came from the browser and went into the
+    SYSTEM prompt as it was, so a crafted "topic" was a prompt injection with system authority."""
+    t = " ".join(str(topic or "").lower().split())
+    return t if t in TOPICS else None
+
+
 def english_teacher_rules(level: str, topic: str, words: list, first_name: str = "") -> str:
     """The English teacher's rules for this session. Placeholders are replaced, not str.format()-ed:
     the prompt shows JSON with braces."""
@@ -176,7 +183,7 @@ async def english_teacher_reply(body, user, child: dict, session: dict) -> dict:
     user_text = body.message if isinstance(body, EnglishTurnRequest) else None
     # the child block carries gender, Hebrew correctness and PROMPT_SECURITY_RULES (the gate checks it is HERE)
     first_name = lq.display_first_name(str((child or {}).get("child_name") or "").strip()) if (child or {}).get("child_name") else ""
-    system = hebrew_child_prompt_block(child) + "\n\n" + english_teacher_rules(session["level"], session.get("topic"),
+    system = hebrew_child_prompt_block(child) + "\n\n" + english_teacher_rules(session["level"], known_topic(session.get("topic")),
                                                                               session.get("words") or [], first_name)
     messages = [{"role": "system", "content": system}]
     messages += _clip(session.get("history"))
@@ -259,10 +266,11 @@ async def english_session_start(body: EnglishStartRequest, authorization: str = 
     allowance = await run_in_threadpool(lambda: english_allowance(user.id, body.kid_id))
     if allowance["remaining_seconds"] <= 0:
         raise HTTPException(status_code=429, detail={"reason": "daily_english_limit", **allowance})
+    spend_daily_budget(user.id, "model")
     last = await run_in_threadpool(lambda: _db(lambda: sb.table(TABLE).select("level").eq("kid_id", body.kid_id)
                                                 .order("started_at", desc=True).limit(1).execute(), "ENGLISH LAST LEVEL").data)
     level = body.level or (last[0]["level"] if last else "beginner")
-    topic = (body.topic or TOPICS[int(time.time() // 86400) % len(TOPICS)]).strip()[:60]
+    topic = known_topic(body.topic) or TOPICS[int(time.time() // 86400) % len(TOPICS)]
     session = (await run_in_threadpool(lambda: _db(lambda: sb.table(TABLE).insert({
         "user_id": user.id, "kid_id": body.kid_id, "level": level, "topic": topic}).execute(), "ENGLISH START"))).data[0]
     reply = await english_teacher_reply(body, user, child, session)
@@ -283,6 +291,7 @@ async def english_turn(body: EnglishTurnRequest, authorization: str = Header(Non
     allowance = await run_in_threadpool(lambda: english_allowance(user.id, body.kid_id))
     if allowance["remaining_seconds"] <= 0:
         raise HTTPException(status_code=429, detail={"reason": "daily_english_limit", **allowance})
+    spend_daily_budget(user.id, "model")
     reply = await english_teacher_reply(body, user, child, session)
     patch, extra = _apply_turn(session, body.message.strip(), reply)
     await run_in_threadpool(lambda: _save_session(session["id"], patch))

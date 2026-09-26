@@ -81,6 +81,9 @@ ROUTES = {
     "english-end":          dict(method="POST", path="/api/english/session/end", body={"kid_id": KID, "session_id": "{english_session}"}, kind="write", p95_ms=1000, ramp=False, db_max=1),
     "english-sessions":     dict(method="GET",  path="/api/english/sessions?kid_id={kid}", kind="read", p95_ms=1000, db_max=1),
 
+    # ---------------------------------------------------------------- English Test Prep (test_prep_2027.py): cached per diagnostic, one model call on a new one
+    "test-prep-lesson":     dict(method="POST", path="/api/eng/test-prep/lesson", body={"kid_id": KID}, kind="model", p95_ms=9000, ramp=False, db_max=4),
+
     # ---------------------------------------------------------------- admin (measured once)
     "admin-whoami":         dict(method="GET",  path="/api/admin/whoami", kind="admin", p95_ms=800, ramp=False, db_max=0),
     "admin-lessons-quality": dict(method="GET", path="/api/admin/lessons/quality", kind="admin", p95_ms=3000, ramp=False, db_max=2),

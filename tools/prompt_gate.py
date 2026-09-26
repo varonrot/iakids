@@ -32,7 +32,7 @@ MAIN = ROOT / "backend-ai-tutor-he" / "main.py"
 # Route modules that register on main.app (`from main import app`). The gate reads them together with
 # main.py as ONE source, so every rule below (security, prompts, models, performance) covers their routes too.
 ROUTE_MODULES = [ROOT / "backend-ai-tutor-he" / "english_tutor.py", ROOT / "backend-ai-tutor-he" / "qbank_admin.py",
-                 ROOT / "backend-ai-tutor-he" / "admin_guard.py"]
+                 ROOT / "backend-ai-tutor-he" / "admin_guard.py", ROOT / "backend-ai-tutor-he" / "test_prep_2027.py"]
 
 
 def api_source() -> str:
@@ -2112,6 +2112,35 @@ print("\n".join("BAD: " + b for b in bad) if bad else "LOCKOUT_OK")
     found = ["admin lock-out: " + l.split("BAD: ", 1)[1] for l in lines if "BAD: " in l]
     return found or ["admin lock-out tests gave no result: " + " | ".join(lines[-3:])]
 
+def security_review_checks(main_src: str, fast: bool = False) -> list:
+    """The 2026-09-26 security review: one module per area (tools/security_gate_*.py), each with its own
+    negative tests. The tutor and payments rules run the real code (TestClient, fakes), so they are skipped
+    with --fast; the page and SQL rules are static and always run."""
+    import importlib
+    sys.path.insert(0, str(ROOT / "tools"))
+    fails = []
+    for mod in () + (() if fast else ("security_gate_tutor",)):
+        try:
+            fails += importlib.import_module(mod).checks()
+        except Exception as e:
+            fails.append(f"security rules {mod} could not run: {e!r}")
+    # a caller must not steer the model to an arbitrary address, or grow the prompt with a forged history
+    for fn_name in ("openai_clean_chat", "homework_coach_v2"):
+        m = re.search(r"\ndef " + fn_name + r"\(.*?(?=\n@app\.|\ndef |\Z)", main_src, re.S) or \
+            re.search(r"\nasync def " + fn_name + r"\(.*?(?=\n@app\.|\nasync def |\ndef |\Z)", main_src, re.S)
+        body = m.group(0) if m else ""
+        if not body:
+            fails.append(f"{fn_name} not found: the image and history rules cannot be checked (2026-09-26 security review)")
+            continue
+        if "req.image_url" in body and "model_image_url(req.image_url)" not in body.replace(" ", ""):
+            fails.append(f"{fn_name} sends a browser-given image address to the model unchecked: anyone can make the "
+                         "provider fetch any URL; pass it through model_image_url() (2026-09-26 security review)")
+        if "req.history" in body and "clip_chat_history(req.history)" not in body:
+            fails.append(f"{fn_name} trusts the browser's chat history: a forged history can grow the prompt or carry "
+                         "extra roles; use clip_chat_history() (2026-09-26 security review)")
+    return fails
+
+
 def changed_prompts(staged: bool) -> list:
     args = ["git", "diff", "--cached", "--name-only"] if staged else ["git", "diff", "--name-only", "HEAD"]
     names = sh(*args).split()
@@ -2208,6 +2237,17 @@ def main():
     main_changed = ("backend-ai-tutor-he/main.py" in changed_files
                     or any(str(p.relative_to(ROOT)) in changed_files for p in ROUTE_MODULES))
     workspace_changed = "he/workspace/index.html" in changed_files
+    # the 2026-09-26 security rules also guard the payments backend, the pages and the SQL
+    security_changed = any(re.match(r"(backend/main\.py|backend-ai-tutor-he/[^/]+\.py|tools/security_gate_[a-z]+\.py|supabase/migrations/|support|games/game-sdk\.js|he/)", f)
+                           for f in changed_files)
+    if not names and not main_changed and not workspace_changed and security_changed:
+        sr = security_review_checks(main_src, fast=a.fast)
+        print(("FAIL " if sr else "ok   ") + "security review rules (tutor, payments, pages, SQL)")
+        if sr:
+            print("\nPROMPT GATE FAILED:\n - " + "\n - ".join(sr), file=sys.stderr)
+            return 1
+        print("\nPROMPT GATE PASSED")
+        return 0
     if not names and not main_changed and not workspace_changed:
         print("prompt gate: no prompt, main.py or workspace changes")
         return 0
@@ -2221,7 +2261,7 @@ def main():
               + lesson_closing_checks(main_src) + completion_screen_checks() + log_mode_checks()
           + answer_key_checks(main_src) + migration_rollback_checks()
           + client_secrets_checks() + browser_db_budget_checks()
-          + browser_query_shape_checks())
+          + browser_query_shape_checks() + security_review_checks(main_src, fast=a.fast or not main_changed))
         print(("FAIL " if cf else "ok   ") + "code rules (lesson screen, coach handover, media failures)")
         rf = [] if (a.fast or not main_changed) else render_smoke() + english_tutor_tests() + qbank_admin_tests() + admin_lockout_tests()
         if main_changed:
@@ -2267,6 +2307,9 @@ def main():
         qa = qbank_admin_tests()
         print(("FAIL " if qa else "ok   ") + "question-bank review (no approval with problems, fix + approve, reject, 404)")
         all_fails += qa
+    sr = security_review_checks(main_src, fast=a.fast)
+    print(("FAIL " if sr else "ok   ") + "security review rules (tutor, payments, pages, SQL)")
+    all_fails += sr
     if a.all:
         ef = env_file_checks()
         print(("FAIL " if ef else "ok   ") + "env file keys (present, clean ASCII, no glued variable)")

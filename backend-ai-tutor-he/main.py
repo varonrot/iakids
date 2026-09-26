@@ -21,7 +21,7 @@ HISTORY_ITEM_MAX = 2000
 # is rejected before any route code runs, so a new route is limited without anyone remembering to.
 REQUEST_FIELD_LIMITS = {"message": CHAT_TEXT_MAX, "answer": CHAT_TEXT_MAX, "current_question": QUESTION_TEXT_MAX,
                         "next_question": QUESTION_TEXT_MAX, "source_text": SOURCE_TEXT_MAX, "text": 6000,
-                        "progress_context": 1000, "note": 2000, "image_url": 4000, "audio_base64": 12_000_000}
+                        "progress_context": 1000, "note": 2000, "image_url": 4000, "audio_base64": 2_200_000}
 REQUEST_DEFAULT_STR_MAX = 300      # ids, names, paths, modes
 REQUEST_LIST_MAX = 50
 
@@ -48,6 +48,21 @@ class LimitedRequest(BaseModel):
                         if len(str(k2)) > REQUEST_DEFAULT_STR_MAX or (isinstance(v2, str) and len(v2) > REQUEST_DEFAULT_STR_MAX):
                             raise ValueError(f"an entry of {key} is too long")
         return data
+
+
+def model_image_url(value) -> str:
+    """An image the browser asks a model to look at: only our own Supabase Storage (signed URLs) or an inline
+    image. Anything else is dropped, so a caller cannot make the model provider fetch an arbitrary address
+    (2026-09-26 security review)."""
+    url = str(value or "").strip()
+    if not url:
+        return ""
+    if url.startswith("data:image/"):
+        return url
+    host = (os.getenv("SUPABASE_URL") or "").rstrip("/")
+    if host.startswith("https://") and url.startswith(host + "/storage/v1/"):
+        return url
+    return ""
 
 
 def clip_chat_history(value):
@@ -639,7 +654,10 @@ STT_PROVIDER = os.getenv("STT_PROVIDER", "openai")            # openai (direct k
 STT_MODEL = os.getenv("STT_MODEL", "gpt-4o-mini-transcribe")  # fallback: whisper-1
 STT_GEMINI_MODEL = os.getenv("STT_GEMINI_MODEL", "gemini-3.1-flash-lite")
 STT_MAX_SECONDS = int(os.getenv("STT_MAX_SECONDS", "60"))
-STT_MAX_BYTES = int(os.getenv("STT_MAX_BYTES", "4000000"))    # ~4 MB of compressed audio
+# 2026-09-26 security review: 4 MB let one request carry minutes of audio. The browser records
+# opus at up to ~128 kbps (16 KB/s), so 60 s is about 1 MB; 1.5 MB leaves room. A WAV is also
+# checked by its header against STT_MAX_SECONDS.
+STT_MAX_BYTES = int(os.getenv("STT_MAX_BYTES", "1500000"))
 TTS_PARALLEL = max(1, int(os.getenv("TTS_PARALLEL", "3")))   # TTS calls in flight per lesson part (OpenRouter: 20 rpm)
 TTS_STYLE_PREFIX = os.getenv(
     "TTS_STYLE_PREFIX",
@@ -871,10 +889,11 @@ def vocalize_for_tts(text: str, gender: str | None = None, child_name: str | Non
         out = str(r.choices[0].message.content or "").strip()
         same = re.sub(r"\s+", " ", strip_nikud(out)) == re.sub(r"\s+", " ", clean)
         if not same:
-            print("TTS NIKUD REJECTED (text changed):", {"words": words, "got": out[:120]})
+            print("TTS NIKUD REJECTED (text changed):", {"words": words, **({"got": out[:120]} if not IS_PROD else {})})
             out = clean
         else:
-            print("TTS NIKUD:", {"words": words, "ms": round((time.perf_counter() - t0) * 1000), "text": out[:120]})
+            print("TTS NIKUD:", {"words": words, "ms": round((time.perf_counter() - t0) * 1000),
+                                 **({"text": out[:120]} if not IS_PROD else {})})   # a child's words: not in prod logs
     except Exception as e:
         print("TTS NIKUD FAILED (reading unvocalized):", {"words": words, "error": repr(e)[:160]})
         out = clean
@@ -1162,17 +1181,46 @@ async def health():
     return {"status": "ok", "service": "iakids-ai-tutor-he"}
 
 
+_rate_key_cache = _rc.TTLCache("rate_keys", 60)
+
+
+async def _rate_key(request) -> str:
+    """The bucket a request counts against: the verified user id, else the client address.
+
+    2026-09-26 security review: the bucket was the raw Authorization header, so a script that
+    sent a different made-up token on every request got a fresh bucket every time and was never
+    limited. The token is now verified locally (request_cache, no network call; cached 60 s per
+    token) and only a verified user gets a user bucket. No token or a token that does not verify
+    counts against the address.
+    """
+    ip = request.client.host if request.client else "?"
+    token = bearer_token(request.headers.get("authorization"))
+    if not token:
+        return "ip:" + ip
+    ck = hashlib.sha256(token.encode()).hexdigest()
+    uid = _rate_key_cache.get(ck)
+    if uid is None:
+        try:
+            u = await run_in_threadpool(_jwt_verifier.verify, token)
+        except Exception:
+            u = None
+        uid = str(u.id) if u is not None and getattr(u, "id", None) else ""
+        _rate_key_cache.put(ck, uid)
+    return ("user:" + uid) if uid else ("ip:" + ip)
+
+
 @app.middleware("http")
 async def _rate_limit(request: _Request, call_next):
     """A sliding one-minute window per caller on /api/*.
 
     Without it, one browser tab in a loop takes every worker thread and every other
-    child sees a page that has stopped. Keyed by the bearer token when there is one
-    (a user), else by address (a guest). Webhooks are exempt: Lemon retries them.
+    child sees a page that has stopped. Keyed by the verified user id when the token
+    verifies (a user), else by address (a guest or a forged token). Webhooks are exempt:
+    Lemon retries them.
     """
     path = request.url.path
     if path.startswith("/api/") and path not in _RATE_EXEMPT:
-        key = request.headers.get("authorization") or (request.client.host if request.client else "?")
+        key = await _rate_key(request)
         now = _time.time()
         q = _rate_buckets.setdefault(key, _deque())
         while q and q[0] < now - 60:
@@ -1846,11 +1894,39 @@ class LearningCoachAIResponse(
 # AUTH
 # =====================================================
 
+# 2026-09-26 security review: the header is exactly "Bearer <token>" and the token is a JWT
+# (three base64url parts, no spaces). Anything else is refused here, without a network call.
+_BEARER_RE = re.compile(r"^Bearer ([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$")
+# The project signs with ES256 (JWKS). A token whose header names another algorithm (HS256, none)
+# is refused before Supabase Auth is asked. AUTH_ALLOW_LEGACY_HS256=1 lets HS256 reach Supabase Auth
+# again, only for a project that still signs with the legacy shared secret.
+AUTH_ALLOW_LEGACY_HS256 = os.getenv("AUTH_ALLOW_LEGACY_HS256", "0").lower() in ("1", "true", "yes")
+
+
+def bearer_token(authorization) -> str | None:
+    """The token of an "Authorization: Bearer <jwt>" header, or None when the header has any other shape."""
+    if not isinstance(authorization, str) or len(authorization) > 8192:
+        return None
+    m = _BEARER_RE.match(authorization)
+    return m.group(1) if m else None
+
+
+def _token_alg_ok(token: str) -> bool:
+    try:
+        header = _rc.jwt.get_unverified_header(token)
+    except Exception:
+        return False
+    allowed = ("ES256", "RS256", "HS256") if AUTH_ALLOW_LEGACY_HS256 else ("ES256", "RS256")
+    return header.get("alg") in allowed
+
+
 def authenticate_user(authorization: str):
-    if not authorization or not authorization.startswith("Bearer "):
+    if not authorization or not str(authorization).startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing auth")
 
-    token = authorization.replace("Bearer ", "").strip()
+    token = bearer_token(authorization)
+    if not token or not _token_alg_ok(token):
+        raise HTTPException(status_code=401, detail="Invalid session")
 
     # Verified locally against the project's public key when possible (no network call);
     # anything the key cannot vouch for goes to Supabase Auth as before.
@@ -1861,13 +1937,89 @@ def authenticate_user(authorization: str):
     try:
         user_res = sb.auth.get_user(token)
     except Exception as e:
-        print("AUTH ERROR:", repr(e))
+        print("AUTH ERROR:", repr(e)[:200])
         raise HTTPException(status_code=401, detail="Invalid session")
 
     if not user_res or not user_res.user:
         raise HTTPException(status_code=401, detail="Invalid session")
 
+    # an anonymous sign-in is not a family account (the local verifier refuses it too)
+    if getattr(user_res.user, "is_anonymous", False):
+        raise HTTPException(status_code=401, detail="Invalid session")
+
     return user_res.user
+
+
+# 2026-09-26 security review: homework-analyze only checked that a path started with the
+# caller's id, and storage normalises "..", so "<me>/../<other family>/x.jpg" read another
+# family's homework. A client-supplied homework path must be exactly
+# "<user id>/<child id>/<file name>", the shape every upload page builds.
+_HOMEWORK_FILE_NAME_RE = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9._ -]{0,199}$")
+
+
+def homework_storage_path_ok(path, user_id, kid_id) -> bool:
+    if not isinstance(path, str) or not path or not user_id or not kid_id:
+        return False
+    if path.startswith("/") or any(bad in path for bad in ("..", "%", "//", "\\", "\x00")):
+        return False
+    parts = path.split("/")
+    if len(parts) != 3 or parts[0] != str(user_id) or parts[1] != str(kid_id):
+        return False
+    return bool(_HOMEWORK_FILE_NAME_RE.match(parts[2]))
+
+
+def owned_tutor_session(session_id, user_id):
+    """The tutor_sessions row {id, kid_id} when session_id belongs to this account, else None.
+
+    2026-09-26 security review: session ids sent by the browser were used as they came, so one
+    family could add usage and cost to another family's session. Ownership is checked first and a
+    session that is not the caller's is ignored.
+    """
+    if not session_id or not user_id or not isinstance(session_id, str) or len(session_id) > 64:
+        return None
+    try:
+        rows = (sb.table("tutor_sessions").select("id, kid_id")
+                .eq("id", session_id).eq("user_id", user_id).limit(1).execute().data) or []
+    except Exception as e:
+        print("SESSION OWNERSHIP CHECK FAILED:", repr(e)[:160])
+        return None
+    return rows[0] if rows else None
+
+
+# 2026-09-26 security review: a signed-in account could call the paid routes (voice, speech
+# to text, the teacher, homework photos) in a loop all day; only the per-minute limiter stood
+# in the way. Each account now has a daily allowance per kind of call, per process, generous
+# enough that a real child never meets it (a long day of lessons and homework is a few hundred
+# calls). Reaching it answers 429 with a friendly Hebrew line; tomorrow (UTC) it starts over.
+DAILY_LIMITS = {
+    "tts": int(os.getenv("DAILY_LIMIT_TTS", "1500")),
+    "stt": int(os.getenv("DAILY_LIMIT_STT", "600")),
+    "model": int(os.getenv("DAILY_LIMIT_MODEL", "1000")),
+    "vision": int(os.getenv("DAILY_LIMIT_VISION", "60")),
+}
+DAILY_LIMIT_DETAIL = "הגענו לגבול השימוש היומי. נמשיך מחר!"
+_daily_counts: dict = {}
+import threading as _budget_threading  # noqa: E402
+_daily_lock = _budget_threading.Lock()
+
+
+def spend_daily_budget(user_id, kind: str, n: int = 1):
+    """Count n calls of this kind for this account today; 429 once the day's allowance is used."""
+    limit = DAILY_LIMITS.get(kind, 0)
+    if limit <= 0 or not user_id:
+        return
+    day = datetime.now(timezone.utc).date().isoformat()
+    key = (day, str(user_id), kind)
+    with _daily_lock:
+        first = next(iter(_daily_counts), None)          # oldest entry: a new day drops yesterday
+        if first is not None and first[0] != day:
+            for k in [k for k in _daily_counts if k[0] != day]:
+                _daily_counts.pop(k, None)
+        used = _daily_counts.get(key, 0)
+        if used + n > limit:
+            print("DAILY LIMIT REACHED:", {"user_id": str(user_id), "kind": kind, "limit": limit})
+            raise HTTPException(status_code=429, detail=DAILY_LIMIT_DETAIL, headers={"Retry-After": "3600"})
+        _daily_counts[key] = used + n
 
 
 def update_tutor_session_after_tts(
@@ -2528,6 +2680,19 @@ def guard_reply_payload(payload, label: str):
     return out
 
 
+LESSON_CLOSING_TEXT_FIELDS = ("spoken", "learned", "did_well", "to_strengthen", "parent_note")
+
+
+def plain_closing_payload(payload: dict) -> dict:
+    """The lesson closing's text fields without HTML tags or angle brackets (stored, shown and read aloud)."""
+    out = dict(payload or {})
+    for k in LESSON_CLOSING_TEXT_FIELDS:
+        if k in out and out[k] is not None:
+            v = re.sub(r"</?[A-Za-z!/][^>]*>", "", str(out[k]))
+            out[k] = v.replace("<", "").replace(">", "").strip()
+    return out
+
+
 def hebrew_child_prompt_block(child: dict) -> str:
     """The block every child-facing prompt must carry: how to address THIS child plus the
     Hebrew rules that keep the answer correct both on screen and in the voice."""
@@ -2565,7 +2730,8 @@ def hebrew_gender_rule(child: dict) -> tuple[str, str]:
             "מצאת?), and shared past-tense forms (הצלחת, מצאת, ראית). Never write slash forms "
             "like נסה/י or מוכן/ה: the text is read aloud."
         )
-        print("CHILD GENDER UNKNOWN (neutral Hebrew):", {"kid_id": (child or {}).get("id"), "child_name": (child or {}).get("child_name")})
+        print("CHILD GENDER UNKNOWN (neutral Hebrew):", {"kid_id": (child or {}).get("id"),
+                                                         **({"child_name": (child or {}).get("child_name")} if not IS_PROD else {})})
     return gender, rule
 
 
@@ -8704,10 +8870,7 @@ def generate_kid_lesson_intro_videos_background(
             "kid_id":
                 kid_id,
 
-            "child_name":
-                child.get(
-                    "child_name"
-                )
+            **({"child_name": child.get("child_name")} if not IS_PROD else {}),
         }
     )
 
@@ -12336,7 +12499,8 @@ async def tutor_tts(
 
         # אימות משתמש
         user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
-        ai_context("tts_live", user, body)
+        # kid_id is tagged only after get_child_by_id confirms it (2026-09-26 security review)
+        ai_context("tts_live", user)
 
         text = (body.text or "").strip()
 
@@ -12351,6 +12515,10 @@ async def tutor_tts(
                 status_code=400,
                 detail="text is too long"
             )
+        spend_daily_budget(user.id, "tts")
+        # a session id from the browser is used only when it is this account's session
+        owned_session = await run_in_threadpool(lambda: owned_tutor_session(body.session_id, user.id))
+        owned_session_id = owned_session["id"] if owned_session else None
         # Identifiers and a length, never the text. This is a child's own words and
         # Render keeps logs; COPPA/GDPR-K treat that as personal data about a minor.
         print(
@@ -12388,12 +12556,10 @@ async def tutor_tts(
                 _child = None
                 if body.kid_id:
                     _child = await run_in_threadpool(lambda: get_child_by_id(user.id, body.kid_id))
-                elif body.session_id:
-                    _sess = await run_in_threadpool(lambda: sb.table("tutor_sessions").select("kid_id")
-                                                    .eq("id", body.session_id).limit(1).execute().data)
-                    if _sess and _sess[0].get("kid_id"):
-                        _child = await run_in_threadpool(lambda: get_child_by_id(user.id, _sess[0]["kid_id"]))
+                elif owned_session and owned_session.get("kid_id"):
+                    _child = await run_in_threadpool(lambda: get_child_by_id(user.id, owned_session["kid_id"]))
                 if _child:
+                    set_call_context(kid_id=_child.get("id"))
                     _gender = hebrew_gender_rule(_child)[0]
                     if _gender not in ("male", "female"):
                         _gender = None
@@ -12468,7 +12634,8 @@ async def tutor_tts(
                 {
                     "session_id": body.session_id,
                     "text_length": len(text),
-                    "text": repr(text),
+                    # the child's words stay out of production logs (2026-09-26 security review)
+                    **({"text": repr(text)} if not IS_PROD else {}),
                     "elapsed_ms": round(
                         (
                             time.perf_counter()
@@ -12557,13 +12724,13 @@ async def tutor_tts(
             _threading.Thread(target=tts_cache_put, args=(_tts_key, wav_bytes), daemon=True).start()
 
         # עדכון Session - קריאת TTS אחת
-        if body.session_id:
+        if owned_session_id:
 
             try:
 
                 (await run_in_threadpool(lambda: update_tutor_session_after_tts(
                     session_id=
-                    body.session_id,
+                    owned_session_id,
 
                     audio_duration_seconds=
                     audio_duration_seconds,
@@ -12651,12 +12818,10 @@ async def tutor_tts(
         )
         traceback.print_exc()
 
+        # the provider's error text stays in the log (2026-09-26 security review)
         raise HTTPException(
             status_code=500,
-            detail=(
-                "Gemini TTS failed: "
-                f"{error_message}"
-            )
+            detail="TTS failed"
         )
 @app.get(
     "/api/learning-lessons/{learning_lesson_id}/units"
@@ -14568,8 +14733,19 @@ async def get_or_generate_unit_lesson(
                 "wait_for_answer": False
             }
 
+        # Nothing has been generated yet at this point, and a cached lesson never reaches
+        # here — so a child who is over the limit is told before anything starts rather
+        # than half way through a lesson. (2026-09-26: checked BEFORE the lesson is claimed;
+        # a refusal after the claim left the shared lesson "generating" for every child.)
+        (await run_in_threadpool(lambda: check_lesson_quota(user.id, unit_lesson["id"])))
+
         # =============================================
         # MARK AS GENERATING
+        #
+        # 2026-09-26 security review: an atomic claim. Two requests that both read
+        # "not generating" used to both start (and both pay for) the same lesson; now
+        # the update only matches a row that is not already generating, and the one
+        # that changed no row answers "generating" like above.
         # =============================================
 
         now = (
@@ -14578,7 +14754,7 @@ async def get_or_generate_unit_lesson(
             .isoformat()
         )
 
-        (await run_in_threadpool(lambda: sb.table(
+        claim = (await run_in_threadpool(lambda: sb.table(
             "lesson_units_content"
         ).update({
 
@@ -14594,7 +14770,31 @@ async def get_or_generate_unit_lesson(
         }).eq(
             "id",
             unit_lesson["id"]
+        ).or_(
+            "generation_status.is.null,"
+            "generation_status.neq.generating"
         ).execute()))
+
+        if not (getattr(claim, "data", None) or []):
+            print("LESSON GENERATION ALREADY CLAIMED:", {"unit_lesson_id": unit_lesson["id"]})
+            return {
+                "success": False,
+
+                "source": "generating",
+
+                "unit_lesson_id":
+                    unit_lesson["id"],
+
+                "learning_lesson_id":
+                    parent_lesson["id"],
+
+                "generation_status":
+                    "generating",
+
+                "sequence": [],
+
+                "wait_for_answer": False
+            }
         lesson_parts_count = int(
             unit_lesson.get(
                 "lesson_parts_count"
@@ -14637,11 +14837,6 @@ async def get_or_generate_unit_lesson(
         # =============================================
         # OPENAI
         # =============================================
-
-        # Nothing has been generated yet at this point, and a cached lesson never reaches
-        # here — so a child who is over the limit is told before anything starts rather
-        # than half way through a lesson.
-        (await run_in_threadpool(lambda: check_lesson_quota(user.id, unit_lesson["id"])))
 
         _t_p1 = media_trace.mark_start("text_part1_teacher", model=UNIVERSAL_LESSON_MODEL)
         completion = (await (
@@ -15454,21 +15649,13 @@ async def regenerate_unit_lesson_transition(
         # AUTH
         # =============================================
 
-        user = (await run_in_threadpool(lambda: authenticate_user(
+        # 2026-09-26 security review: the transition is shared by every child who opens this
+        # lesson, and no page calls this route; a signed-in parent could rewrite it for all
+        # families (and spend a model call and a video each time). Admins only now.
+        user = (await run_in_threadpool(lambda: require_admin(
             authorization
         )))
-        ai_context("transition", user, body)
-
-        if not body.kid_id:
-            raise HTTPException(
-                status_code=400,
-                detail="kid_id is required"
-            )
-
-        child = (await run_in_threadpool(lambda: get_child_by_id(
-            user_id=user.id,
-            kid_id=body.kid_id
-        )))
+        ai_context("transition", user)
 
         # =============================================
         # LOAD EXISTING LESSON
@@ -15483,33 +15670,6 @@ async def regenerate_unit_lesson_transition(
                 "learning_lesson_id"
             ]
         )))
-
-        # =============================================
-        # GRADE SECURITY
-        # =============================================
-
-        child_grade = int(
-            child.get("age")
-            or 0
-        )
-
-        lesson_grade = int(
-            parent_lesson.get("grade")
-            or 0
-        )
-
-        if (
-            child_grade
-            and lesson_grade
-            and child_grade != lesson_grade
-        ):
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Lesson does not match "
-                    "child grade"
-                )
-            )
 
         # =============================================
         # EXISTING LESSON JSON
@@ -15570,6 +15730,20 @@ async def regenerate_unit_lesson_transition(
         # =============================================
         # REPLACE ONLY TRANSITION IN JSON
         # =============================================
+
+        # re-read the row just before writing and change only the transition key: the
+        # worker may have written audio/visual status while the model was thinking, and
+        # writing back the copy read above would undo it
+        fresh_row = (await run_in_threadpool(lambda: get_unit_lesson(
+            unit_lesson["id"]
+        )))
+
+        generated_json = dict(
+            (fresh_row or unit_lesson).get(
+                "generated_lesson_json"
+            )
+            or generated_json
+        )
 
         generated_json[
             "transition"
@@ -15757,7 +15931,7 @@ async def get_or_generate_unit_lesson_closing(
 
         if cached:
             print("LESSON CLOSING CACHE HIT:", {"unit_lesson_id": body.unit_lesson_id})
-            return {"success": True, **cached}
+            return {"success": True, **plain_closing_payload(cached)}
 
         parent_lesson = (await run_in_threadpool(lambda: get_learning_lesson(
             unit_lesson["learning_lesson_id"]
@@ -15827,6 +16001,10 @@ async def get_or_generate_unit_lesson_closing(
             "parent_note":
                 (closing.parent_note or "").strip()
         }
+
+        # 2026-09-26 security review: the closing is built from the child's own answers, so it goes
+        # through the reply guard, and it is stored and shown as plain text (no HTML)
+        payload = plain_closing_payload(guard_reply_payload(payload, "LESSON CLOSING"))
 
         def store():
             sb.table("kid_lesson_history").insert({
@@ -16891,64 +17069,66 @@ async def run_learning_coach(
     print("LEARNING COACH TRIGGERED")
     print("=" * 70)
 
-    print(
-        "ROUTING DATA:",
-        json.dumps(
-            {
-                "kid_id":
-                    child.get("id"),
+    # the child's name, answer and the whole prompt: dev logs only (2026-09-26 security review)
+    if not IS_PROD:
+        print(
+            "ROUTING DATA:",
+            json.dumps(
+                {
+                    "kid_id":
+                        child.get("id"),
 
-                "child_name":
-                    child.get("child_name"),
+                    "child_name":
+                        child.get("child_name"),
 
-                "grade":
-                    child.get("age"),
+                    "grade":
+                        child.get("age"),
 
-                "lesson_id":
-                    lesson.get("id"),
+                    "lesson_id":
+                        lesson.get("id"),
 
-                "unit_lesson_id":
-                    unit_lesson.get("id"),
+                    "unit_lesson_id":
+                        unit_lesson.get("id"),
 
-                "coach_session_id":
-                    coach_session.get("id"),
+                    "coach_session_id":
+                        coach_session.get("id"),
 
-                "coach_index":
-                    coach_index,
+                    "coach_index":
+                        coach_index,
 
-                "current_round":
-                    current_round,
+                    "current_round":
+                        current_round,
 
-                "maximum_rounds":
-                    LEARNING_COACH_MAX_ROUNDS,
+                    "maximum_rounds":
+                        LEARNING_COACH_MAX_ROUNDS,
 
-                "previous_score":
-                    coach_session.get(
-                        "final_understanding_score"
-                    ),
+                    "previous_score":
+                        coach_session.get(
+                            "final_understanding_score"
+                        ),
 
-                "child_answer":
-                    message
-            },
-            ensure_ascii=False,
-            indent=2
+                    "child_answer":
+                        message
+                },
+                ensure_ascii=False,
+                indent=2
+            )
         )
-    )
 
-    print("-" * 70)
-    print("LEARNING COACH RUNTIME DATA:")
-    print(
-        json.dumps(
-            runtime_data,
-            ensure_ascii=False,
-            indent=2
+        print("-" * 70)
+        print("LEARNING COACH RUNTIME DATA:")
+        print(
+            json.dumps(
+                runtime_data,
+                ensure_ascii=False,
+                indent=2
+            )
         )
-    )
 
-    print("-" * 70)
-    print("FINAL LEARNING COACH PROMPT:")
-    print(system_prompt)
-    print("=" * 70)
+        print("-" * 70)
+        print("FINAL LEARNING COACH PROMPT:")
+        print(system_prompt)
+        print("=" * 70)
 
     # =============================================
     # OPENAI
@@ -17473,6 +17653,7 @@ async def structured_lesson(
             kid_id=body.kid_id
 
         )))
+        spend_daily_budget(user.id, "model")
 
         # =============================================
         # LESSON
@@ -19369,17 +19550,14 @@ async def homework_analyze(
         # =============================================
         # SECURITY
         #
-        # הנתיב חייב להתחיל ב-user_id
-        #
-        # user_id/kid_id/file.jpg
+        # הנתיב חייב להיות בדיוק user_id/kid_id/file.jpg
+        # (2026-09-26: "<me>/../<other>/x" read another family's file)
         # =============================================
 
-        expected_prefix = (
-            f"{user.id}/"
-        )
-
-        if not body.storage_path.startswith(
-                expected_prefix
+        if not homework_storage_path_ok(
+                body.storage_path,
+                user.id,
+                child["id"]
         ):
             raise HTTPException(
                 status_code=403,
@@ -19388,14 +19566,24 @@ async def homework_analyze(
                 )
             )
 
+        spend_daily_budget(user.id, "vision")
+
         # =============================================
         # SESSION
+        #
+        # a session id from the browser is used only when it is
+        # this account's session (2026-09-26 security review)
         # =============================================
 
-        if body.session_id:
+        owned_session = (await run_in_threadpool(lambda: owned_tutor_session(
+            body.session_id,
+            user.id
+        ))) if body.session_id else None
+
+        if owned_session:
 
             session_id = (
-                body.session_id
+                owned_session["id"]
             )
 
         else:
@@ -19509,6 +19697,27 @@ async def homework_analyze(
             )
 
         # =============================================
+        # SIZE + FILE KIND (2026-09-26 security review)
+        #
+        # the bytes must be a photo or a PDF of a sane size before
+        # anything is sent to the vision model
+        # =============================================
+
+        if len(file_bytes) > HOMEWORK_FILE_MAX_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail="הקובץ גדול מדי. נסו לצלם שוב או להעלות קובץ קטן יותר."
+            )
+
+        sniffed_kind = homework_file_kind(file_bytes)
+
+        if not sniffed_kind:
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file type"
+            )
+
+        # =============================================
         # MIME TYPE
         # =============================================
 
@@ -19516,6 +19725,10 @@ async def homework_analyze(
                 body.file_type
                 or "image/jpeg"
         )
+
+        # the file's own bytes decide; the declared type only when it agrees
+        if sniffed_kind in ("image/jpeg", "image/png", "image/webp", "application/pdf"):
+            mime_type = sniffed_kind
 
         allowed_mime_types = {
 
@@ -19662,7 +19875,7 @@ async def homework_analyze(
         # 2026-09-23: the reader sometimes returns JSON that does not parse (1 of 42 test pages).
         # The fallback below is an EMPTY page for the child, so read the page once more first.
         if not isinstance(analysis, dict):
-            print("VISION INVALID JSON - RETRYING ONCE:", raw_response[:300])
+            print("VISION INVALID JSON - RETRYING ONCE:", raw_response[:300] if not IS_PROD else {"length": len(raw_response)})
             response = await aclient.chat.completions.create(**vision_request)
             raw_response = (response.choices[0].message.content or "").strip()
             analysis = parse_homework_vision_json(raw_response)
@@ -19670,7 +19883,7 @@ async def homework_analyze(
         if not isinstance(analysis, dict):
             print(
                 "VISION INVALID JSON - SAFE FALLBACK:",
-                raw_response
+                raw_response if not IS_PROD else {"length": len(raw_response)}   # the child's homework page
             )
             analysis = {
                 "subject": "",
@@ -19722,10 +19935,17 @@ async def homework_analyze(
 
         )
         analysis["exercises"] = normalize_homework_exercises(analysis.get("exercises"))
+        # what the page shows the child is plain text: no HTML from the reader (2026-09-26 security review)
+        analysis = plain_homework_analysis(analysis)
+        extracted_text = analysis.get("extracted_text") or ""
+        detected_language = plain_display_text(detected_language) if detected_language else detected_language
         # 2026-09-23: a Hebrew page "חיבור עד 100" came back as topic "addition"
         detected_subject = hebrew_subject_label(detected_subject, extracted_text)
         analysis["subject"] = detected_subject
         detected_topic = hebrew_page_label(detected_topic, analysis.get("page_title"), extracted_text, detected_subject)
+        detected_subject = plain_display_text(detected_subject)
+        detected_topic = plain_display_text(detected_topic)
+        analysis["subject"] = detected_subject
         if detected_topic != analysis.get("topic"):
             print("HOMEWORK TOPIC NOT IN PAGE LANGUAGE:", {"model": analysis.get("topic"), "shown": detected_topic})
             analysis["topic"] = detected_topic
@@ -20050,6 +20270,7 @@ async def curriculum_builder_chat(
             user_id=user.id,
             kid_id=body.kid_id
         )))
+        spend_daily_budget(user.id, "model")
 
         custom_subject = None
         current_curriculum = None
@@ -21114,6 +21335,7 @@ async def tutor_chat(
             user_id=user.id,
             kid_id=body.kid_id
         )))
+        spend_daily_budget(user.id, "model")
 
         # =================================================
         # GET OR CREATE TUTOR SESSION
@@ -21839,6 +22061,7 @@ async def check_tts(body: CheckTTSRequest, authorization: str = Header(None)):
     if inflight is not None:
         wav = await asyncio.shield(inflight)
         return Response(content=wav, media_type="audio/wav", headers={**headers, "X-TTS-Cache": "inflight"})
+    spend_daily_budget(user.id, "tts")          # only a new reading costs a model call
     fut = asyncio.get_running_loop().create_future()
     _TTS_INFLIGHT[key] = fut
     try:
@@ -21914,6 +22137,7 @@ async def exam_practice_start(body: ExamPracticeStartRequest, authorization: str
     if not child:
         raise HTTPException(status_code=404, detail="child not found")
     ai_context("exam_practice", user, body)
+    spend_daily_budget(user.id, "model")
     grade = child.get("grade")
     subject_key = homework_subject_key(body.subject, body.topic)
     system_prompt = (hebrew_child_prompt_block(child) + "\n\n" + EXAM_PRACTICE_PROMPT
@@ -21958,12 +22182,14 @@ def start_homework_session(
 ):
     user = authenticate_user(authorization)
     child = get_child_by_id(user.id, req.kid_id)
+    # a tutor session id from the browser is kept only when it is this account's (2026-09-26 security review)
+    owned = owned_tutor_session(req.tutor_session_id, user.id) if req.tutor_session_id else None
 
     now_iso = datetime.now(timezone.utc).isoformat()
     payload = {
         "user_id": user.id,
         "kid_id": child["id"],
-        "tutor_session_id": req.tutor_session_id,
+        "tutor_session_id": owned["id"] if owned else None,
         "subject": req.subject,
         "topic": req.topic,
         "source_file_name": req.source_file_name,
@@ -22056,6 +22282,72 @@ def homework_reply_answer_items(reply: str, correct_answer: str, question: str) 
         if len(item) >= 3 and f" {item} " in body and f" {item} " not in q:
             items.append(item)
     return items
+
+
+HOMEWORK_FILE_MAX_BYTES = int(os.getenv("HOMEWORK_FILE_MAX_BYTES", str(12 * 1024 * 1024)))
+
+
+def homework_file_kind(data: bytes) -> str | None:
+    """The file's kind from its first bytes (jpeg, png, webp, heic, pdf), or None."""
+    head = bytes(data[:16] or b"")
+    if head[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if head[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return "image/webp"
+    if head[4:8] == b"ftyp" and head[8:12] in (b"heic", b"heix", b"hevc", b"heim", b"heis", b"mif1", b"msf1", b"heif"):
+        return "image/heic"
+    if head[:5] == b"%PDF-":
+        return "application/pdf"
+    return None
+
+
+_HTML_TAG_RE = re.compile(r"</?[A-Za-z!/][^>]*>")
+
+
+def plain_display_text(value, keep_comparisons: bool = False) -> str:
+    """Text a page shows, with HTML tags removed. Labels also lose every < and >; exercise text keeps
+    them when they are not tags ("3 < 5" is a comparison exercise). 2026-09-26 security review:
+    model output reached the page's innerHTML."""
+    if value is None:
+        return ""
+    t = _HTML_TAG_RE.sub("", str(value))
+    if not keep_comparisons:
+        t = t.replace("<", "").replace(">", "")
+    return t
+
+
+def plain_homework_analysis(analysis: dict) -> dict:
+    """The reader's JSON with every field the child sees as plain text."""
+    a = dict(analysis or {})
+    for k in ("subject", "topic", "language", "page_title", "task_context"):
+        if k in a and a[k] is not None:
+            a[k] = plain_display_text(a[k])
+    for k in ("instructions", "extracted_text"):
+        if k in a and a[k] is not None:
+            a[k] = plain_display_text(a[k], keep_comparisons=True)
+    if isinstance(a.get("sections"), list):
+        a["sections"] = [{**sec, "heading": plain_display_text(sec.get("heading")),
+                          "instructions": plain_display_text(sec.get("instructions"), keep_comparisons=True)}
+                         if isinstance(sec, dict) else sec for sec in a["sections"]]
+    if isinstance(a.get("exercises"), list):
+        out = []
+        for e in a["exercises"]:
+            if isinstance(e, dict):
+                e = dict(e)
+                for k in ("number", "section_heading", "task_type"):
+                    if k in e and e[k] is not None:
+                        e[k] = plain_display_text(e[k])
+                for k in ("text", "refers_to"):
+                    if k in e and e[k] is not None:
+                        e[k] = plain_display_text(e[k], keep_comparisons=True)
+            out.append(e)
+        a["exercises"] = out
+    if isinstance(a.get("handwritten_answers"), list):
+        a["handwritten_answers"] = [plain_display_text(x, keep_comparisons=True) if isinstance(x, str) else x
+                                    for x in a["handwritten_answers"]]
+    return a
 
 
 def normalize_homework_exercises(exercises) -> list:
@@ -22494,12 +22786,16 @@ async def openai_clean_chat(
         authorization: str = Header(None)
 ):
     user = await run_in_threadpool(lambda: authenticate_user(authorization))
+    ai_context("clean_chat", user)          # kid_id added once the child is confirmed (2026-09-26 security review)
+    spend_daily_budget(user.id, "model")
     child = {}
     if req.kid_id:
         try:
             child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id))) or {}
         except Exception as e:
             print("CLEAN CHAT: child lookup failed, neutral Hebrew:", repr(e)[:120])
+    if child.get("id"):
+        set_call_context(kid_id=child.get("id"))
     system_prompt = (
         hebrew_child_prompt_block(child) + "\n"
         "את מורה פרטית מצוינת לילדים. "
@@ -22516,19 +22812,17 @@ async def openai_clean_chat(
     )
 
     messages=[{"role":"system","content":system_prompt}]
-    for item in (req.history or [])[-16:]:
-        role=str(item.get("role") or "")
-        content=str(item.get("content") or "").strip()
-        if role in ("user","assistant") and content:
-            messages.append({"role":role,"content":content})
+    for item in clip_chat_history(req.history):
+        if item["content"].strip():
+            messages.append({"role":item["role"],"content":item["content"].strip()})
 
     user_parts=[]
     if str(req.message or "").strip():
         user_parts.append({"type":"text","text":str(req.message).strip()})
-    elif req.image_url:
+    elif model_image_url(req.image_url):
         user_parts.append({"type":"text","text":"תסתכלי על דף העבודה ותעזרי לי להבין איך לפתור אותו שלב אחרי שלב."})
-    if str(req.image_url or "").strip():
-        user_parts.append({"type":"image_url","image_url":{"url":str(req.image_url).strip(),"detail":"high"}})
+    if model_image_url(req.image_url):
+        user_parts.append({"type":"image_url","image_url":{"url":model_image_url(req.image_url),"detail":"high"}})
     if not user_parts:
         user_parts.append({"type":"text","text":"היי"})
     messages.append({"role":"user","content":user_parts})
@@ -22551,6 +22845,8 @@ async def homework_coach_v2(
 ):
     user = await run_in_threadpool(lambda: authenticate_user(authorization))
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
+    ai_context("homework", user, req)       # after get_child_by_id: the kid is confirmed (2026-09-26 security review)
+    spend_daily_budget(user.id, "model")
     grade = child.get("grade") if isinstance(child, dict) else None
     system_prompt = (
         hebrew_child_prompt_block(child) + "\n"
@@ -22580,7 +22876,7 @@ async def homework_coach_v2(
             "התחילי מהמשימה הראשונה שעדיין לא נפתרה בתמונה, והתקדמי איתו באופן טבעי שלב אחרי שלב."
         )
     }]
-    image_url = str(req.image_url or "").strip()
+    image_url = model_image_url(req.image_url)
     if image_url:
         worksheet_content.append({
             "type": "image_url",
@@ -22591,11 +22887,9 @@ async def homework_coach_v2(
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": worksheet_content},
     ]
-    for item in (req.history or [])[-12:]:
-        role = str(item.get("role") or "")
-        content = str(item.get("content") or "").strip()
-        if role in ("user", "assistant") and content:
-            messages.append({"role": role, "content": content})
+    for item in clip_chat_history(req.history):
+        if item["content"].strip():
+            messages.append({"role": item["role"], "content": item["content"].strip()})
 
     if req.message.strip():
         messages.append({"role": "user", "content": req.message.strip()})
@@ -22621,6 +22915,7 @@ async def homework_coach(
     user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
     ai_context("homework", user, req)
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
+    spend_daily_budget(user.id, "model")
     grade = child.get("grade") if isinstance(child, dict) else None
 
     system_prompt = hebrew_child_prompt_block(child) + "\n" + HOMEWORK_COACH_PROMPT_TEMPLATE
@@ -22690,6 +22985,7 @@ async def homework_turn(
     user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
     ai_context("homework", user, req)
     child = (await run_in_threadpool(lambda: get_child_by_id(user.id, req.kid_id)))
+    spend_daily_budget(user.id, "model")
 
     child_name = str(child.get("child_name") or "").strip()
     gender, gender_rule = hebrew_gender_rule(child)
@@ -22852,8 +23148,9 @@ HARD RULES:
                 req.current_question
         ):
             print("HOMEWORK ANSWER LEAK GUARD TRIGGERED", {
-                "question": req.current_question,
-                "teacher_response": parsed.teacher_response
+                "question_length": len(req.current_question or ""),
+                "response_length": len(parsed.teacher_response or ""),
+                **({"question": req.current_question, "teacher_response": parsed.teacher_response} if not IS_PROD else {}),
             })
             parsed.teacher_response = build_safe_homework_first_guidance(
                 req.current_question,
@@ -22907,7 +23204,7 @@ HARD RULES:
                         update_payload["status"] = "completed"
                         update_payload["completed_at"] = now_iso
 
-                if req.session_id:
+                if req.session_id and (await run_in_threadpool(lambda: owned_tutor_session(req.session_id, user.id))):
                     update_payload["tutor_session_id"] = req.session_id
 
                 (await run_in_threadpool(lambda: supabase_with_retry(
@@ -23081,8 +23378,13 @@ def lessons_generated_this_month(user_id: str) -> int:
             .execute()
         ).data or []
     except Exception as e:
+        # 2026-09-26 security review: fail closed. Counting 0 on a lookup error let every
+        # account generate unlimited lessons whenever ai_calls could not be read.
         print("LESSON QUOTA LOOKUP FAILED:", repr(e)[:120])
-        return 0
+        raise HTTPException(
+            status_code=503,
+            detail="לא הצלחנו להכין שיעור חדש כרגע. נסו שוב בעוד כמה דקות."
+        )
 
     return len({r["unit_lesson_id"] for r in rows if r.get("unit_lesson_id")})
 
@@ -23091,7 +23393,12 @@ def check_lesson_quota(user_id: str, unit_lesson_id):
     """Raise 403 before a new lesson is generated. Never called for a cached lesson."""
     plan, paid = account_plan(user_id)
     limit = PAID_MONTHLY_LESSONS if paid else FREE_MONTHLY_LESSONS
-    used = lessons_generated_this_month(user_id)
+    try:
+        used = lessons_generated_this_month(user_id)
+    except HTTPException:
+        if not LESSON_QUOTA_ENFORCE:        # quota only logged: a failed count blocks nobody
+            return
+        raise
 
     if used < limit:
         return
@@ -23129,10 +23436,24 @@ KID_EDITABLE_FIELDS = (
 )
 
 
+KID_AGE_MIN, KID_AGE_MAX = 1, 18      # 2026-09-26 security review: age drives the grade; no -5 or 999
+
+
+def _kid_age_in_range(v):
+    if v is not None and not (KID_AGE_MIN <= int(v) <= KID_AGE_MAX):
+        raise ValueError(f"age must be between {KID_AGE_MIN} and {KID_AGE_MAX}")
+    return v
+
+
 class KidUpdateRequest(LimitedRequest):
     kid_id: str
     child_name: str | None = None
     age: int | None = None
+
+    @field_validator("age")
+    @classmethod
+    def age_in_range(cls, v):
+        return _kid_age_in_range(v)
     avatar_key: str | None = None
     gender: str | None = None
     usage_goals: list | None = None
@@ -23142,6 +23463,11 @@ class KidUpdateRequest(LimitedRequest):
 class KidCreateRequest(LimitedRequest):
     child_name: str
     age: int
+
+    @field_validator("age")
+    @classmethod
+    def age_in_range(cls, v):
+        return _kid_age_in_range(v)
     avatar_key: str | None = None
     gender: str | None = None
     usage_goals: list | None = None
@@ -23389,7 +23715,9 @@ def my_files(kid_id: str, authorization: str = Header(None)):
                 used.add(se["id"])
                 break
         url = ""
-        if up.get("storage_path"):
+        # a stored path is re-checked before it is signed: a row written with a crafted path
+        # (before 2026-09-26) must not hand out a link to another family's file
+        if up.get("storage_path") and homework_storage_path_ok(up["storage_path"], user.id, kid_id):
             try:
                 url = signed_url_cached("homework-uploads", up["storage_path"], 3600)
             except Exception as e:
@@ -23521,8 +23849,58 @@ def create_my_kid(body: KidCreateRequest, authorization: str = Header(None)):
     if not created:
         raise HTTPException(status_code=500, detail="could not create the profile")
 
+    # 2026-09-26 security review: two "add a child" requests at once both saw room for one more and
+    # both inserted. Count again after the insert; over the limit, the new row goes and the answer is
+    # the same limit error.
+    after = (
+        sb.table("kids_profiles").select("id, created_at").eq("user_id", user.id)
+        .order("created_at").order("id").execute()
+    ).data or []
+    keep = {r.get("id") for r in after[:max_kids]}      # the oldest max_kids stay; only a late extra goes
+    if len(after) > max_kids and created[0].get("id") not in keep:
+        sb.table("kids_profiles").delete().eq("id", created[0]["id"]).eq("user_id", user.id).execute()
+        print("KID LIMIT REACHED (concurrent create undone):", {"user_id": user.id, "have": len(after) - 1,
+                                                                "limit": max_kids})
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "kid_limit_reached",
+                "have": len(after) - 1,
+                "limit": max_kids,
+                "plan": plan,
+                "message": "הגעתם למספר הילדים המרבי בחשבון הזה."
+            }
+        )
+
     print("KID PROFILE CREATED:", {"kid_id": created[0].get("id")})
     return {"kid": kid_public_view(created[0])}
+
+
+# 2026-09-26 security review: an admin was anyone whose token carried an allowlisted email. The
+# admin pages sign in with Google only, so an email/password or magic-link account that somehow held
+# an admin address (a mistyped sign-up, a changed email) must not pass. ADMIN_REQUIRE_GOOGLE=0 turns
+# the provider check off; ADMIN_USER_IDS (comma separated) additionally pins the accounts by id.
+ADMIN_REQUIRE_GOOGLE = os.getenv("ADMIN_REQUIRE_GOOGLE", "1").lower() not in ("0", "false", "no")
+ADMIN_USER_IDS = {x.strip() for x in os.getenv("ADMIN_USER_IDS", "").split(",") if x.strip()}
+
+
+def user_signed_in_with_google(user) -> bool:
+    """True when the account's sign-in providers include Google. Works for the locally verified token
+    (app_metadata is a dict from the claims) and for Supabase Auth's User object (app_metadata dict,
+    identities list)."""
+    meta = getattr(user, "app_metadata", None) or {}
+    if not isinstance(meta, dict):
+        meta = getattr(meta, "__dict__", {}) or {}
+    providers = meta.get("providers") or []
+    if isinstance(providers, str):
+        providers = [providers]
+    if meta.get("provider") == "google" or "google" in providers:
+        return True
+    for ident in getattr(user, "identities", None) or []:
+        prov = ident.get("provider") if isinstance(ident, dict) else getattr(ident, "provider", None)
+        if prov == "google":
+            return True
+    return False
 
 
 def require_admin(authorization: str | None):
@@ -23530,6 +23908,12 @@ def require_admin(authorization: str | None):
     email = str(getattr(user, "email", "") or "").lower()
     if email not in ADMIN_EMAILS:
         print("ADMIN DENIED:", {"email": email})
+        raise HTTPException(status_code=403, detail="admin only")
+    if ADMIN_REQUIRE_GOOGLE and not user_signed_in_with_google(user):
+        print("ADMIN DENIED (not a Google sign-in):", {"email": email})
+        raise HTTPException(status_code=403, detail="admin only")
+    if ADMIN_USER_IDS and str(getattr(user, "id", "")) not in ADMIN_USER_IDS:
+        print("ADMIN DENIED (id not listed):", {"email": email})
         raise HTTPException(status_code=403, detail="admin only")
     return user
 
@@ -23643,6 +24027,15 @@ async def admin_lesson_regenerate(unit_lesson_id: int, authorization: str = Head
 
 class AdminImageAction(LimitedRequest):
     path: str          # e.g. "v1/part_2/visual_9.png" or "hero_v1.png"
+
+    @field_validator("path")
+    @classmethod
+    def _path_inside_lesson(cls, v):
+        # 2026-09-26 security review: the path is joined under unit_lessons/<id>/ and deleted;
+        # it must not climb out of that lesson's folder
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*", v or "") or ".." in v:
+            raise ValueError("bad image path")
+        return v
 
 
 def _recompute_quality_after_override(q: dict, path: str) -> dict:
@@ -23788,6 +24181,17 @@ def transcribe_audio_bytes(audio: bytes, mime_type: str = "audio/webm", language
     return {"text": text, "provider": provider, "model": model, "ms": ms}
 
 
+def stt_audio_seconds(audio: bytes) -> float:
+    """Length of a WAV recording from its header; 0 for compressed audio (the byte cap bounds that)."""
+    if not audio[:4] == b"RIFF" or audio[8:12] != b"WAVE":
+        return 0.0
+    try:
+        with wave.open(io.BytesIO(audio), "rb") as w:
+            return w.getnframes() / float(w.getframerate() or 1)
+    except Exception:
+        return float(STT_MAX_SECONDS + 1)          # a WAV header that does not parse is refused
+
+
 class TutorSTTRequest(LimitedRequest):
     audio_base64: str
     mime_type: str = "audio/webm"
@@ -23799,7 +24203,11 @@ class TutorSTTRequest(LimitedRequest):
 async def tutor_stt(body: TutorSTTRequest, authorization: str = Header(None)):
     try:
         user = (await run_in_threadpool(lambda: authenticate_user(authorization)))
-        ai_context("stt", user, body)
+        # kid_id is tagged only after get_child_by_id confirms it (2026-09-26 security review)
+        ai_context("stt", user)
+        if body.kid_id:
+            _stt_child = await run_in_threadpool(lambda: get_child_by_id(user.id, body.kid_id))
+            set_call_context(kid_id=_stt_child.get("id"))
         raw = (body.audio_base64 or "").strip()
         if "," in raw[:120] and raw.lstrip().startswith("data:"):
             raw = raw.split(",", 1)[1]                       # data:audio/webm;base64,....
@@ -23811,6 +24219,9 @@ async def tutor_stt(body: TutorSTTRequest, authorization: str = Header(None)):
             raise HTTPException(status_code=400, detail="audio is empty")
         if len(audio) > STT_MAX_BYTES:
             raise HTTPException(status_code=413, detail="audio is too long")
+        if stt_audio_seconds(audio) > STT_MAX_SECONDS:
+            raise HTTPException(status_code=413, detail="audio is too long")
+        spend_daily_budget(user.id, "stt")
         # Identifiers and sizes only: this is a child's own voice.
         print("STT REQUEST:", {"bytes": len(audio), "mime": body.mime_type, "kid_id": (body.kid_id or "")[:8]})
         result = await run_in_threadpool(lambda: transcribe_audio_bytes(audio, body.mime_type, body.language or "he"))
@@ -23820,9 +24231,11 @@ async def tutor_stt(body: TutorSTTRequest, authorization: str = Header(None)):
     except HTTPException:
         raise
     except Exception as e:
-        print("STT ERROR:", repr(e)[:300])
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"speech to text failed: {e}")
+        print("STT ERROR:", {"error_type": type(e).__name__, **({"error": repr(e)[:300]} if not IS_PROD else {})})
+        if not IS_PROD:
+            traceback.print_exc()
+        # the provider's error text stays out of the answer (2026-09-26 security review)
+        raise HTTPException(status_code=500, detail="speech to text failed")
 
 
 # Route modules (2026-09-25): new routes in their own files, registered on this app. These imports must stay at

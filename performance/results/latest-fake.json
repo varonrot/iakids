@@ -1,7 +1,7 @@
 {
- "run": "20260925-103508-admin-guard-fake",
+ "run": "20260926-072219-fake",
  "db": "fake",
- "scale": 0.05,
+ "scale": 1.0,
  "db_latency_ms": 100.0,
  "routes": {
   "health": {
@@ -1481,6 +1481,24 @@
    "model_calls": 0,
    "prod_safe": false,
    "error": "{\"detail\":\"that address is not locked\"}"
+  },
+  "test-prep-lesson": {
+   "kind": "model",
+   "status": 409,
+   "ms": 10.8,
+   "cpu_ms": 10.0,
+   "db_calls": 0,
+   "db_calls_cold": 2,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1
+   },
+   "db_ms": 0.0,
+   "db_by": {},
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": false,
+   "error": "{\"detail\":\"This first lesson is for Grade 5.\"}"
   }
  },
  "box": {
@@ -1509,6 +1527,6 @@
  },
  "workers": 1,
  "cpus": "all",
- "main_sha": "b492c64e92ac52d2",
+ "main_sha": "95e0dd1a72c862af",
  "tutor_dir": "/opt/iakids/backend-ai-tutor-he"
 }
