@@ -171,7 +171,25 @@
     }, {onConflict: 'child_id,language,subject,topic,question_key'});
     if (error) throw new Error('We couldn’t save your answer. Please try again.');
   }
-  window.IAKidsAuth = { requireChild, loadTopicDraft, saveTopicDraft, loadQuickCheck, saveQuickCheck, get child() { return activeChild; } };
+  async function loadTestPrepLesson(childId) {
+    await topicDraftUser(childId);
+    const {data: {session}} = await sb.auth.getSession();
+    if (!session?.access_token) throw new Error('Your session expired. Please sign in again.');
+    let response;
+    try {
+      response = await fetch(`${API}/api/eng/test-prep/lesson`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`},
+        body: JSON.stringify({kid_id: childId})
+      });
+    } catch {
+      throw new Error('We couldn’t connect to your lesson. Please try again.');
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.lesson) throw new Error(payload.detail || 'We couldn’t prepare your lesson. Please try again.');
+    return payload.lesson;
+  }
+  window.IAKidsAuth = { requireChild, loadTopicDraft, saveTopicDraft, loadQuickCheck, saveQuickCheck, loadTestPrepLesson, get child() { return activeChild; } };
   dialog.querySelector('.google-signin').addEventListener('click', async () => {
     if (busy) return;
     const button = dialog.querySelector('.google-signin');
