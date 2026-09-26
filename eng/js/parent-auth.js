@@ -153,7 +153,25 @@
     }, {onConflict: 'child_id,language'});
     if (draftError) throw new Error('We couldn’t save your topics to your account. Please try again.');
   }
-  window.IAKidsAuth = { requireChild, loadTopicDraft, saveTopicDraft, get child() { return activeChild; } };
+  async function loadQuickCheck(childId, topic) {
+    await topicDraftUser(childId);
+    const {data, error} = await sb.from('2027_test_prep_quick_checks')
+      .select('question_key,answer,is_correct,hint_used')
+      .eq('child_id', childId).eq('language', 'en').eq('subject', 'Math').eq('topic', topic);
+    if (error) throw new Error('We couldn’t load your quick check. Please try again.');
+    return data || [];
+  }
+  async function saveQuickCheck(childId, topic, grade, answer) {
+    const user = await topicDraftUser(childId);
+    const {error} = await sb.from('2027_test_prep_quick_checks').upsert({
+      user_id: user.id, child_id: childId, language: 'en', grade,
+      subject: 'Math', topic, question_key: answer.key,
+      answer: answer.choice, is_correct: answer.correct, hint_used: answer.hintUsed,
+      answered_at: new Date().toISOString()
+    }, {onConflict: 'child_id,language,subject,topic,question_key'});
+    if (error) throw new Error('We couldn’t save your answer. Please try again.');
+  }
+  window.IAKidsAuth = { requireChild, loadTopicDraft, saveTopicDraft, loadQuickCheck, saveQuickCheck, get child() { return activeChild; } };
   dialog.querySelector('.google-signin').addEventListener('click', async () => {
     if (busy) return;
     const button = dialog.querySelector('.google-signin');
