@@ -263,6 +263,33 @@
       submit.disabled = !quizChoice;
     }
   }
+  function syncQuickCheckRows(rows) {
+    quizRows = new Map(rows.filter(row => fractionQuestions.some(item => item.key === row.question_key)).map(row => [row.question_key, row]));
+    quizIndex = fractionQuestions.findIndex(item => !quizRows.has(item.key));
+    if (quizIndex < 0) quizIndex = fractionQuestions.length;
+    quizChoice = null;
+    const complete = quizIndex === fractionQuestions.length;
+    dialog.querySelector('.prep-start-quiz').textContent = complete ? 'Continue learning →' : quizIndex > 0 ? 'Continue quick check →' : 'Start quick check →';
+    dialog.querySelector('.prep-plan-footer p').textContent = complete ? 'Your quick check is saved. Your next step is ready.' : quizIndex > 0 ? 'Your answers are saved. Pick up where you left off.' : 'A short visual check is ready.';
+  }
+  async function refreshQuickCheckProgress(draft) {
+    if (!supportsQuickCheck(draft)) return;
+    const childId = topicChildId;
+    const button = dialog.querySelector('.prep-start-quiz');
+    button.disabled = true;
+    button.textContent = 'Checking progress…';
+    try {
+      const rows = await window.IAKidsAuth.loadQuickCheck(childId, 'Dividing fractions');
+      if (dialog.open && topicChildId === childId && quizDraft === draft) syncQuickCheckRows(rows);
+    } catch (error) {
+      if (dialog.open && topicChildId === childId && quizDraft === draft) {
+        dialog.querySelector('.prep-plan-footer p').textContent = error.message;
+        button.textContent = 'Try to continue →';
+      }
+    } finally {
+      if (dialog.open && topicChildId === childId && quizDraft === draft) button.disabled = false;
+    }
+  }
   async function startQuickCheck() {
     if (!quizDraft || !supportsQuickCheck(quizDraft) || quizBusy) return;
     quizBusy = true;
@@ -272,17 +299,17 @@
     try {
       const rows = await window.IAKidsAuth.loadQuickCheck(topicChildId, 'Dividing fractions');
       if (!dialog.open || topicChildId !== window.IAKidsAuth?.child?.id) return;
-      quizRows = new Map(rows.filter(row => fractionQuestions.some(item => item.key === row.question_key)).map(row => [row.question_key, row]));
-      quizIndex = fractionQuestions.findIndex(item => !quizRows.has(item.key));
-      if (quizIndex < 0) quizIndex = fractionQuestions.length;
-      quizChoice = null;
+      syncQuickCheckRows(rows);
       dialog.classList.add('prep-quiz-active');
       renderQuickCheck();
+      if (quizIndex === fractionQuestions.length) {
+        quizBusy = false;
+        await startLesson();
+      }
     } catch (error) {
       dialog.querySelector('.prep-plan-footer p').textContent = error.message;
     } finally {
       quizBusy = false;
-      button.textContent = 'Start quick check →';
       button.disabled = false;
     }
   }
@@ -376,7 +403,8 @@
     dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === 0));
     const supported = supportsQuickCheck(draft);
     dialog.querySelector('.prep-start-quiz').disabled = !supported;
-    dialog.querySelector('.prep-plan-footer p').textContent = supported ? 'A short visual check is ready.' : 'Interactive questions for these topics are coming next.';
+    dialog.querySelector('.prep-start-quiz').textContent = 'Start quick check →';
+    dialog.querySelector('.prep-plan-footer p').textContent = supported ? 'Checking your saved progress…' : 'Interactive questions for these topics are coming next.';
     const name = child?.child_name?.trim() || 'learner';
     dialog.querySelector('#prepPlanTitle').textContent = `Let’s get ready, ${name}!`;
     dialog.querySelector('.prep-plan-subtitle').textContent = `Your plan for ${draft.subject} · Grade ${draft.grade}`;
@@ -391,6 +419,7 @@
     const date = dialog.querySelector('.prep-plan-date');
     date.hidden = !draft.date;
     if (draft.date) date.textContent = `Test date: ${new Date(`${draft.date}T12:00:00`).toLocaleDateString('en', {year:'numeric', month:'long', day:'numeric'})}`;
+    if (supported) refreshQuickCheckProgress(draft);
   }
   function view(name) {
     dialog.querySelectorAll('[data-prep-view]').forEach(el => { el.hidden = el.dataset.prepView !== name; });
