@@ -6,7 +6,7 @@ from fastapi import Header, HTTPException
 from pydantic import Field
 from starlette.concurrency import run_in_threadpool
 
-from main import LimitedRequest, app, authenticate_user, get_child_by_id, sb
+from main import LimitedRequest, app, authenticate_user, get_child_by_id, sb, signed_url_cached
 from eng_lessons_2027 import check_answer, public_step
 from test_prep_2027 import SUBJECT, TOPIC, _diagnostic
 
@@ -71,14 +71,13 @@ def _approved_plan(user_id: str | None = None, kid_id: str | None = None):
 
 
 def _visible_step(plan_id: str, content: dict, index: int):
-    visual = (sb.table("2027_eng_lesson_visuals").select("storage_path")
-              .eq("plan_id", plan_id).eq("step_index", index)
+    visual = (sb.table("2027_eng_lesson_visuals").select("storage_path,alt_text")
+              .eq("plan_id", plan_id).eq("step_index", index).eq("review_status", "approved")
               .order("generation_version", desc=True).limit(1).execute().data or [])
     image_url = None
     if visual:
-        signed = sb.storage.from_(BUCKET).create_signed_url(visual[0]["storage_path"], 600)
-        image_url = signed.get("signedURL") or signed.get("signedUrl")
-    return public_step(content, index, image_url)
+        image_url = signed_url_cached(BUCKET, visual[0]["storage_path"], 600)
+    return public_step(content, index, image_url, visual[0]["alt_text"] if visual else None)
 
 
 @app.post("/api/eng/lesson-engine/start")
