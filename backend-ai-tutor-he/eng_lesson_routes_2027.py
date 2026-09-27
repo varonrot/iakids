@@ -27,10 +27,9 @@ class AnswerRequest(LimitedRequest):
 
 def _parent_and_child(authorization: str, kid_id: str):
     user = authenticate_user(authorization)
-    child = get_child_by_id(str(user.id), kid_id)
-    if int(child.get("age") or 0) != 5:
-        raise HTTPException(status_code=409, detail="This first lesson is for Grade 5.")
+    get_child_by_id(str(user.id), kid_id)
     # Require the saved topic and completed quick check, as in the existing flow.
+    # Grade 5 is validated by _diagnostic; kids_profiles.age is the child's age.
     _diagnostic(str(user.id), kid_id)
     return str(user.id)
 
