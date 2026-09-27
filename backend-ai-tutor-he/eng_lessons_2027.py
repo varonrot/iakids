@@ -85,7 +85,7 @@ def validate_plan(plan: dict) -> None:
                 raise ValueError("Invalid answer options")
 
 
-def public_step(plan: dict, index: int, image_url: str | None = None) -> dict:
+def public_step(plan: dict, index: int, image_url: str | None = None, image_alt: str | None = None) -> dict:
     """Only the active step reaches the browser; never send answer_index."""
     validate_plan(plan)
     if not isinstance(index, int) or index not in range(len(plan["steps"])):
@@ -95,6 +95,7 @@ def public_step(plan: dict, index: int, image_url: str | None = None) -> dict:
     visual = {"kind": source["visual"]["kind"]}
     if image_url:
         visual["url"] = image_url
+        visual["alt_text"] = image_alt or "Lesson illustration"
     interaction = {"type": action["type"]}
     if action["type"] == "multiple_choice":
         interaction["prompt"] = action["prompt"]
