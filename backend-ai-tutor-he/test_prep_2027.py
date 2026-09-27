@@ -113,3 +113,6 @@ async def create_test_prep_lesson(body: LessonRequest, authorization: str = Head
 
 # The new English lesson engine registers its own routes; Hebrew main.py stays unchanged.
 import eng_lesson_routes_2027  # noqa: E402,F401
+
+# Admin-only AI teacher draft and review routes.
+import eng_lesson_admin_2027  # noqa: E402,F401
