@@ -1,6 +1,6 @@
 import unittest
 
-from eng_lessons_2027 import check_answer, public_step, teacher_messages, validate_plan
+from eng_lessons_2027 import check_answer, public_step, teacher_messages, validate_plan, validate_first_fraction_plan
 
 
 PLAN = {"version": 1, "skill_id": "division-as-groups", "steps": [
@@ -44,6 +44,7 @@ class EnglishLessonContractTests(unittest.TestCase):
         self.assertNotIn("hint", str(result))
 
     def test_server_grades_choices_and_continue(self):
+        validate_first_fraction_plan(PLAN)
         self.assertTrue(check_answer(PLAN, 0))
         self.assertFalse(check_answer(PLAN, 1, 0))
         self.assertTrue(check_answer(PLAN, 1, 1))
@@ -53,6 +54,12 @@ class EnglishLessonContractTests(unittest.TestCase):
         bad["steps"][1] = {**bad["steps"][1], "interaction": {**bad["steps"][1]["interaction"], "answer_index": 9}}
         with self.assertRaises(ValueError):
             validate_plan(bad)
+
+    def test_wrong_fraction_answer_cannot_be_approved(self):
+        bad = {**PLAN, "steps": [*PLAN["steps"]]}
+        bad["steps"][1] = {**bad["steps"][1], "interaction": {**bad["steps"][1]["interaction"], "answer_index": 0}}
+        with self.assertRaises(ValueError):
+            validate_first_fraction_plan(bad)
 
 
 if __name__ == "__main__":
