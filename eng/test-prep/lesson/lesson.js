@@ -45,7 +45,7 @@
       message:'You’ve seen how to count equal pieces. Try this one yourself.',
       takeaway:'A half contains two quarters.',
       question:'How many quarters fit into one half?', options:['1','2','4'], hint:'A half is the same size as two quarters.',
-      visual:{type:'bar', parts:4, filled:2, label:'2 of 4 equal parts are shaded'}
+      visual:{type:'bar', parts:4, filled:2, label:'Half the bar is shaded. The whole bar has four equal parts.'}
     }
   ];
   let stageIndex = 0, choice = null, correct = false, hintUsed = false;
@@ -95,6 +95,7 @@
     $('sceneTitle').textContent = stage.lead;
     $('sceneLead').textContent = stageIndex === 0 ? 'A short visual idea, then one question.' : (activeStep?.teacher_text || stage.message);
     $('sceneTakeaway').textContent = stage.takeaway;
+    $('sceneTakeaway').hidden = stageIndex > 0 && !correct;
     document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:'= ?'}));
     $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
     $('questionText').textContent = isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
@@ -174,6 +175,7 @@
       correct = true; complete = stageIndex === stages.length - 1;
       $('answerFeedback').hidden = false; $('answerFeedback').textContent = 'Exactly. Nice work!';
       $('answerFeedback').classList.remove('is-error');
+      $('sceneTakeaway').hidden = false;
       $('checkButton').textContent = complete ? 'Finish lesson →' : 'Continue →';
       return;
     }
@@ -206,6 +208,7 @@
       pendingStep = result.complete ? null : result;
       feedback.textContent = 'Exactly. Nice work!';
       feedback.classList.remove('is-error');
+      $('sceneTakeaway').hidden = false;
       $('hintButton').hidden = true;
       $('answerOptions').querySelectorAll('button').forEach(button => { button.disabled = true; });
       $('checkButton').textContent = complete ? 'Finish lesson →' : 'Continue →';
