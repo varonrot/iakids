@@ -20,3 +20,26 @@
 .scene.is-explaining .visual-stage{flex:0 0 min(29vh,290px);min-height:210px;max-height:290px;margin:10px 0 7px}.scene.is-explaining .plate{width:min(36%,25vh)}.lesson-explanation{font-size:13px;line-height:1.4;color:#244964;overflow-y:auto;min-height:0;margin:0 0 8px}.lesson-explanation p{margin:0 0 6px}.lesson-explanation p:last-child{margin-bottom:0}
 .scene.is-explaining .note-half{top:18%}.scene.is-explaining .note-quarter{bottom:29%}
 @media(max-width:800px){.scene.is-explaining{min-height:0}.scene.is-explaining .visual-stage{height:250px;flex:0 0 250px;min-height:0}.scene.is-explaining .plate{width:min(50%,220px)}.lesson-explanation{overflow:visible}}
+
+/* A short illustrated slide plays while its own narration is heard. */
+.scene.is-explaining .visual-stage{flex:1 1 auto;min-height:250px;max-height:none;margin:16px 0 12px}
+.scene.is-explaining .plate{width:min(52%,38vh)}
+.scene.is-explaining .note-half{top:32%}
+.scene.is-explaining .note-quarter{bottom:29%}
+.scene.is-explaining .equation{display:none}
+.visual-stage[data-reveal="0"] .visual-note,
+.visual-stage[data-reveal="1"] .visual-note,
+.visual-stage[data-reveal="2"] .note-quarter,
+.visual-stage[data-reveal="3"] .note-half{display:none}
+.visual-stage[data-reveal="1"] .focus-half,
+.visual-stage[data-reveal="2"] .focus-half,
+.visual-stage[data-reveal="4"] .focus-half{display:block;clip-path:polygon(0 0,100% 0,100% 50%,0 50%)}
+.visual-stage[data-reveal="3"] .focus-quarter,
+.visual-stage[data-reveal="4"] .focus-quarter{display:block;clip-path:polygon(0 50%,50% 50%,50% 100%,0 100%);background:#f6c47688}
+.scene.is-explaining .visual-stage[data-reveal="4"] .equation{display:block}
+.scene.is-explaining .lesson-explanation{font-size:clamp(17px,1.5vw,23px);font-weight:700;line-height:1.4;color:#173c55;overflow:visible;margin:0 0 10px;max-width:780px}
+.slide-progress{display:flex;gap:7px;margin:0 0 13px}
+.slide-progress span{height:6px;flex:1;border-radius:9px;background:#d8e8e9}
+.slide-progress .is-current{background:#0baaa1}
+.slide-progress .is-complete{background:#87d8cd}
+@media(max-width:800px){.scene.is-explaining .visual-stage{height:290px;flex:0 0 290px;min-height:0}.scene.is-explaining .plate{width:min(58%,235px)}.scene.is-explaining .lesson-explanation{font-size:18px}}

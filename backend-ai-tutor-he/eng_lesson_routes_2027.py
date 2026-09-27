@@ -56,6 +56,7 @@ class NarrationRequest(LimitedRequest):
     kid_id: str
     plan_id: str
     step_index: int = Field(ge=0, le=2)
+    slide_index: int | None = Field(default=None, ge=0, le=4)
 
 
 class AnswerRequest(LimitedRequest):
@@ -207,7 +208,9 @@ def _narration_context(user_id: str, kid_id: str, body: NarrationRequest):
     if not rows or body.step_index > int(rows[0]["current_step"]):
         raise HTTPException(status_code=403, detail="This lesson step is not available.")
     if body.step_index == 0 and plan["content"]["steps"][0]["interaction"]["type"] == "continue":
-        return " ".join(IDEA_NARRATION)
+        return IDEA_NARRATION[body.slide_index or 0]
+    if body.slide_index is not None:
+        raise HTTPException(status_code=422, detail="Slides belong to the first lesson step.")
     return str(plan["content"]["steps"][body.step_index]["teacher_text"])[:450]
 
 

@@ -55,13 +55,30 @@
   narration.preload = 'none';
   let voiceOn = false, spokenKey = '', requestNumber = 0;
   const narrationUrls = new Map();
-  const ideaParagraphs = [
-    'When we divide, we ask how many groups of a certain size fit. Here we have three quarters of a pizza, and each portion we want to make is one half of a pizza. Let’s see how many half-pizza portions fit in what we have.',
-    'The pizza is cut into four equal pieces. Three are shaded, so we have three quarters. One half of this same pizza takes two of those quarter pieces.',
-    'Take two shaded quarters and put them together. That gives us one complete half-pizza portion. We still have one shaded quarter left.',
-    'A full half needs two quarters, but we have only one quarter left. So the leftover piece makes half of a half-pizza portion. It still counts, even though it is not a full portion.',
-    'We made one full half-pizza portion and half of another portion. That is one and a half portions altogether. Check it: one half plus one quarter gives us the three quarters we started with. So three quarters divided by one half is one and a half.'
+  const ideaSlides = [
+    {title:'How many halves fit?', caption:'We have ¾ of a pizza. How many ½-pizza portions can we make?'},
+    {title:'Meet the pieces', caption:'The pizza has four equal quarters. Two quarters make one half.'},
+    {title:'Make one whole portion', caption:'Group two shaded quarters together: that is one full half-pizza portion.'},
+    {title:'Look at what is left', caption:'One shaded quarter remains. That is half of another half-pizza portion.'},
+    {title:'Put the parts together', caption:'One full half, plus half of another half: ¾ ÷ ½ = 1½.'}
   ];
+  let slideIndex = 0, lessonStarted = false, slideTimer = null;
+  function clearSlideTimer() { clearTimeout(slideTimer); slideTimer = null; }
+  function isIdea() { return stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview')); }
+  function advanceSlide() {
+    clearSlideTimer();
+    if (!isIdea() || !lessonStarted) return;
+    if (slideIndex < ideaSlides.length - 1) {
+      slideIndex++;
+      render();
+      if (!voiceOn) scheduleSilentSlide();
+    } else { voiceStatus('You have seen the idea. Try it together next.'); }
+  }
+  function scheduleSilentSlide() {
+    clearSlideTimer();
+    if (isIdea() && lessonStarted && slideIndex < ideaSlides.length - 1)
+      slideTimer = setTimeout(advanceSlide, 9500);
+  }
   $('learnerName').textContent = name;
   $('headerSubject').textContent = payload.draft?.subject || 'Math';
   $('headerGrade').textContent = `Grade ${payload.draft?.grade || 5}`;
@@ -69,9 +86,10 @@
   $('sidebarContext').textContent = `${payload.draft?.subject || 'Math'} · Grade ${payload.draft?.grade || 5}`;
   $('lessonApp').hidden = false;
 
-  function voiceKey() { return `${planId}:${stageIndex}`; }
+  function voiceKey() { return `${planId}:${stageIndex}:${stageIndex === 0 ? slideIndex : 'step'}`; }
   function voiceStatus(message) { $('voiceStatus').textContent = message; $('voiceStatus').hidden = !message; }
   function stopNarration() {
+    clearSlideTimer();
     requestNumber++;
     narration.pause();
     narration.removeAttribute('src');
@@ -79,7 +97,11 @@
   }
   async function playNarration(replay = false) {
     if (!voiceOn) return;
-    if (!planId) { voiceStatus('Audio is available in your signed-in lesson.'); return; }
+    if (!planId) {
+      voiceStatus('Audio is available in your signed-in lesson. Preview slides will continue.');
+      scheduleSilentSlide();
+      return;
+    }
     const key = voiceKey();
     const ticket = ++requestNumber;
     if (replay && spokenKey === key && narration.src) {
@@ -98,7 +120,7 @@
       const cached = narrationUrls.get(key);
       const url = cached && cached.expires > Date.now() ? cached.url :
         (await lessonRequest('narration', {kid_id:child.id, plan_id:planId,
-          step_index:stageIndex})).url;
+          step_index:stageIndex, ...(isIdea() ? {slide_index:slideIndex} : {})})).url;
       if (ticket !== requestNumber || !voiceOn) return;
       narrationUrls.set(key, {url, expires:Date.now() + 8 * 60 * 1000});
       narration.src = url;
@@ -106,16 +128,23 @@
       await narration.play();
       if (ticket === requestNumber) voiceStatus('Playing your teacher’s explanation.');
     } catch {
-      if (ticket === requestNumber) voiceStatus('Could not play audio. Tap Replay to try again.');
+      if (ticket === requestNumber) {
+        voiceStatus('Audio is unavailable. The slides will continue so you can read along.');
+        if (isIdea()) scheduleSilentSlide();
+      }
     }
   }
-  narration.addEventListener('ended', () => { if (voiceOn) voiceStatus('Finished. Tap Replay to hear it again.'); });
+  narration.addEventListener('ended', () => {
+    if (voiceOn && isIdea()) advanceSlide();
+    else if (voiceOn) voiceStatus('Finished. Tap Replay to hear it again.');
+  });
   $('voiceButton').addEventListener('click', () => {
     voiceOn = !voiceOn;
+    if (isIdea()) lessonStarted = true;
     $('voiceButton').setAttribute('aria-pressed', String(voiceOn));
     $('voiceButton').innerHTML = voiceOn ? '<span aria-hidden="true">◼</span> Voice on' : '<span aria-hidden="true">▶</span> Listen to your teacher';
-    if (voiceOn) playNarration(true);
-    else { stopNarration(); $('replayButton').hidden = true; voiceStatus(''); }
+    if (!voiceOn) { stopNarration(); $('replayButton').hidden = true; voiceStatus('Reading without audio.'); scheduleSilentSlide(); }
+    render();
   });
   $('replayButton').addEventListener('click', () => playNarration(true));
 
@@ -127,7 +156,7 @@
     const guidedIdea = stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview'));
     image.hidden = !imageUrl || guidedIdea;
     scene.classList.toggle('has-generated-image', !!imageUrl && !image.hidden);
-    scene.dataset.reveal = stageIndex === 0 ? '4' : '0';
+    scene.dataset.reveal = stageIndex === 0 && guidedIdea ? String(slideIndex) : '0';
     if (imageUrl) { image.src = imageUrl; image.alt = activeStep.visual.alt_text || 'Lesson illustration'; }
     image.onerror = () => { image.hidden = true; scene.classList.remove('has-generated-image'); };
     const isModel = stage.visual.type === 'bar';
@@ -150,7 +179,7 @@
   }
 
   function render() {
-    if (voiceOn && spokenKey !== voiceKey()) playNarration();
+    if (voiceOn && spokenKey !== voiceKey() && (!isIdea() || lessonStarted)) playNarration();
     const stage = stages[stageIndex];
     const interaction = activeStep?.interaction;
     const isContinue = interaction?.type === 'continue' || (stageIndex === 0 && document.body.classList.contains('is-preview'));
@@ -158,27 +187,30 @@
     document.querySelector('.scene').classList.toggle('is-explaining', guidedIdea);
     const optionsList = interaction?.options || stage.options;
     $('sceneEyebrow').textContent = stage.eyebrow;
-    $('sceneCounter').textContent = `Step ${stageIndex + 1} of ${stages.length}`;
-    $('sceneTitle').textContent = stage.lead;
-    $('sceneLead').textContent = stageIndex === 0 ? (guidedIdea ? 'We will use equal pizza pieces to understand what dividing by one half means.' : 'Explore the visual, then check your understanding.') : (activeStep?.teacher_text || stage.message);
+    $('sceneCounter').textContent = guidedIdea ? `Slide ${slideIndex + 1} of ${ideaSlides.length}` : `Step ${stageIndex + 1} of ${stages.length}`;
+    $('sceneTitle').textContent = guidedIdea ? ideaSlides[slideIndex].title : stage.lead;
+    $('sceneLead').textContent = guidedIdea ? 'Watch the pieces change as your teacher explains.' : stageIndex === 0 ? 'Explore the visual, then check your understanding.' : (activeStep?.teacher_text || stage.message);
     $('sceneTakeaway').textContent = stage.takeaway;
-    $('sceneTakeaway').hidden = stageIndex === 0 ? false : !correct && !reviewMode;
-    const showIdeaAnswer = stageIndex === 0 && guidedIdea;
+    $('sceneTakeaway').hidden = guidedIdea ? slideIndex < ideaSlides.length - 1 : stageIndex === 0 ? false : !correct && !reviewMode;
+    const showIdeaAnswer = guidedIdea && slideIndex === ideaSlides.length - 1;
     document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:showIdeaAnswer ? '= 1½' : '= ?'}));
     const explanation = $('lessonExplanation');
     explanation.hidden = !guidedIdea;
+    const slideProgress = $('slideProgress');
+    slideProgress.hidden = !guidedIdea;
     if (guidedIdea) {
-      explanation.replaceChildren(...ideaParagraphs.map((paragraph, index) => {
-        const part = document.createElement('p');
-        part.textContent = paragraph;
-        return part;
+      explanation.textContent = ideaSlides[slideIndex].caption;
+      slideProgress.replaceChildren(...ideaSlides.map((_, index) => {
+        const dot = document.createElement('span');
+        dot.className = index === slideIndex ? 'is-current' : index < slideIndex ? 'is-complete' : '';
+        return dot;
       }));
-      $('guideMessage').textContent = `${name}, read the explanation beside the pizza, or listen to me explain it aloud.`;
+      $('guideMessage').textContent = lessonStarted ? `Slide ${slideIndex + 1}: ${ideaSlides[slideIndex].caption}` : `${name}, press “Start the lesson” once. I’ll explain all five slides aloud.`;
     } else {
       explanation.replaceChildren();
       $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
     }
-    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea || isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
+    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea ? slideIndex === ideaSlides.length - 1 ? 'Ready to try together?' : 'Listen and watch the idea unfold.' : isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
     $('questionLabel').textContent = reviewMode ? 'REVIEW' : stage.eyebrow;
     $('hintCopy').textContent = stage.hint;
     $('hintCopy').hidden = reviewMode || !hintUsed;
@@ -202,8 +234,9 @@
       });
       options.append(button);
     });
-    $('checkButton').disabled = busy || (!reviewMode && !guidedIdea && !isContinue && choice === null && !correct);
+    $('checkButton').disabled = busy || (guidedIdea && (!lessonStarted || slideIndex < ideaSlides.length - 1)) || (!reviewMode && !guidedIdea && !isContinue && choice === null && !correct);
     $('checkButton').textContent = reviewMode ? stageIndex < resumeIndex ? (stageIndex === 0 ? 'Try together →' : 'Your turn →') : `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : guidedIdea ? 'Try together →' : isContinue ? 'Continue →' : 'Check answer →';
+    if (guidedIdea) $('voiceButton').innerHTML = voiceOn ? '<span aria-hidden="true">◼</span> Voice on' : `<span aria-hidden="true">▶</span> ${lessonStarted ? 'Listen to this slide' : 'Start the lesson'}`;
     $('sidebarProgressLabel').textContent = `${resumeIndex + 1} of ${stages.length} steps`;
     $('sidebarProgressBar').style.width = `${(resumeIndex + 1) / stages.length * 100}%`;
     document.querySelectorAll('.step-list li,.footer-dot').forEach((item, index) => {
@@ -261,6 +294,11 @@
       const step = document.body.classList.contains('is-preview') ? null :
         await lessonRequest('review', {kid_id:child.id, plan_id:planId, step_index:index});
       stageIndex = index;
+      if (index === 0) {
+        slideIndex = 0; lessonStarted = false; voiceOn = false;
+        $('voiceButton').setAttribute('aria-pressed', 'false');
+        stopNarration();
+      }
       activeStep = step?.step || null;
       reviewMode = true;
       choice = null; hintUsed = false;
@@ -295,6 +333,7 @@
     }
   });
   $('checkButton').addEventListener('click', async () => {
+    if (isIdea() && (!lessonStarted || slideIndex < ideaSlides.length - 1)) return;
     if (reviewMode) { await openStep(Math.min(stageIndex + 1, resumeIndex)); return; }
     if (document.body.classList.contains('is-preview')) {
       if (stageIndex === 0) { stageIndex = 1; resumeIndex = 1; choice = null; render(); return; }
