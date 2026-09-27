@@ -65,6 +65,7 @@
     image.hidden = !imageUrl;
     scene.classList.toggle('has-generated-image', !!imageUrl);
     if (imageUrl) { image.src = imageUrl; image.alt = activeStep.visual.alt_text || 'Lesson illustration'; }
+    image.onerror = () => { image.hidden = true; scene.classList.remove('has-generated-image'); };
     const isModel = stage.visual.type === 'bar';
     scene.classList.toggle('is-model', isModel);
     model.hidden = !isModel;
