@@ -1,10 +1,10 @@
-# Performance run 20260927-062020-fake
+# Performance run 20260927-172044-eng-voice2-fake
 
-db=fake, fake model delay x1.0, fake DB latency 100.0 ms, box 2 CPUs / 1967 MB, tutor copy idle RSS 138 MB
+db=fake, fake model delay x1.0, fake DB latency 100.0 ms, box 9 CPUs / 9967 MB, tutor copy idle RSS 0 MB
 
 | route | kind | status | 1 req ms | CPU ms/req | DB calls warm (cold) | DB writes | model calls | prod-safe | max OK conc | req/s there | what broke |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| admin-eng-generate | admin | 422 | 4993 | 40.0 | 1 (2) | 0 | 1 | no | - | - | - |
+| eng-lesson-narration | media | 200 | 3956 | 0.0 | 8 (11) | 1 | 1 | no | - | - | - |
 
 ## Children at once (this box)
 

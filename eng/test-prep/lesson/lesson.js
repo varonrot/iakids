@@ -51,6 +51,10 @@
   let stageIndex = 0, choice = null, correct = false, hintUsed = false;
   let planId = null, activeStep = null, pendingStep = null, complete = false, busy = false;
   let resumeIndex = 0, resumeStep = null, reviewMode = false, revealIndex = 0;
+  const narration = new Audio();
+  narration.preload = 'none';
+  let voiceOn = false, spokenKey = '', requestNumber = 0;
+  const narrationUrls = new Map();
   const ideaBeats = [
     {message:'Three of the four equal pizza pieces are shaded. How many half-pizza portions fit?', button:'Show one half →'},
     {message:'Look at the top two quarters. Together they make one whole half.', button:'Look at the last quarter →'},
@@ -63,6 +67,56 @@
   $('sidebarTitle').textContent = payload.draft?.topics?.[0] || 'Dividing fractions';
   $('sidebarContext').textContent = `${payload.draft?.subject || 'Math'} · Grade ${payload.draft?.grade || 5}`;
   $('lessonApp').hidden = false;
+
+  function voiceKey() { return `${planId}:${stageIndex}:${stageIndex === 0 ? revealIndex : 0}`; }
+  function voiceStatus(message) { $('voiceStatus').textContent = message; $('voiceStatus').hidden = !message; }
+  function stopNarration() {
+    requestNumber++;
+    narration.pause();
+    narration.removeAttribute('src');
+    narration.load();
+  }
+  async function playNarration(replay = false) {
+    if (!voiceOn) return;
+    if (!planId) { voiceStatus('Audio is available in your signed-in lesson.'); return; }
+    const key = voiceKey();
+    const ticket = ++requestNumber;
+    if (replay && spokenKey === key && narration.src) {
+      narration.currentTime = 0;
+      try { await narration.play(); voiceStatus('Playing your teacher’s explanation.'); }
+      catch { voiceStatus('Tap Replay to start the audio.'); }
+      return;
+    }
+    narration.pause();
+    narration.removeAttribute('src');
+    narration.load();
+    spokenKey = key;
+    $('replayButton').hidden = true;
+    voiceStatus('Preparing your teacher’s voice…');
+    try {
+      const cached = narrationUrls.get(key);
+      const url = cached && cached.expires > Date.now() ? cached.url :
+        (await lessonRequest('narration', {kid_id:child.id, plan_id:planId,
+          step_index:stageIndex, reveal_phase:stageIndex === 0 ? revealIndex : 0})).url;
+      if (ticket !== requestNumber || !voiceOn) return;
+      narrationUrls.set(key, {url, expires:Date.now() + 8 * 60 * 1000});
+      narration.src = url;
+      $('replayButton').hidden = false;
+      await narration.play();
+      if (ticket === requestNumber) voiceStatus('Playing your teacher’s explanation.');
+    } catch {
+      if (ticket === requestNumber) voiceStatus('Could not play audio. Tap Replay to try again.');
+    }
+  }
+  narration.addEventListener('ended', () => { if (voiceOn) voiceStatus('Finished. Tap Replay to hear it again.'); });
+  $('voiceButton').addEventListener('click', () => {
+    voiceOn = !voiceOn;
+    $('voiceButton').setAttribute('aria-pressed', String(voiceOn));
+    $('voiceButton').innerHTML = voiceOn ? '<span aria-hidden="true">◼</span> Voice on' : '<span aria-hidden="true">▶</span> Listen to your teacher';
+    if (voiceOn) playNarration(true);
+    else { stopNarration(); $('replayButton').hidden = true; voiceStatus(''); }
+  });
+  $('replayButton').addEventListener('click', () => playNarration(true));
 
   function renderModel(stage) {
     const scene = document.querySelector('.visual-stage');
@@ -95,6 +149,7 @@
   }
 
   function render() {
+    if (voiceOn && spokenKey !== voiceKey()) playNarration();
     const stage = stages[stageIndex];
     const interaction = activeStep?.interaction;
     const isContinue = interaction?.type === 'continue' || (stageIndex === 0 && document.body.classList.contains('is-preview'));

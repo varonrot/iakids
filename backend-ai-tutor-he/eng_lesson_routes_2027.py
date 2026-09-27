@@ -1,19 +1,36 @@
 """Authenticated English micro-lesson endpoints; imported by test_prep_2027."""
 
 from datetime import datetime, timezone
+import hashlib
+import httpx
+import io
 import os
 import re
+import time
+import wave
 
 from fastapi import Header, HTTPException
 from pydantic import Field
 from starlette.concurrency import run_in_threadpool
 
-from main import (LimitedRequest, aclient, app, authenticate_user, get_child_by_id,
-                  guard_reply_payload, llm_model, sb, signed_url_cached, spend_daily_budget)
+from main import (LimitedRequest, OPENROUTER_API_KEY, OPENROUTER_BASE_URL,
+                  OPENROUTER_TTS_MODEL, TTS_PROVIDER, aclient, app, authenticate_user, get_child_by_id,
+                  _record_openrouter_tts, gemini_client, guard_reply_payload, llm_model, sb, signed_url_cached,
+                  spend_daily_budget, types)
 from eng_lessons_2027 import check_answer, public_step
 from test_prep_2027 import SUBJECT, TOPIC, _diagnostic
 
 BUCKET = "2027-eng-lesson-media"
+AUDIO_BUCKET = "2027-eng-lesson-audio"
+VOICE_MODEL = (OPENROUTER_TTS_MODEL if TTS_PROVIDER == "openrouter" else
+               os.getenv("ENG_LESSON_VOICE_MODEL", "gemini-3.1-flash-tts-preview"))
+VOICE_NAME = "Aoede"
+IDEA_NARRATION = (
+    "Three of the four equal pizza pieces are shaded. How many half-pizza portions fit?",
+    "Look at the top two quarters. Together they make one whole half.",
+    "One quarter remains. It is half of another half. What does that make altogether?",
+    "One whole half plus half of another half makes one and a half halves.",
+)
 
 
 class StartRequest(LimitedRequest):
@@ -32,6 +49,13 @@ class HelpRequest(LimitedRequest):
     step_index: int = Field(ge=0, le=2)
     help_kind: str = Field(pattern="^(hint|explain)$")
     option_index: int | None = Field(default=None, ge=0, le=3)
+    reveal_phase: int = Field(default=0, ge=0, le=3)
+
+
+class NarrationRequest(LimitedRequest):
+    kid_id: str
+    plan_id: str
+    step_index: int = Field(ge=0, le=2)
     reveal_phase: int = Field(default=0, ge=0, le=3)
 
 
@@ -172,6 +196,84 @@ def _review(user_id: str, kid_id: str, body: ReviewRequest):
 async def review_english_lesson(body: ReviewRequest, authorization: str = Header(None)):
     user_id = await run_in_threadpool(_parent_and_child, authorization, body.kid_id)
     return await run_in_threadpool(_review, user_id, body.kid_id, body)
+
+
+def _narration_context(user_id: str, kid_id: str, body: NarrationRequest):
+    plan = _approved_plan(user_id, kid_id)
+    if plan["id"] != body.plan_id:
+        raise HTTPException(status_code=409, detail="Restart the lesson to load its current plan.")
+    rows = (sb.table("2027_eng_lesson_progress").select("current_step")
+            .eq("user_id", user_id).eq("child_id", kid_id)
+            .eq("plan_id", body.plan_id).limit(1).execute().data or [])
+    if not rows or body.step_index > int(rows[0]["current_step"]):
+        raise HTTPException(status_code=403, detail="This lesson step is not available.")
+    if body.step_index == 0 and plan["content"]["steps"][0]["interaction"]["type"] == "continue":
+        return IDEA_NARRATION[body.reveal_phase]
+    return str(plan["content"]["steps"][body.step_index]["teacher_text"])[:450]
+
+
+def _narration_path(plan_id: str, text: str) -> str:
+    digest = hashlib.sha256(f"{VOICE_MODEL}|{VOICE_NAME}|{text}".encode()).hexdigest()[:24]
+    return f"plans/{plan_id}/{digest}.wav"
+
+
+def _cached_narration(path: str) -> bool:
+    directory, filename = path.rsplit("/", 1)
+    return any(item.get("name") == filename for item in
+               sb.storage.from_(AUDIO_BUCKET).list(directory, {"limit": 100}))
+
+
+def _generate_narration(text: str) -> bytes:
+    script = ("Speak in warm, natural English as a patient female Grade 5 teacher. "
+              "Use a gentle pause between ideas. Read exactly these words, without adding anything:\n\n" + text)
+    if TTS_PROVIDER == "openrouter":
+        started = time.time()
+        result = httpx.post(
+            f"{OPENROUTER_BASE_URL}/audio/speech",
+            headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                     "HTTP-Referer": "https://iakids.app", "X-Title": "iakids tutor"},
+            json={"model": VOICE_MODEL, "input": script, "voice": VOICE_NAME,
+                  "response_format": "pcm"}, timeout=90)
+        _record_openrouter_tts(result, started)
+        result.raise_for_status()
+        pcm = result.content
+    else:
+        response = gemini_client.models.generate_content(
+            model=VOICE_MODEL, contents=script,
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=VOICE_NAME))),
+                http_options=types.HttpOptions(timeout=90_000)))
+        pcm = response.candidates[0].content.parts[0].inline_data.data
+    if not pcm:
+        raise RuntimeError("No narration audio returned")
+    out = io.BytesIO()
+    with wave.open(out, "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(24000)
+        wav.writeframes(pcm)
+    return out.getvalue()
+
+
+@app.post("/api/eng/lesson-engine/narration")
+async def english_lesson_narration(body: NarrationRequest, authorization: str = Header(None)):
+    user_id = await run_in_threadpool(_parent_and_child, authorization, body.kid_id)
+    text = await run_in_threadpool(_narration_context, user_id, body.kid_id, body)
+    path = _narration_path(body.plan_id, text)
+    if not await run_in_threadpool(_cached_narration, path):
+        await run_in_threadpool(spend_daily_budget, user_id, "model")
+        try:
+            wav = await run_in_threadpool(_generate_narration, text)
+            await run_in_threadpool(lambda: sb.storage.from_(AUDIO_BUCKET).upload(
+                path, wav, {"content-type": "audio/wav", "upsert": "false"}))
+        except Exception as exc:
+            # A concurrent request may have stored the same shared narration first.
+            if not await run_in_threadpool(_cached_narration, path):
+                print("ENG LESSON NARRATION ERROR:", type(exc).__name__)
+                raise HTTPException(status_code=503, detail="Audio is unavailable. Please try again.")
+    return {"url": await run_in_threadpool(signed_url_cached, AUDIO_BUCKET, path, 600)}
 
 
 def _help_context(user_id: str, kid_id: str, body: HelpRequest):

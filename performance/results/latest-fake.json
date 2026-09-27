@@ -1,5 +1,5 @@
 {
- "run": "20260927-150517-fake",
+ "run": "20260927-172044-eng-voice2-fake",
  "db": "fake",
  "scale": 1.0,
  "db_latency_ms": 100.0,
@@ -1697,12 +1697,46 @@
    "model_calls": 1,
    "prod_safe": false,
    "error": null
+  },
+  "eng-lesson-narration": {
+   "kind": "media",
+   "status": 200,
+   "ms": 3956.3,
+   "cpu_ms": 0.0,
+   "db_calls": 8,
+   "db_calls_cold": 11,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:2027_test_prep_topics": 1,
+    "GET table:2027_test_prep_quick_checks": 1,
+    "GET table:2027_test_prep_lessons": 1,
+    "GET table:2027_eng_lesson_progress": 2,
+    "GET table:2027_eng_lesson_plans": 1,
+    "POST storage/v1/object/list": 1,
+    "POST storage/v1/object": 1,
+    "POST storage/v1/object/sign": 1
+   },
+   "db_ms": 805.7,
+   "db_by": {
+    "GET table:2027_test_prep_topics": 1,
+    "GET table:2027_test_prep_quick_checks": 1,
+    "GET table:2027_test_prep_lessons": 1,
+    "GET table:2027_eng_lesson_progress": 2,
+    "GET table:2027_eng_lesson_plans": 1,
+    "POST storage/v1/object/list": 1,
+    "POST storage/v1/object": 1
+   },
+   "db_writes": 1,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
   }
  },
  "box": {
-  "cpus": 2,
-  "mem_total_mb": 1967,
-  "tutor_rss_idle_mb": 138
+  "cpus": 9,
+  "mem_total_mb": 9967,
+  "tutor_rss_idle_mb": 0
  },
  "summary": {
   "per_child_cpu_ms_per_min": 0.0,
@@ -1726,5 +1760,5 @@
  "workers": 1,
  "cpus": "all",
  "main_sha": "95e0dd1a72c862af",
- "tutor_dir": "/opt/iakids/backend-ai-tutor-he"
+ "tutor_dir": "/workspace/scratch/787aa882e80f/eng-live-work/backend-ai-tutor-he"
 }

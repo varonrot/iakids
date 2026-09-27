@@ -31,6 +31,13 @@ def load_routes():
     fake_main.authenticate_user = lambda *_: None
     fake_main.get_child_by_id = lambda *_: None
     fake_main.aclient = None
+    fake_main.gemini_client = None
+    fake_main.types = None
+    fake_main.TTS_PROVIDER = "gemini"
+    fake_main.OPENROUTER_TTS_MODEL = "google/gemini-3.1-flash-tts-preview"
+    fake_main.OPENROUTER_BASE_URL = "https://example.invalid"
+    fake_main.OPENROUTER_API_KEY = "test"
+    fake_main._record_openrouter_tts = lambda *_: None
     fake_main.guard_reply_payload = lambda value, *_: value
     fake_main.llm_model = lambda name: name
     fake_main.spend_daily_budget = lambda *_: None
@@ -205,6 +212,24 @@ class EnglishLessonRouteTests(unittest.TestCase):
                                      help_kind="hint", option_index=0, reveal_phase=0)
         result = asyncio.run(route.help_english_lesson(body, "Bearer token"))
         self.assertEqual(result["hint"], "Count the shaded equal pieces one at a time.")
+
+    def test_narration_uses_approved_step_and_no_client_text(self):
+        route = load_routes()
+        class ReadOnlyTable:
+            def select(self, *_): return self
+            def eq(self, *_): return self
+            def limit(self, *_): return self
+            def execute(self): return types.SimpleNamespace(data=[{"current_step": 1}])
+        route.sb = types.SimpleNamespace(table=lambda *_: ReadOnlyTable())
+        route._approved_plan = lambda *_: {"id": "plan-1", "content": PLAN}
+        body = types.SimpleNamespace(kid_id="child-1", plan_id="plan-1", step_index=0,
+                                     reveal_phase=1)
+        self.assertEqual(route._narration_context("parent-1", "child-1", body),
+                         route.IDEA_NARRATION[1])
+        body.step_index = 2
+        with self.assertRaises(route.HTTPException) as error:
+            route._narration_context("parent-1", "child-1", body)
+        self.assertEqual(error.exception.status_code, 403)
 
 
 if __name__ == "__main__":

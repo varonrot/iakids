@@ -88,6 +88,7 @@ ROUTES = {
     "eng-lesson-answer":    dict(method="POST", path="/api/eng/lesson-engine/answer", body={"kid_id": KID, "plan_id": "00000000-0000-0000-0000-000000000000", "step_index": 0}, kind="write", p95_ms=1500, ramp=False, db_max=10),
     "eng-lesson-review":    dict(method="POST", path="/api/eng/lesson-engine/review", body={"kid_id": KID, "plan_id": "00000000-0000-0000-0000-000000000000", "step_index": 0}, kind="read", p95_ms=1500, ramp=False, db_max=9),
     "eng-lesson-help":      dict(method="POST", path="/api/eng/lesson-engine/help", body={"kid_id": KID, "plan_id": "00000000-0000-0000-0000-000000000000", "step_index": 1, "help_kind": "explain"}, kind="model", p95_ms=9000, ramp=False, db_max=9),
+    "eng-lesson-narration": dict(method="POST", path="/api/eng/lesson-engine/narration", body={"kid_id": KID, "plan_id": "00000000-0000-0000-0000-000000000000", "step_index": 1}, kind="media", p95_ms=90000, ramp=False, db_max=9),
     "admin-eng-draft":      dict(method="GET",  path="/api/admin/eng/lesson-engine/draft", kind="admin", p95_ms=1000, ramp=False, db_max=1),
     "admin-eng-generate":   dict(method="POST", path="/api/admin/eng/lesson-engine/generate", kind="admin", p95_ms=20000, ramp=False, db_max=2),
     "admin-eng-approve":    dict(method="POST", path="/api/admin/eng/lesson-engine/approve", kind="admin", p95_ms=1000, ramp=False, db_max=2),
