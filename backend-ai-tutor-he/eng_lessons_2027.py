@@ -42,8 +42,13 @@ def teacher_messages(*, grade: int, subject: str, topic: str, language: str = "e
         {"role": "user", "content": (
             f"Prepare the first micro-lesson. Grade {grade}. Subject: {subject}. "
             f"Topic: {topic}. Language: {language}. "
-            "Each step needs teacher_text, a visual brief or none, and an interaction. "
-            "The answer_index must be a zero-based integer for multiple choice."
+            "Use version 1 and skill_id division-as-groups. Each step needs its "
+            "phase, short teacher_text, a visual object with kind none or "
+            "generated_image and a brief when generated, and an interaction. "
+            "The interaction type is continue or multiple_choice. For multiple "
+            "choice, provide a prompt, 2-4 options, a short hint, and a zero-based "
+            "answer_index. Never ask the child to type. Use no more than three "
+            "short sentences per step."
         )},
     ]
 
