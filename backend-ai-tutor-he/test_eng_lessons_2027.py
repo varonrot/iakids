@@ -29,6 +29,15 @@ class EnglishLessonContractTests(unittest.TestCase):
         self.assertNotIn("answer_index", str(result))
         self.assertNotIn("Three shaded quarters", str(result))
 
+    def test_unexpected_private_fields_are_not_projected(self):
+        plan = {**PLAN, "steps": [*PLAN["steps"]]}
+        plan["steps"][1] = {**plan["steps"][1], "secret_note": "server only",
+                            "interaction": {**plan["steps"][1]["interaction"], "hint": "Keep trying", "private_answer": "1½"}}
+        result = public_step(plan, 1)
+        self.assertNotIn("server only", str(result))
+        self.assertNotIn("private_answer", str(result))
+        self.assertNotIn("hint", str(result))
+
     def test_server_grades_choices_and_continue(self):
         self.assertTrue(check_answer(PLAN, 0))
         self.assertFalse(check_answer(PLAN, 1, 0))
