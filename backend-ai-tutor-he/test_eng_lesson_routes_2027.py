@@ -112,5 +112,43 @@ class EnglishLessonRouteTests(unittest.TestCase):
         self.assertIsNotNone(state["completed_at"])
 
 
+    def test_review_only_reads_completed_step(self):
+        route = load_routes()
+        reads = []
+
+        class ReadOnlyTable:
+            def __init__(self, name):
+                self.name = name
+
+            def select(self, *_):
+                return self
+
+            def eq(self, *args):
+                return self
+
+            def limit(self, *_):
+                return self
+
+            def execute(self):
+                reads.append(self.name)
+                data = ([{"current_step": 1}] if self.name == "2027_eng_lesson_progress"
+                        else [{"id": "plan-1", "content": PLAN}] if self.name == "2027_eng_lesson_plans"
+                        else [])
+                return types.SimpleNamespace(data=data)
+
+        route.sb = types.SimpleNamespace(table=lambda name: ReadOnlyTable(name))
+        route._visible_step = lambda plan_id, content, index: public_step(content, index)
+        body = types.SimpleNamespace(kid_id="child-1", plan_id="plan-1", step_index=0)
+        reviewed = route._review("parent-1", "child-1", body)
+        self.assertEqual(reviewed["step_index"], 0)
+        self.assertNotIn("correct_option_index", str(reviewed))
+        self.assertEqual(reads, ["2027_eng_lesson_progress", "2027_eng_lesson_plans"])
+        body.step_index = 1
+        with self.assertRaises(route.HTTPException) as error:
+            route._review("parent-1", "child-1", body)
+        self.assertEqual(error.exception.status_code, 403)
+        self.assertEqual(reads[-1], "2027_eng_lesson_progress")
+
+
 if __name__ == "__main__":
     unittest.main()
