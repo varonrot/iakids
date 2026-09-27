@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
-
 PHASES = ("see_the_idea", "try_together", "your_turn")
 INTERACTIONS = {"continue", "multiple_choice"}
 SUBJECT_GUIDES = {
@@ -87,12 +85,17 @@ def public_step(plan: dict, index: int, image_url: str | None = None) -> dict:
     validate_plan(plan)
     if not isinstance(index, int) or index not in range(len(plan["steps"])):
         raise ValueError("Invalid step")
-    step = deepcopy(plan["steps"][index])
-    step["interaction"].pop("answer_index", None)
-    step["interaction"].pop("hint", None)
-    step["visual"].pop("brief", None)
+    source = plan["steps"][index]
+    action = source["interaction"]
+    visual = {"kind": source["visual"]["kind"]}
     if image_url:
-        step["visual"]["url"] = image_url
+        visual["url"] = image_url
+    interaction = {"type": action["type"]}
+    if action["type"] == "multiple_choice":
+        interaction["prompt"] = action["prompt"]
+        interaction["options"] = list(action["options"])
+    step = {"phase": source["phase"], "teacher_text": source["teacher_text"],
+            "visual": visual, "interaction": interaction}
     return {"version": 1, "skill_id": plan["skill_id"], "step_index": index,
             "step_count": len(plan["steps"]), "step": step}
 
