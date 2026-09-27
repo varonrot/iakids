@@ -13,4 +13,4 @@ The migrations in `sql/` have been applied to Supabase. They add `2027_eng_lesso
 The code is on `feature/eng-lessons-2027` as draft PR #3, not deployed to the live site. Generation and image endpoints still need a live integration check before merging.
 
 Run `node --test eng/lesson-engine/teacher-plan.test.js` from the repository root.
-Run `python -m unittest test_eng_lessons_2027.py` from `backend-ai-tutor-he/`.
+Run `python -m unittest test_eng_lessons_2027.py test_eng_lesson_routes_2027.py` from `backend-ai-tutor-he/`.
