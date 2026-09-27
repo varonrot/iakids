@@ -43,3 +43,14 @@
 .slide-progress .is-current{background:#0baaa1}
 .slide-progress .is-complete{background:#87d8cd}
 @media(max-width:800px){.scene.is-explaining .visual-stage{height:290px;flex:0 0 290px;min-height:0}.scene.is-explaining .plate{width:min(58%,235px)}.scene.is-explaining .lesson-explanation{font-size:18px}}
+
+/* Make the lesson steps visibly tappable, including review of completed steps. */
+.step-list li,.step-list li.is-current{padding:0;background:transparent}
+.step-jump{min-height:70px;padding:11px 10px;border:1px solid #cfe4e3;border-radius:14px;background:#fff;box-shadow:0 2px 5px #164d490b;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s}
+.step-list li.is-current .step-jump{background:#dff8f2;border-color:#40c6b7;color:#073b4e;box-shadow:0 3px 9px #0b96861b}
+.step-list li.is-complete .step-jump{border-color:#96d7cf;background:#f7fffd;color:#087b7b}
+.step-jump:not(:disabled):hover{background:#cdf3eb;border-color:#0aa99c;box-shadow:0 6px 15px #0a9b8c25;transform:translateY(-1px);text-decoration:none}
+.step-jump:not(:disabled):hover strong,.step-jump:not(:disabled):hover small{text-decoration:none}
+.step-jump:focus-visible{outline:3px solid #087f84;outline-offset:2px}
+.step-jump:disabled{background:#f5f8f8;border-color:#e3eded;color:#80939d;box-shadow:none}
+@media(max-width:800px){.step-list li{padding:0;min-width:0}.step-jump{min-height:50px;gap:5px;padding:7px 5px}.step-list strong{white-space:normal;line-height:1.15}}
