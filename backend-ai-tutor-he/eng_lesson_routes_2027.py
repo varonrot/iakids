@@ -17,6 +17,12 @@ class StartRequest(LimitedRequest):
     kid_id: str
 
 
+class ReviewRequest(LimitedRequest):
+    kid_id: str
+    plan_id: str
+    step_index: int = Field(ge=0, le=2)
+
+
 class AnswerRequest(LimitedRequest):
     kid_id: str
     plan_id: str
@@ -130,6 +136,30 @@ def _submit(user_id: str, kid_id: str, body: AnswerRequest):
         return {"correct": True, "complete": True}
     return {"correct": True, "complete": False,
             **_visible_step(plan["id"], plan["content"], next_index)}
+
+
+def _review(user_id: str, kid_id: str, body: ReviewRequest):
+    # A completed step can be read again, without changing the saved lesson position.
+    progress_rows = (sb.table("2027_eng_lesson_progress").select("current_step")
+                     .eq("user_id", user_id).eq("child_id", kid_id)
+                     .eq("plan_id", body.plan_id).limit(1).execute().data or [])
+    if not progress_rows or body.step_index >= int(progress_rows[0]["current_step"]):
+        raise HTTPException(status_code=403, detail="This step is not available for review.")
+    rows = (sb.table("2027_eng_lesson_plans").select("id,content")
+            .eq("id", body.plan_id).eq("status", "approved")
+            .eq("language", "en").eq("grade", 5).eq("subject", SUBJECT)
+            .eq("topic", TOPIC).eq("skill_id", "division-as-groups")
+            .limit(1).execute().data or [])
+    if not rows:
+        raise HTTPException(status_code=404, detail="This lesson is no longer available.")
+    return {"plan_id": body.plan_id,
+            **_visible_step(body.plan_id, rows[0]["content"], body.step_index)}
+
+
+@app.post("/api/eng/lesson-engine/review")
+async def review_english_lesson(body: ReviewRequest, authorization: str = Header(None)):
+    user_id = await run_in_threadpool(_parent_and_child, authorization, body.kid_id)
+    return await run_in_threadpool(_review, user_id, body.kid_id, body)
 
 
 @app.post("/api/eng/lesson-engine/answer")
