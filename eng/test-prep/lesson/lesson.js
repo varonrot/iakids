@@ -155,6 +155,7 @@
     const interaction = activeStep?.interaction;
     const isContinue = interaction?.type === 'continue' || (stageIndex === 0 && document.body.classList.contains('is-preview'));
     const guidedIdea = stageIndex === 0 && isContinue;
+    document.querySelector('.scene').classList.toggle('is-explaining', guidedIdea);
     const optionsList = interaction?.options || stage.options;
     $('sceneEyebrow').textContent = stage.eyebrow;
     $('sceneCounter').textContent = `Step ${stageIndex + 1} of ${stages.length}`;
@@ -164,13 +165,17 @@
     $('sceneTakeaway').hidden = stageIndex === 0 ? false : !correct && !reviewMode;
     const showIdeaAnswer = stageIndex === 0 && guidedIdea;
     document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:showIdeaAnswer ? '= 1½' : '= ?'}));
+    const explanation = $('lessonExplanation');
+    explanation.hidden = !guidedIdea;
     if (guidedIdea) {
-      $('guideMessage').replaceChildren(...ideaParagraphs.map((paragraph, index) => {
+      explanation.replaceChildren(...ideaParagraphs.map((paragraph, index) => {
         const part = document.createElement('p');
-        part.textContent = index === 0 ? `${name}, ${paragraph}` : paragraph;
+        part.textContent = paragraph;
         return part;
       }));
+      $('guideMessage').textContent = `${name}, read the explanation beside the pizza, or listen to me explain it aloud.`;
     } else {
+      explanation.replaceChildren();
       $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
     }
     $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea || isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
