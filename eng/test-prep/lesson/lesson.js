@@ -19,6 +19,12 @@
   const child = payload.child;
   const aiLesson = payload.lesson;
   const name = (child.child_name || 'learner').trim().slice(0, 40);
+  const API = 'https://iakids-ai-tutor-he.onrender.com';
+  const auth = !document.body.classList.contains('is-preview') && window.supabase?.createClient(
+    'https://bxnfzuglfwytiyaguwjj.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o',
+    {auth:{flowType:'pkce', storageKey:'iakids-eng-auth', persistSession:true, autoRefreshToken:true, detectSessionInUrl:false}}
+  );
   const stages = [
     {
       title:'See the idea', eyebrow:'SEE THE IDEA', equation:'¾ ÷ ½', lead:aiLesson.headline,
@@ -43,6 +49,7 @@
     }
   ];
   let stageIndex = 0, choice = null, correct = false, hintUsed = false;
+  let planId = null, activeStep = null, pendingStep = null, complete = false, busy = false;
   $('learnerName').textContent = name;
   $('headerSubject').textContent = payload.draft?.subject || 'Math';
   $('headerGrade').textContent = `Grade ${payload.draft?.grade || 5}`;
@@ -74,38 +81,42 @@
 
   function render() {
     const stage = stages[stageIndex];
+    const interaction = activeStep?.interaction;
+    const isContinue = interaction?.type === 'continue';
+    const optionsList = interaction?.options || stage.options;
     $('sceneEyebrow').textContent = stage.eyebrow;
     $('sceneCounter').textContent = `Step ${stageIndex + 1} of ${stages.length}`;
     $('sceneTitle').textContent = stage.lead;
-    $('sceneLead').textContent = stageIndex === 0 ? 'A short visual idea, then one question.' : stage.message;
+    $('sceneLead').textContent = stageIndex === 0 ? 'A short visual idea, then one question.' : (activeStep?.teacher_text || stage.message);
     $('sceneTakeaway').textContent = stage.takeaway;
     document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:'= ?'}));
-    $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${stage.message}` : stage.message;
-    $('questionText').textContent = stage.question;
+    $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
+    $('questionText').textContent = isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
     $('questionLabel').textContent = stage.eyebrow;
     $('hintCopy').textContent = stage.hint;
     $('hintCopy').hidden = !hintUsed;
-    $('hintButton').hidden = correct;
+    $('hintButton').hidden = correct || isContinue;
     $('answerFeedback').hidden = !correct;
     $('answerFeedback').classList.remove('is-error');
     $('answerFeedback').textContent = correct ? 'Exactly. Nice work!' : '';
     const options = $('answerOptions');
     options.replaceChildren();
-    stage.options.forEach(value => {
+    optionsList.forEach((value, optionIndex) => {
+      if (isContinue) return;
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = value;
-      button.setAttribute('aria-pressed', String(choice === value));
+      button.setAttribute('aria-pressed', String(choice === optionIndex));
       button.disabled = correct;
       button.addEventListener('click', () => {
-        choice = value;
+        choice = optionIndex;
         options.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
         $('checkButton').disabled = false;
       });
       options.append(button);
     });
-    $('checkButton').disabled = !choice && !correct;
-    $('checkButton').textContent = correct ? stageIndex === stages.length - 1 ? 'Finish lesson →' : 'Continue →' : 'Check answer →';
+    $('checkButton').disabled = busy || (!isContinue && choice === null && !correct);
+    $('checkButton').textContent = correct ? complete ? 'Finish lesson →' : 'Continue →' : isContinue ? 'Continue →' : 'Check answer →';
     $('sidebarProgressLabel').textContent = `${stageIndex + 1} of ${stages.length} steps`;
     $('sidebarProgressBar').style.width = `${(stageIndex + 1) / stages.length * 100}%`;
     document.querySelectorAll('.step-list li,.footer-dot').forEach((item, index) => {
@@ -114,31 +125,93 @@
     });
     renderModel(stage);
   }
-  $('hintButton').addEventListener('click', () => { hintUsed = true; $('hintCopy').hidden = false; });
-  $('checkButton').addEventListener('click', () => {
-    if (correct) {
-      if (stageIndex === stages.length - 1) { location.assign('../../#test-prep'); return; }
-      stageIndex++; choice = null; correct = false; hintUsed = false; render(); return;
-    }
-    if (!choice) return;
+  async function lessonRequest(path, data) {
+    if (!auth) throw new Error('Your sign-in could not be loaded. Open Test Prep and try again.');
+    const {data:{session}, error} = await auth.auth.getSession();
+    if (error || !session?.access_token) throw new Error('Your session expired. Open Test Prep and sign in again.');
+    const response = await fetch(`${API}/api/eng/lesson-engine/${path}`, {
+      method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${session.access_token}`},
+      body:JSON.stringify(data)
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : 'The lesson could not be loaded. Please try again.');
+    return result;
+  }
+  function showError(message) {
     const feedback = $('answerFeedback');
+    feedback.textContent = message;
+    feedback.classList.add('is-error');
     feedback.hidden = false;
-    if (choice === stages[stageIndex].answer) {
+  }
+  async function start() {
+    if (document.body.classList.contains('is-preview')) { render(); return; }
+    try {
+      const result = await lessonRequest('start', {kid_id:child.id});
+      if (result.complete) { location.assign('../../#test-prep'); return; }
+      planId = result.plan_id; stageIndex = result.step_index; activeStep = result.step;
+      render();
+    } catch (error) {
+      showError(error.message);
+      $('checkButton').textContent = 'Try loading again →';
+      $('checkButton').disabled = false;
+    }
+  }
+  $('hintButton').addEventListener('click', () => { hintUsed = true; $('hintCopy').hidden = false; });
+  $('checkButton').addEventListener('click', async () => {
+    if (document.body.classList.contains('is-preview')) {
+      if (correct) {
+        if (stageIndex === stages.length - 1) { location.assign('../../#test-prep'); return; }
+        stageIndex++; choice = null; correct = false; hintUsed = false; render(); return;
+      }
+      if (choice === null) return;
+      const stage = stages[stageIndex];
+      if (stage.options[choice] !== stage.answer) {
+        showError('Take another look at the visual, then try again.');
+        $('hintCopy').hidden = false; choice = null; $('checkButton').disabled = true; return;
+      }
+      correct = true; complete = stageIndex === stages.length - 1;
+      $('answerFeedback').hidden = false; $('answerFeedback').textContent = 'Exactly. Nice work!';
+      $('answerFeedback').classList.remove('is-error');
+      $('checkButton').textContent = complete ? 'Finish lesson →' : 'Continue →';
+      return;
+    }
+    if (!planId) { await start(); return; }
+    if (correct) {
+      if (complete) { location.assign('../../#test-prep'); return; }
+      stageIndex = pendingStep.step_index; activeStep = pendingStep.step; pendingStep = null;
+      choice = null; correct = false; hintUsed = false; render(); return;
+    }
+    if (choice === null && activeStep?.interaction.type !== 'continue') return;
+    if (!planId) return;
+    const feedback = $('answerFeedback');
+    busy = true; $('checkButton').disabled = true;
+    try {
+      const result = await lessonRequest('answer', {kid_id:child.id, plan_id:planId,
+        step_index:stageIndex, option_index:activeStep.interaction.type === 'continue' ? null : choice});
+      feedback.hidden = false;
+      if (!result.correct) {
+        feedback.textContent = 'Take another look at the visual, then try again.';
+        feedback.classList.add('is-error');
+        $('hintCopy').textContent = result.hint || 'Look at the visual and try again.';
+        $('hintCopy').hidden = false;
+        hintUsed = true; choice = null;
+        $('answerOptions').querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed','false'));
+        return;
+      }
       correct = true;
+      complete = result.complete;
+      pendingStep = result.complete ? null : result;
       feedback.textContent = 'Exactly. Nice work!';
       feedback.classList.remove('is-error');
       $('hintButton').hidden = true;
       $('answerOptions').querySelectorAll('button').forEach(button => { button.disabled = true; });
-      $('checkButton').textContent = stageIndex === stages.length - 1 ? 'Finish lesson →' : 'Continue →';
-    } else {
-      feedback.textContent = 'Take another look at the visual, then try again.';
-      feedback.classList.add('is-error');
-      $('hintCopy').hidden = false;
-      hintUsed = true;
-      choice = null;
-      $('answerOptions').querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed','false'));
-      $('checkButton').disabled = true;
+      $('checkButton').textContent = complete ? 'Finish lesson →' : 'Continue →';
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      busy = false;
+      $('checkButton').disabled = !correct && activeStep?.interaction.type !== 'continue' && choice === null;
     }
   });
-  render();
+  start();
 })();
