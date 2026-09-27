@@ -100,7 +100,7 @@
     $('questionLabel').textContent = stage.eyebrow;
     $('hintCopy').textContent = stage.hint;
     $('hintCopy').hidden = !hintUsed;
-    $('hintButton').hidden = correct || isContinue;
+    $('hintButton').hidden = correct || isContinue || !!activeStep;
     $('answerFeedback').hidden = !correct;
     $('answerFeedback').classList.remove('is-error');
     $('answerFeedback').textContent = correct ? 'Exactly. Nice work!' : '';
@@ -188,7 +188,8 @@
     busy = true; $('checkButton').disabled = true;
     try {
       const result = await lessonRequest('answer', {kid_id:child.id, plan_id:planId,
-        step_index:stageIndex, option_index:activeStep.interaction.type === 'continue' ? null : choice});
+        step_index:stageIndex, option_index:activeStep.interaction.type === 'continue' ? null : choice,
+        hint_used:hintUsed});
       feedback.hidden = false;
       if (!result.correct) {
         feedback.textContent = 'Take another look at the visual, then try again.';
