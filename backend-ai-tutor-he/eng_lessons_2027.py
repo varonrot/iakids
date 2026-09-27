@@ -47,8 +47,11 @@ def teacher_messages(*, grade: int, subject: str, topic: str, language: str = "e
             "generated_image and a brief when generated, and an interaction. "
             "The interaction type is continue or multiple_choice. For multiple "
             "choice, provide a prompt, 2-4 options, a short hint, and a zero-based "
-            "answer_index. Never ask the child to type. Use no more than three "
-            "short sentences per step."
+            "answer_index. The first step must be Continue and explain 3/4 ÷ 1/2. "
+            "The second step must ask how many one-third pieces fit into 2/3, "
+            "and the third must ask how many quarters fit into 1/2. Both correct "
+            "answer option values must be exactly the string 2. Never ask the "
+            "child to type. Use no more than three short sentences per step."
         )},
     ]
 
@@ -83,6 +86,17 @@ def validate_plan(plan: dict) -> None:
                     or len(set(options)) != len(options)
                     or type(answer) is not int or not 0 <= answer < len(options)):
                 raise ValueError("Invalid answer options")
+
+
+def validate_first_fraction_plan(plan: dict) -> None:
+    """Keep the first reviewed topic aligned with its fixed fraction diagrams."""
+    validate_plan(plan)
+    if plan["skill_id"] != "division-as-groups" or plan["steps"][0]["interaction"]["type"] != "continue":
+        raise ValueError("The first fraction explanation must lead with Continue")
+    for index in (1, 2):
+        action = plan["steps"][index]["interaction"]
+        if action["type"] != "multiple_choice" or action["options"][action["answer_index"]] != "2":
+            raise ValueError("This fraction diagram requires two equal pieces")
 
 
 def public_step(plan: dict, index: int, image_url: str | None = None, image_alt: str | None = None) -> dict:
