@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+<script src="/assets/js/iakids-log-mode.js"></script>
 
   <title>התחברות – KidsIA</title>
 
@@ -12,9 +13,7 @@
 
 
   <!-- Supabase JS -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -730,6 +729,8 @@ document
 const redirectUrl =
   location.origin + "/he/onboarding/prepare-user/";
 
+/* 26/09/2026 security review: prepare-user accepts sign-in tokens only after this browser started a sign-in */
+try { localStorage.setItem("iakids_auth_pending", String(Date.now())); } catch (e) {}
 const { error } =
   await sb.auth.signInWithOAuth({
     provider: "google",

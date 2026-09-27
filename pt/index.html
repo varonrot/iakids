@@ -3572,9 +3572,7 @@ if (backToTop) {
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
   );
 
-  supabaseClient.auth.getSession().then(({ data, error }) => {
-    console.log("Supabase connected", data, error);
-  });
+  /* 26/09/2026 security review — never print the session: it holds the access token. */
 </script>
 
 <script>
@@ -3641,7 +3639,9 @@ async function updateNavbar() {
   if (data.session) {
 
     const user = data.session.user;
-    const avatarUrl = user.user_metadata?.avatar_url || null;
+    const rawAvatarUrl = String(user.user_metadata?.avatar_url || "").trim();
+    /* 26/09/2026 security review — only an https photo URL becomes an <img src> */
+    const avatarUrl = /^https:\/\/[^"'<>\s]+$/i.test(rawAvatarUrl) ? rawAvatarUrl : null;
 
     navActions.innerHTML = `
       <div class="user-menu">

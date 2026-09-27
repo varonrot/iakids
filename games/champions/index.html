@@ -50,7 +50,7 @@ body.theme-space{margin:0 auto!important}
 </section>
 
 <script src="nikud.js?v=8e4750d8"></script>
-<script src="../game-sdk.js?v=8c4d6d9e"></script>
+<script src="../game-sdk.js?v=db9ab4cf"></script>
 <script>
 const fmt = ts => new Date(ts).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
 const GAME_NAMES = {}; // slug -> "emoji name", filled from hub catalog below
@@ -85,8 +85,13 @@ async function loadChamps() {
   const table = document.getElementById('champs');
   for (const { slug, best } of rows) {
     const tr = table.insertRow();
-    tr.innerHTML = `<td>${GAME_NAMES[slug] || slug}</td><td>${best.player || 'אורח'}</td>
-      <td><b>${best.score}</b></td><td>${fmt(best.ts)}</td>`;
+    // 26/09/2026 security review: the player name is typed by the child — text, not HTML.
+    const cells = [GAME_NAMES[slug] || slug, best.player || 'אורח', best.score, fmt(best.ts)];
+    cells.forEach((value, i) => {
+      const td = tr.insertCell();
+      if (i === 2) { const b = document.createElement('b'); b.textContent = String(value); td.appendChild(b); }
+      else td.textContent = String(value ?? '');
+    });
   }
   document.getElementById('empty').hidden = rows.length > 0;
   document.getElementById('totals').textContent =

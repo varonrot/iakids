@@ -117,7 +117,12 @@ h1{
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o";
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* 26/09/2026 security review (login CSRF): the client must not read sign-in
+   tokens from the address bar by itself. Tokens are taken below, only when this
+   browser started a Google sign-in in the last 15 minutes (iakids_auth_pending). */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { detectSessionInUrl: false }
+});
 const statusEl = document.getElementById("status");
 
 const setStatus = (t) => statusEl.textContent = t;
@@ -126,20 +131,29 @@ const setStatus = (t) => statusEl.textContent = t;
   console.log("Preparing user…");
   setStatus("Checking session…");
 
-  // 1️⃣ Ensure session exists
-  let { data: sessionData } = await sb.auth.getSession();
+  // 1️⃣ Sign-in tokens in the address bar count only if this browser asked for them
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const access_token = hashParams.get("access_token");
+  const refresh_token = hashParams.get("refresh_token");
 
-  if (!sessionData.session) {
-    setStatus("Finalizing sign-in…");
+  if (access_token || refresh_token) {
+    let authStartedAt = 0;
+    try { authStartedAt = Number(localStorage.getItem("iakids_auth_pending") || 0); } catch (e) {}
+    try { localStorage.removeItem("iakids_auth_pending"); } catch (e) {}
+    history.replaceState(null, "", window.location.pathname + window.location.search);
 
-    const params = new URLSearchParams(window.location.hash.substring(1));
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
+    const authAge = Date.now() - authStartedAt;
+    const authIsFresh = authStartedAt > 0 && authAge >= 0 && authAge < 15 * 60 * 1000;
 
-    if (access_token && refresh_token) {
+    if (authIsFresh && access_token && refresh_token) {
+      setStatus("Finalizing sign-in…");
       await sb.auth.setSession({ access_token, refresh_token });
+    } else {
+      console.warn("Sign-in tokens ignored: this browser did not start a sign-in");
     }
   }
+
+  let { data: sessionData } = await sb.auth.getSession();
 
   // 2️⃣ Get user
   setStatus("Loading user profile…");

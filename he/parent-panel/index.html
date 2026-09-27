@@ -8,7 +8,7 @@
 <title>פאנל הורים | חבר לימודים AI</title>
 <!-- IAKIDS parent panel build 0.7.2 -->
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -659,6 +659,17 @@ const els = {
   needsWork: byId("needsWork")
 };
 
+/* 26/09/2026 security review — lesson names, subjects and the teacher's
+   parent note come from the database; they are shown as text, never HTML. */
+function escapeHtml(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
 function safeNumber(v){
   const n=Number(v);
   return Number.isFinite(n)?n:0;
@@ -939,7 +950,7 @@ function renderSubjects(progress,lessonMap){
 
       card.innerHTML=`
         <div class="subject-top">
-          <div class="subject-name">${subject}</div>
+          <div class="subject-name">${escapeHtml(subject)}</div>
           <div class="subject-score">${subjectAverage}%</div>
         </div>
         ${topics.map(item=>{
@@ -947,7 +958,7 @@ function renderSubjects(progress,lessonMap){
           const label=item.lesson?.lesson_name||item.lesson?.category||"שיעור";
           return `
             <div class="topic-row">
-              <span>${label}</span>
+              <span>${escapeHtml(label)}</span>
               <div class="progress-track">
                 <div class="progress-fill ${progressClass(value)}" style="width:${Math.min(value,100)}%"></div>
               </div>
@@ -1007,10 +1018,10 @@ function renderActivity(progress,lessonMap,history){
     const item=document.createElement("div");
     item.className="activity-item";
     item.innerHTML=`
-      <div class="activity-time">${formatDateTime(row.last_activity_at||row.updated_at||row.created_at)}</div>
+      <div class="activity-time">${escapeHtml(formatDateTime(row.last_activity_at||row.updated_at||row.created_at))}</div>
       <div>
-        <div class="activity-title">${lesson?.subject||"לימוד"} • ${lesson?.lesson_name||"שיעור"}</div>
-        <div class="activity-text">${text}</div>
+        <div class="activity-title">${escapeHtml(lesson?.subject||"לימוד")} • ${escapeHtml(lesson?.lesson_name||"שיעור")}</div>
+        <div class="activity-text">${escapeHtml(text)}</div>
         ${parentNote?`<div class="activity-text" style="opacity:.62;font-size:12px;margin-top:2px;">התקדמות ${value}% • רמת שליטה ${mastery}%</div>`:""}
       </div>
     `;
@@ -1047,10 +1058,10 @@ function renderInsights(progress,lessonMap){
     item.innerHTML=`
       <span class="dot"></span>
       <span>
-        <strong>${lesson?.lesson_name||"שיעור"}</strong>
+        <strong>${escapeHtml(lesson?.lesson_name||"שיעור")}</strong>
         ${
           safeNumber(row.consecutive_successes)>=3
-          ? ` — ${row.consecutive_successes} הצלחות רצופות`
+          ? ` — ${safeNumber(row.consecutive_successes)} הצלחות רצופות`
           : ` — רמת שליטה ${safeNumber(row.mastery_score)}%`
         }
       </span>
@@ -1067,10 +1078,10 @@ function renderInsights(progress,lessonMap){
     item.innerHTML=`
       <span class="dot warn"></span>
       <span>
-        <strong>${lesson?.lesson_name||"שיעור"}</strong>
+        <strong>${escapeHtml(lesson?.lesson_name||"שיעור")}</strong>
         ${
           safeNumber(row.hints_used)>=3
-          ? ` — נעזר ב־${row.hints_used} רמזים`
+          ? ` — נעזר ב־${safeNumber(row.hints_used)} רמזים`
           : ` — רמת שליטה ${safeNumber(row.mastery_score)}%`
         }
       </span>

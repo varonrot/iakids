@@ -2121,7 +2121,7 @@ def security_review_checks(main_src: str, fast: bool = False) -> list:
     import importlib
     sys.path.insert(0, str(ROOT / "tools"))
     fails = []
-    for mod in () + (() if fast else ("security_gate_tutor",)):
+    for mod in ("security_gate_frontend", "security_gate_db") + (() if fast else ("security_gate_tutor",)):
         try:
             fails += importlib.import_module(mod).checks()
         except Exception as e:

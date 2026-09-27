@@ -19,7 +19,7 @@
   <meta name="robots" content="noindex, nofollow">
 
   <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 
 
   <style>
@@ -142,6 +142,8 @@ const sb = supabase.createClient(
 );
 
 document.getElementById("googleBtn").addEventListener("click", async () => {
+/* 26/09/2026 security review: prepare-user accepts sign-in tokens only after this browser started a sign-in */
+try { localStorage.setItem("iakids_auth_pending", String(Date.now())); } catch (e) {}
   await sb.auth.signInWithOAuth({
     provider: "google",
     options: {

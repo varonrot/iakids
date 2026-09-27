@@ -129,6 +129,8 @@ const sb = supabase.createClient(
 );
 
 document.getElementById("googleBtn").addEventListener("click", async () => {
+/* 26/09/2026 security review: prepare-user accepts sign-in tokens only after this browser started a sign-in */
+try { localStorage.setItem("iakids_auth_pending", String(Date.now())); } catch (e) {}
   await sb.auth.signInWithOAuth({
     provider: "google",
     options: {

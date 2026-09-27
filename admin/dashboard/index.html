@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
 <title>IAkids – Admin Dashboard</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
 
 <style>
 body{
@@ -64,6 +65,11 @@ canvas{
 </style>
 </head>
 <body>
+<!-- 26/09/2026 security review: this page is not in use (its API key is truncated, so it never worked).
+     Its script is disabled (type="text/plain"); the live dashboard is /he/iakids-admin-dashboard-he/. -->
+<div id="notInUseNotice" style="background:#fff4d6;border-bottom:2px solid #f0b400;color:#5a4300;padding:14px 24px;font-weight:700">
+  This page is not in use. The admin dashboard is at <a href="/he/iakids-admin-dashboard-he/">/he/iakids-admin-dashboard-he/</a>.
+</div>
 
 <header>
 IAkids – Admin Dashboard
@@ -103,7 +109,7 @@ IAkids – Admin Dashboard
 
 </div>
 
-<script>
+<script type="text/plain" data-disabled="not-in-use">
 /* ===== SAME CONNECTION AS WORKSPACE ===== */
 
 const SUPABASE_URL = "https://bxnfzuglfwytiyaguwjj.supabase.co";

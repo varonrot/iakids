@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Support</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 
   <style>
     *{box-sizing:border-box}
@@ -163,26 +163,49 @@ async function init(){
 }
 
 async function loadTickets(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session?.user?.id){ tickets=[]; renderTickets(); return; }
   const {data} = await sb.from("support_tickets")
     .select("*")
+    .eq("user_id", session.user.id)
     .order("last_message_at",{ascending:false});
   tickets=data||[];
   renderTickets();
 }
 
+function escapeHtml(str){
+  return String(str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+const STATUS_CLASSES=["open","in_progress","closed"];
+const SENDER_CLASSES=["user","admin"];
+const safeClass=(v,list)=>list.includes(v)?v:"";
+function statusPill(status){
+  return `<span class="pill ${safeClass(status,STATUS_CLASSES)}">${escapeHtml(status)}</span>`;
+}
+
 function renderTickets(){
-  el("tickets").innerHTML = tickets.map(t=>`
-    <div class="ticket ${selected?.id===t.id?'active':''}" onclick="openTicket('${t.id}')">
-      <div>${t.subject}</div>
-      <span class="pill ${t.status}">${t.status}</span>
+  const box=el("tickets");
+  box.innerHTML = tickets.map(t=>`
+    <div class="ticket ${selected?.id===t.id?'active':''}" data-id="${escapeHtml(t.id)}">
+      <div>${escapeHtml(t.subject)}</div>
+      ${statusPill(t.status)}
     </div>
   `).join("");
+  box.querySelectorAll(".ticket").forEach(node=>{
+    node.addEventListener("click",()=>openTicket(node.dataset.id));
+  });
 }
 
 async function openTicket(id){
-  selected = tickets.find(t=>t.id===id);
+  selected = tickets.find(t=>String(t.id)===String(id));
+  if(!selected) return;
   el("title").textContent = selected.subject;
-  el("status").innerHTML = `<span class="pill ${selected.status}">${selected.status}</span>`;
+  el("status").innerHTML = statusPill(selected.status);
   loadMessages();
   renderTickets();
 }
@@ -192,9 +215,9 @@ async function loadMessages(){
     .select("*")
     .eq("ticket_id", selected.id)
     .order("created_at");
-  el("chat").innerHTML = data.map(m=>`
-    <div class="msg ${m.sender_type}">
-      ${m.message}
+  el("chat").innerHTML = (data||[]).map(m=>`
+    <div class="msg ${safeClass(m.sender_type,SENDER_CLASSES)}">
+      ${escapeHtml(m.message)}
     </div>
   `).join("");
 }

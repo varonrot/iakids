@@ -6,7 +6,7 @@
 <script src="/assets/js/iakids-log-mode.js"></script>
 <script src="/assets/js/iakids-api.js?v=3"></script>
 <title>המשימות שלי | IAKIDS</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,6 +155,8 @@ let activeFilter = "today";
 const monthNames = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
 const typeLabels = {homework:"שיעורי בית",exam:"מבחן",project:"פרויקט",reminder:"תזכורת"};
 const typeIcons = {homework:"fa-book-open",exam:"fa-clipboard-question",project:"fa-diagram-project",reminder:"fa-bell"};
+/* 26/09/2026 security review — a task type becomes a CSS class only from this list */
+const typeClass = type => Object.prototype.hasOwnProperty.call(typeLabels, type) ? type : "reminder";
 
 function pad(n){return String(n).padStart(2,"0")}
 function localDateKey(date){return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`}
@@ -219,7 +221,7 @@ function renderCalendar(){
     const dayTasks=tasks.filter(t=>taskDateKey(t)===key&&t.status!=="archived");
     const el=document.createElement("button");el.type="button";el.className="day";
     if(d.getMonth()!==month)el.classList.add("outside");if(key===todayKey)el.classList.add("today");if(key===selectedKey)el.classList.add("selected");
-    el.innerHTML=`<div class="day-number">${d.getDate()}</div><div class="day-dots">${dayTasks.slice(0,6).map(t=>`<span class="dot ${t.task_type}"></span>`).join("")}</div>${dayTasks.length?`<div class="day-count">${dayTasks.length} ${dayTasks.length===1?"משימה":"משימות"}</div>`:""}`;
+    el.innerHTML=`<div class="day-number">${d.getDate()}</div><div class="day-dots">${dayTasks.slice(0,6).map(t=>`<span class="dot ${typeClass(t.task_type)}"></span>`).join("")}</div>${dayTasks.length?`<div class="day-count">${dayTasks.length} ${dayTasks.length===1?"משימה":"משימות"}</div>`:""}`;
     el.onclick=()=>{selectedDate=d;activeFilter="date";document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));renderCalendar();renderTaskList()};
     grid.appendChild(el);
   }
@@ -250,12 +252,19 @@ function renderTaskList(){
   if(!visible.length){list.innerHTML=`<div class="empty"><span class="emo">✨</span>אין משימות כאן כרגע</div>`;return}
   list.innerHTML=visible.map(t=>{
     const d=taskDate(t);const when=d?d.toLocaleString("he-IL",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"ללא תאריך";
-    return `<div class="task ${t.status==="completed"?"completed":""}" data-id="${t.id}">
-      <div class="task-icon ${t.task_type}"><i class="fa-solid ${typeIcons[t.task_type]||"fa-bell"}"></i></div>
+    return `<div class="task ${t.status==="completed"?"completed":""}" data-id="${escapeHtml(t.id)}">
+      <div class="task-icon ${typeClass(t.task_type)}"><i class="fa-solid ${typeIcons[typeClass(t.task_type)]}"></i></div>
       <div class="task-main"><div class="task-title">${escapeHtml(t.title)}</div><div class="task-sub"><span>${escapeHtml(typeLabels[t.task_type]||t.task_type)}</span>${t.subject?`<span>• ${escapeHtml(t.subject)}</span>`:""}<span>• ${escapeHtml(when)}</span></div></div>
-      <div class="task-actions">${t.status!=="completed"?`<button class="task-action complete" onclick="completeTask('${t.id}')" title="סיימתי"><i class="fa-solid fa-check"></i></button>`:""}<button class="task-action delete" onclick="deleteTask('${t.id}')" title="מחק"><i class="fa-solid fa-trash"></i></button></div>
+      <div class="task-actions">${t.status!=="completed"?`<button type="button" class="task-action complete" data-action="complete" title="סיימתי"><i class="fa-solid fa-check"></i></button>`:""}<button type="button" class="task-action delete" data-action="delete" title="מחק"><i class="fa-solid fa-trash"></i></button></div>
     </div>`
-  }).join("")
+  }).join("");
+  list.querySelectorAll(".task-action[data-action]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const id=btn.closest(".task")?.dataset.id;
+      if(!id)return;
+      if(btn.dataset.action==="complete")completeTask(id);else deleteTask(id);
+    });
+  });
 }
 
 async function completeTask(id){

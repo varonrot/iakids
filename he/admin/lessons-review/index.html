@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>IAKIDS · בדיקת שיעורים</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <style>
   :root{--ink:#12161c;--ink2:#454b54;--muted:#7a828d;--line:#dfe3e8;--panel:#f4f6f8;--bg:#fcfcfb;--blue:#2a78d6;--good:#1e7a48;--warn:#b06a00;--bad:#b3261e}
   *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
@@ -190,7 +190,7 @@ async function openLesson(id){
     const m = await api(`/api/admin/lessons/${id}/media`);
     const vlabel = v => ({text:'<span class="badge b-bad">טקסט קריא</span>', possible_text:'<span class="badge b-warn">חשד לטקסט</span>', approved_by_human:'<span class="badge b-warn">אושר ידנית</span>', regenerating:'<span class="badge b-muted">נוצר מחדש…</span>', clean:'<span class="badge b-ok">נקי</span>', unchecked:'<span class="badge b-muted">לא נבדק</span>'}[v] || '<span class="badge b-muted">'+esc(v)+'</span>');
     $("mGrid").innerHTML = (m.images||[]).map(im => `<div class="img ${im.verdict==="text"?"flag":""}">
-        <a href="${im.url}" target="_blank"><img src="${im.url}" loading="lazy" alt=""></a>
+        <a href="${esc(im.url)}" target="_blank" rel="noopener noreferrer"><img src="${esc(im.url)}" loading="lazy" alt=""></a>
         <div class="cap" style="flex-direction:column;align-items:flex-start;gap:4px">
           <div style="display:flex;justify-content:space-between;width:100%"><span>${esc(im.path)}</span>${vlabel(im.verdict)}</div>
           ${im.text_found?`<div style="color:${im.verdict==="text"?"var(--bad)":"var(--warn)"}">זוהה: „${esc(im.text_found)}”${im.confidence?` · ביטחון ${im.confidence==="high"?"גבוה":"נמוך"}`:""}</div>`:""}

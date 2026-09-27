@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>IAKIDS · בדיקת שאלות</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <!--
   Question-bank review (2026-09-25). Admins only: the server checks ADMIN_EMAILS on every route
   (backend-ai-tutor-he/qbank_admin.py); this page holds no list. Supabase is used here for Google sign-in
@@ -102,6 +102,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 let SESSION = null, STATUS = "pending", OFFSET = 0, COUNT = 0, ITEMS = [];
 
+/* 26/09/2026 security review — a source link opens only http(s), never javascript: */
+function safeHttpUrl(u){ try{ const x = new URL(String(u ?? "").trim()); return (x.protocol === "https:" || x.protocol === "http:") ? x.href : ""; }catch(e){ return ""; } }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",4200); }
 async function api(path, method="GET", body=null){
@@ -166,7 +168,7 @@ function card(it, i){
       <span class="badge">${esc(ORIGIN_HE[it.origin] || it.origin)}${it.source_id && it.source_id!=="original" ? " · " + esc(it.source_id) : ""}</span>
       <span class="badge" dir="ltr">${esc(it.id)}</span>
     </div>
-    <div class="topic"><b dir="ltr">${esc(t.code)}</b> · ${esc(t.title_he)}${t.inferred ? " (מוסק)" : ""}${t.source_url ? ` · <a href="${esc(t.source_url)}" target="_blank" rel="noopener">מסמך תוכנית הלימודים</a>` : ""}
+    <div class="topic"><b dir="ltr">${esc(t.code)}</b> · ${esc(t.title_he)}${t.inferred ? " (מוסק)" : ""}${safeHttpUrl(t.source_url) ? ` · <a href="${esc(safeHttpUrl(t.source_url))}" target="_blank" rel="noopener noreferrer">מסמך תוכנית הלימודים</a>` : ""}
       ${(t.skills||[]).length ? `<div class="sub">מיומנויות: ${esc(t.skills.slice(0,4).join(" · "))}</div>` : ""}</div>
     <div class="child">${it.stimulus ? `<div class="stim">${esc(it.stimulus)}</div>` : ""}<div class="stem">${esc(it.stem)}</div>${opts}</div>
     <div class="explain"><b>הסבר:</b> ${esc(it.explain)}</div>

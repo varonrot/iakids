@@ -3,6 +3,7 @@
 <head>
 
   <meta charset="UTF-8">
+<script src="/assets/js/iakids-log-mode.js"></script>
 
   <meta
     name="viewport"
@@ -286,6 +287,14 @@
 
   <script>
 
+    /* 26/09/2026 security review — the lesson id, subject and error text can
+       come from the URL; they are shown as text, never as HTML. */
+    function escapeLessonErrorHtml(value){
+      return String(value ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
     /* =========================================
        SUPABASE
     ========================================= */
@@ -388,7 +397,7 @@
 
         <div class="lesson-error">
 
-          ${message}
+          ${escapeLessonErrorHtml(message)}
 
         </div>
 
@@ -486,9 +495,9 @@ if(error){
   lessonApp.innerHTML = `
     <div class="lesson-error" style="display:block;padding:30px;text-align:right">
       <strong>שגיאה בטעינת השיעור</strong><br><br>
-      <div>message: ${error.message || "-"}</div>
-      <div>code: ${error.code || "-"}</div>
-      <div>details: ${error.details || "-"}</div>
+      <div>message: ${escapeLessonErrorHtml(error.message || "-")}</div>
+      <div>code: ${escapeLessonErrorHtml(error.code || "-")}</div>
+      <div>details: ${escapeLessonErrorHtml(error.details || "-")}</div>
     </div>
   `;
 
@@ -582,7 +591,7 @@ if(error){
               </small>
 
               <strong>
-                ${lesson.id}
+                ${escapeLessonErrorHtml(lesson.id)}
               </strong>
 
             </div>
@@ -597,11 +606,11 @@ if(error){
               </small>
 
               <strong>
-                ${
+                ${escapeLessonErrorHtml(
                   lesson.subject ||
                   subject ||
                   "-"
-                }
+                )}
               </strong>
 
             </div>
@@ -616,11 +625,11 @@ if(error){
               </small>
 
               <strong>
-                ${
+                ${escapeLessonErrorHtml(
                   lesson.parent_lesson ||
                   parentLessonId ||
                   "-"
-                }
+                )}
               </strong>
 
             </div>
@@ -635,10 +644,10 @@ if(error){
               </small>
 
               <strong>
-                ${
+                ${escapeLessonErrorHtml(
                   lesson.unit_name ||
                   "-"
-                }
+                )}
               </strong>
 
             </div>
@@ -653,10 +662,10 @@ if(error){
               </small>
 
               <strong>
-                ${
+                ${escapeLessonErrorHtml(
                   lesson.lesson_name ||
                   "-"
-                }
+                )}
               </strong>
 
             </div>
@@ -671,10 +680,10 @@ if(error){
               </small>
 
               <strong>
-                ${
+                ${escapeLessonErrorHtml(
                   lesson.lesson_order ??
                   "-"
-                }
+                )}
               </strong>
 
             </div>
@@ -689,10 +698,10 @@ if(error){
               </small>
 
               <strong>
-                ${
+                ${escapeLessonErrorHtml(
                   lesson.status ||
                   "-"
-                }
+                )}
               </strong>
 
             </div>
@@ -707,10 +716,10 @@ if(error){
               </small>
 
               <strong>
-                ${
+                ${escapeLessonErrorHtml(
                   lesson.audio_generation_status ||
                   "-"
-                }
+                )}
               </strong>
 
             </div>

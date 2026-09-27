@@ -106,7 +106,7 @@ const IAKidsActivity = {
     if (this._client) return this._client;
 
     const { createClient } =
-      await import('https://esm.sh/@supabase/supabase-js@2');
+      await import('https://esm.sh/@supabase/supabase-js@2.117.2');
 
     this._client = createClient(
       SUPABASE_CONFIG.url,
@@ -273,9 +273,6 @@ const {
         {
           sessionId:
             this._sessionId,
-
-          kidId:
-            this._kidId,
 
           gameId:
             this._gameId,
@@ -737,7 +734,8 @@ const IAKidsBank = {
         kid_id: item.kid, game_code: cur.slug, qkey: cur.qkey, correct: !!correct,
         response_ms: ms, level: cur.level || null, session_id: item.session || null,
       }).then(() => {}, () => {});
-      c.rpc('game_question_mark', { p_game: cur.slug, p_key: cur.qkey, was_correct: !!correct }).then(() => {}, () => {});
+      // 26/09/2026 security review: no game_question_mark call. game_record_answer(s)
+      // already bump the counters, and that function let any signed-in user inflate them.
       return true;
     }).catch(() => false);
   },
@@ -1448,14 +1446,24 @@ if (!activitySessionId) {
     if (!document.getElementById('iakids-back-btn')) {
       const key = 'iakids_back_' + slug;
       let back = '';
+      // 26/09/2026 security review: ?from= is parsed as a URL and only a page of
+      // this site is kept (path + query) — "/\t/evil.example" and friends used to
+      // pass a regex and send the child to another site.
+      const sameSite = v => {
+        if (!v) return '';
+        try {
+          const u = new URL(v, location.origin);
+          return u.origin === location.origin ? u.pathname + u.search : '';
+        } catch (e) { return ''; }
+      };
       try {
-        const from = new URLSearchParams(location.search).get('from');
+        const from = sameSite(new URLSearchParams(location.search).get('from'));
         const ref = document.referrer ? new URL(document.referrer) : null;
-        if (from && /^\/[^/\\]/.test(from)) back = from;
+        if (from) back = from;
         else if (ref && ref.origin === location.origin && ref.pathname !== location.pathname
                  && !ref.pathname.startsWith('/games/')) back = ref.pathname + ref.search;
         if (back) sessionStorage.setItem(key, back);
-        else back = sessionStorage.getItem(key) || '';
+        else back = sameSite(sessionStorage.getItem(key) || '');
       } catch (e) { back = ''; }
       if (back) {
         const b = document.createElement('a');
@@ -1516,7 +1524,7 @@ async complete(score, options = {}) {
   if (window.parent !== window) {
     window.parent.postMessage(
       msg,
-      '*'
+      location.origin
     );
   }
 
@@ -2423,7 +2431,7 @@ const IAKidsAuth = {
     if (this._sb) return this._sb;
     if (typeof SUPABASE_CONFIG === 'undefined') return null;
     try {
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.117.2');
       // Default storage, so this is the very session the workspace wrote.
       this._sb = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.publishableKey);
       this._sb.auth.onAuthStateChange((_e, session) => {
@@ -2524,9 +2532,27 @@ const IAKidsAuth = {
   _paint() {
     const el = document.getElementById('iakids-auth-widget');
     if (!el) return;
-    el.innerHTML = this._user
-      ? `<img src="${this._user.photo || ''}" alt="" onerror="this.style.display='none'"><span>${this._user.name || this._user.email}</span><button title="${IAKidsLang.t({ he: 'התנתקות', en: 'Sign out', es: 'Salir', de: 'Abmelden', pt: 'Sair' })}">⏻</button>`
-      : `<button class="signin-btn">🔐 ${IAKidsLang.t({ he: 'התחברות עם Google', en: 'Sign in with Google', es: 'Iniciar con Google', de: 'Mit Google anmelden', pt: 'Entrar com Google' })}</button>`;
+    // 26/09/2026 security review: the name and photo come from the Google profile,
+    // so they are set as text and as an https-only src, never as HTML.
+    if (this._user) {
+      el.textContent = '';
+      const photo = String(this._user.photo || '');
+      if (/^https:\/\//i.test(photo)) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = photo;
+        img.onerror = () => { img.style.display = 'none'; };
+        el.appendChild(img);
+      }
+      const name = document.createElement('span');
+      name.textContent = this._user.name || this._user.email || '';
+      el.appendChild(name);
+      const outBtn = document.createElement('button');
+      outBtn.title = IAKidsLang.t({ he: 'התנתקות', en: 'Sign out', es: 'Salir', de: 'Abmelden', pt: 'Sair' });
+      outBtn.textContent = '⏻';
+      el.appendChild(outBtn);
+    } else el.innerHTML =
+      `<button class="signin-btn">🔐 ${IAKidsLang.t({ he: 'התחברות עם Google', en: 'Sign in with Google', es: 'Iniciar con Google', de: 'Mit Google anmelden', pt: 'Entrar com Google' })}</button>`;
     const btn = el.querySelector('.signin-btn');
     if (btn) btn.onclick = () => this.signIn();
     const out = el.querySelector('button[title]');

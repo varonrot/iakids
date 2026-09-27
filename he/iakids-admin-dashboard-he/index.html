@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>IAkids AI Tutor | לוח ניהול</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
 
   <style>
     :root{
@@ -839,6 +839,16 @@
       return new Date(value).toLocaleString("he-IL");
     }
 
+    /* 26/09/2026 security review — child names and every DB value are text, not HTML. */
+    function esc(value){
+      return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
     function shortId(value){
       return value ? value.slice(0,8) + "…" : "—";
     }
@@ -1020,15 +1030,15 @@
     function sessionRowHtml(s){
       return `
         <tr>
-          <td>${childNameById(s.kid_id)}</td>
-          <td>${formatDate(s.started_at)}</td>
-          <td>${formatDate(s.ended_at)}</td>
-          <td>${formatSeconds(s.duration_seconds)}</td>
-          <td>${formatNumber(s.ai_call_count)}</td>
-          <td>${formatNumber(s.tts_call_count)}</td>
-          <td>${formatNumber(s.total_tokens)}</td>
-          <td>${formatSeconds(s.voice_output_seconds)}</td>
-          <td>${formatCurrency(s.estimated_cost_usd)}</td>
+          <td>${esc(childNameById(s.kid_id))}</td>
+          <td>${esc(formatDate(s.started_at))}</td>
+          <td>${esc(formatDate(s.ended_at))}</td>
+          <td>${esc(formatSeconds(s.duration_seconds))}</td>
+          <td>${esc(formatNumber(s.ai_call_count))}</td>
+          <td>${esc(formatNumber(s.tts_call_count))}</td>
+          <td>${esc(formatNumber(s.total_tokens))}</td>
+          <td>${esc(formatSeconds(s.voice_output_seconds))}</td>
+          <td>${esc(formatCurrency(s.estimated_cost_usd))}</td>
           <td><span class="status ${s.status === "active" ? "active" : "completed"}">${s.status === "active" ? "פעיל" : "הושלם"}</span></td>
         </tr>
       `;
@@ -1052,18 +1062,18 @@
       $("sessionsTableBody").innerHTML = filtered.length
         ? filtered.map(s => `
           <tr>
-            <td>${childNameById(s.kid_id)}</td>
-            <td>${shortId(s.user_id)}</td>
-            <td>${shortId(s.id)}</td>
-            <td>${formatDate(s.started_at)}</td>
-            <td>${formatDate(s.ended_at)}</td>
-            <td>${formatSeconds(s.duration_seconds)}</td>
-            <td>${formatNumber(s.message_count)}</td>
-            <td>${formatNumber(s.ai_call_count)}</td>
-            <td>${formatNumber(s.tts_call_count)}</td>
-            <td>${formatNumber(s.total_tokens)}</td>
-            <td>${formatSeconds(s.voice_output_seconds)}</td>
-            <td>${formatCurrency(s.estimated_cost_usd)}</td>
+            <td>${esc(childNameById(s.kid_id))}</td>
+            <td>${esc(shortId(s.user_id))}</td>
+            <td>${esc(shortId(s.id))}</td>
+            <td>${esc(formatDate(s.started_at))}</td>
+            <td>${esc(formatDate(s.ended_at))}</td>
+            <td>${esc(formatSeconds(s.duration_seconds))}</td>
+            <td>${esc(formatNumber(s.message_count))}</td>
+            <td>${esc(formatNumber(s.ai_call_count))}</td>
+            <td>${esc(formatNumber(s.tts_call_count))}</td>
+            <td>${esc(formatNumber(s.total_tokens))}</td>
+            <td>${esc(formatSeconds(s.voice_output_seconds))}</td>
+            <td>${esc(formatCurrency(s.estimated_cost_usd))}</td>
             <td><span class="status ${s.status === "active" ? "active" : "completed"}">${s.status === "active" ? "פעיל" : "הושלם"}</span></td>
           </tr>
         `).join("")
@@ -1103,19 +1113,19 @@
         ? cards.map(u => `
           <article class="user-card">
             <div class="user-card-head">
-              <div class="avatar">${(u.child_name || "?").slice(0,1)}</div>
+              <div class="avatar">${esc((u.child_name || "?").slice(0,1))}</div>
               <div>
-                <h3>${u.child_name}</h3>
-                <p>${shortId(u.user_id)}</p>
+                <h3>${esc(u.child_name)}</h3>
+                <p>${esc(shortId(u.user_id))}</p>
               </div>
             </div>
             <div class="user-metrics">
-              <div class="metric"><small>Sessions</small><strong>${formatNumber(u.sessions)}</strong></div>
-              <div class="metric"><small>זמן שימוש</small><strong>${formatSeconds(u.seconds)}</strong></div>
-              <div class="metric"><small>AI Calls</small><strong>${formatNumber(u.ai)}</strong></div>
-              <div class="metric"><small>TTS Calls</small><strong>${formatNumber(u.tts)}</strong></div>
-              <div class="metric"><small>Tokens</small><strong>${formatNumber(u.tokens)}</strong></div>
-              <div class="metric"><small>עלות</small><strong>${formatCurrency(u.cost)}</strong></div>
+              <div class="metric"><small>Sessions</small><strong>${esc(formatNumber(u.sessions))}</strong></div>
+              <div class="metric"><small>זמן שימוש</small><strong>${esc(formatSeconds(u.seconds))}</strong></div>
+              <div class="metric"><small>AI Calls</small><strong>${esc(formatNumber(u.ai))}</strong></div>
+              <div class="metric"><small>TTS Calls</small><strong>${esc(formatNumber(u.tts))}</strong></div>
+              <div class="metric"><small>Tokens</small><strong>${esc(formatNumber(u.tokens))}</strong></div>
+              <div class="metric"><small>עלות</small><strong>${esc(formatCurrency(u.cost))}</strong></div>
             </div>
           </article>
         `).join("")
@@ -1164,10 +1174,10 @@
       $("highCostSessionsBody").innerHTML = expensive.length
         ? expensive.map(x => `
           <tr>
-            <td>${childNameById(x.kid_id)}</td>
-            <td>${formatNumber(x.total_tokens)}</td>
-            <td>${formatNumber(x.tts_call_count)}</td>
-            <td>${formatCurrency(x.estimated_cost_usd)}</td>
+            <td>${esc(childNameById(x.kid_id))}</td>
+            <td>${esc(formatNumber(x.total_tokens))}</td>
+            <td>${esc(formatNumber(x.tts_call_count))}</td>
+            <td>${esc(formatCurrency(x.estimated_cost_usd))}</td>
           </tr>
         `).join("")
         : `<tr><td colspan="4" class="empty-state">אין נתונים</td></tr>`;

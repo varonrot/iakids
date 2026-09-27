@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script src="/assets/js/iakids-log-mode.js"></script>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19366,11 +19367,25 @@ if (backToTop) {
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o"
   );
 
-  supabaseClient.auth.getSession().then(({ data, error }) => {
-    console.log("Supabase connected", data, error);
-  });
+  /* 26/09/2026 security review — never print the session: it holds the access token. */
 </script>
 <script>
+
+/* 26/09/2026 security review — the Google name and photo are shown as text
+   and as an https-only image, never as HTML. */
+function escapeNavHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function safeAvatarUrl(value) {
+  const url = String(value || "").trim();
+  return /^https:\/\//i.test(url) ? url : null;
+}
 
 async function updateNavbar() {
 
@@ -19396,9 +19411,10 @@ async function updateNavbar() {
     const user = session.user;
 
     const avatarUrl =
-      user.user_metadata?.avatar_url ||
-      user.user_metadata?.picture ||
-      null;
+      safeAvatarUrl(
+        user.user_metadata?.avatar_url ||
+        user.user_metadata?.picture
+      );
 
     const displayName =
       user.user_metadata?.full_name ||
@@ -19419,7 +19435,7 @@ async function updateNavbar() {
             avatarUrl
               ? `
                 <img
-                  src="${avatarUrl}"
+                  src="${escapeNavHtml(avatarUrl)}"
                   class="user-avatar"
                   alt="תמונת משתמש"
                 >
@@ -19432,7 +19448,7 @@ async function updateNavbar() {
           }
 
           <span class="user-email">
-            ${displayName}
+            ${escapeNavHtml(displayName)}
           </span>
 
           <a
@@ -19480,7 +19496,7 @@ if (mobileActions) {
         avatarUrl
           ? `
             <img
-              src="${avatarUrl}"
+              src="${escapeNavHtml(avatarUrl)}"
               class="mobile-user-avatar"
               alt="תמונת משתמש"
             >
@@ -19493,7 +19509,7 @@ if (mobileActions) {
       }
 
       <span class="mobile-user-name">
-        ${displayName}
+        ${escapeNavHtml(displayName)}
       </span>
 
     </div>

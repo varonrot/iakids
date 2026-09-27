@@ -1141,6 +1141,17 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
     return true;
   }
 
+  /* 26/09/2026 security review — subject/topic/task type come from the
+     model reading the child's photo; never let them become HTML. */
+  function escapeHomeworkCardHtml(value){
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
   function renderHomeworkDetectionCard(analysis){
     const messages = getHomeworkMessagesContainer();
     if(!messages) return false;
@@ -1164,12 +1175,12 @@ if(!window.UNIT_PROGRESS_GAUGE_SYNC_STARTED){
         <img class="homework-detection-teacher" src="/assets/lesson/lesson-teacher.webp" alt="המורה AI">
         <div class="homework-detection-icon"><span aria-hidden="true">✓</span></div>
         <div class="homework-detection-copy">
-          <div class="homework-detection-title">${mainLine}</div>
-          <div class="homework-detection-text">${helpLine}</div>
+          <div class="homework-detection-title">${escapeHomeworkCardHtml(mainLine)}</div>
+          <div class="homework-detection-text">${escapeHomeworkCardHtml(helpLine)}</div>
           <div class="homework-detection-tags">
-            ${subject ? `<span class="homework-detection-tag">${subject}</span>` : ''}
-            ${topic ? `<span class="homework-detection-tag">${topic}</span>` : ''}
-            ${taskType ? `<span class="homework-detection-tag">${taskType}</span>` : ''}
+            ${subject ? `<span class="homework-detection-tag">${escapeHomeworkCardHtml(subject)}</span>` : ''}
+            ${topic ? `<span class="homework-detection-tag">${escapeHomeworkCardHtml(topic)}</span>` : ''}
+            ${taskType ? `<span class="homework-detection-tag">${escapeHomeworkCardHtml(taskType)}</span>` : ''}
           </div>
         </div>
       </div>`;
@@ -2535,9 +2546,7 @@ Continue from the NEXT UNRESOLVED STEP only. Do not restart the solution. Do not
 
     const kidId = getHomeworkKidId();
     if(!kidId){
-      console.error("HOMEWORK TURN: kid id missing", {
-        resolvedKid: getHomeworkKidObject()
-      });
+      console.error("HOMEWORK TURN: kid id missing");
       addMessage("assistant", "לא הצלחתי לזהות את פרופיל הילדה. רענני את המסך ונסי שוב.");
       return;
     }
