@@ -77,6 +77,15 @@ class FakeTable:
 
 
 class EnglishLessonRouteTests(unittest.TestCase):
+    def test_grade_five_child_can_be_ten_years_old(self):
+        route = load_routes()
+        with patch.object(route, "authenticate_user", return_value=types.SimpleNamespace(id="parent-1")), \
+             patch.object(route, "get_child_by_id", return_value={"age": 10}) as child_lookup, \
+             patch.object(route, "_diagnostic") as diagnostic:
+            self.assertEqual(route._parent_and_child("Bearer token", "child-1"), "parent-1")
+        child_lookup.assert_called_once_with("parent-1", "child-1")
+        diagnostic.assert_called_once_with("parent-1", "child-1")
+
     def test_wrong_answer_stays_put_then_correct_answer_advances(self):
         route = load_routes()
         state, attempts = {"current_step": 1}, []
