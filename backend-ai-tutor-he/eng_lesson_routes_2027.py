@@ -22,6 +22,7 @@ class AnswerRequest(LimitedRequest):
     plan_id: str
     step_index: int = Field(ge=0, le=2)
     option_index: int | None = Field(default=None, ge=0, le=3)
+    hint_used: bool = False
 
 
 def _parent_and_child(authorization: str, kid_id: str):
@@ -100,8 +101,21 @@ def _submit(user_id: str, kid_id: str, body: AnswerRequest):
     index = int(progress["current_step"])
     if index != body.step_index or index >= 3:
         raise HTTPException(status_code=409, detail="The lesson has moved on. Reload this step.")
-    if not check_answer(plan["content"], index, body.option_index):
-        action = plan["content"]["steps"][index]["interaction"]
+    action = plan["content"]["steps"][index]["interaction"]
+    if action["type"] == "multiple_choice" and (
+        body.option_index is None or body.option_index >= len(action["options"])
+    ):
+        raise HTTPException(status_code=422, detail="Choose one of the displayed answers.")
+    if action["type"] == "continue" and body.option_index is not None:
+        raise HTTPException(status_code=422, detail="This step only needs Continue.")
+    is_correct = check_answer(plan["content"], index, body.option_index)
+    if body.option_index is not None:
+        sb.table("2027_eng_lesson_attempts").insert({
+            "user_id": user_id, "child_id": kid_id, "plan_id": plan["id"],
+            "step_index": index, "option_index": body.option_index,
+            "is_correct": is_correct, "hint_used": body.hint_used
+        }).execute()
+    if not is_correct:
         return {"correct": False, "hint": action.get("hint", "Look at the visual and try again.")}
     next_index = index + 1
     now = datetime.now(timezone.utc).isoformat()
