@@ -9,7 +9,7 @@ PLAN = {"version": 1, "skill_id": "division-as-groups", "steps": [
      "interaction": {"type": "continue"}},
     {"phase": "try_together", "teacher_text": "Count the halves.",
      "visual": {"kind": "none"},
-     "interaction": {"type": "multiple_choice", "prompt": "How many?", "options": ["1", "1½", "2"], "answer_index": 1}},
+     "interaction": {"type": "multiple_choice", "prompt": "How many?", "options": ["1", "2", "3"], "answer_index": 1}},
     {"phase": "your_turn", "teacher_text": "Now try.",
      "visual": {"kind": "none"},
      "interaction": {"type": "multiple_choice", "prompt": "How many?", "options": ["1", "2"], "answer_index": 1}},
