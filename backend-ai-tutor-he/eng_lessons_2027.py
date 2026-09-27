@@ -89,6 +89,7 @@ def public_step(plan: dict, index: int, image_url: str | None = None) -> dict:
         raise ValueError("Invalid step")
     step = deepcopy(plan["steps"][index])
     step["interaction"].pop("answer_index", None)
+    step["interaction"].pop("hint", None)
     step["visual"].pop("brief", None)
     if image_url:
         step["visual"]["url"] = image_url
