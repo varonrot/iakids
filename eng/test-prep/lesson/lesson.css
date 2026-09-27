@@ -54,3 +54,6 @@
 .step-jump:focus-visible{outline:3px solid #087f84;outline-offset:2px}
 .step-jump:disabled{background:#f5f8f8;border-color:#e3eded;color:#80939d;box-shadow:none}
 @media(max-width:800px){.step-list li{padding:0;min-width:0}.step-jump{min-height:50px;gap:5px;padding:7px 5px}.step-list strong{white-space:normal;line-height:1.15}}
+
+.guide-voice button.requires-gesture{width:100%;min-height:52px;border-radius:14px;border-color:#079d95;background:#0b9d95;color:#fff;font-size:15px;box-shadow:0 8px 19px #0b9d9533}
+.guide-voice button.requires-gesture:hover{background:#087f84}

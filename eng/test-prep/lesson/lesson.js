@@ -53,7 +53,7 @@
   let resumeIndex = 0, resumeStep = null, reviewMode = false;
   const narration = new Audio();
   narration.preload = 'none';
-  let voiceOn = false, spokenKey = '', requestNumber = 0;
+  let voiceOn = true, voiceNeedsGesture = false, spokenKey = '', requestNumber = 0;
   const narrationUrls = new Map();
   const ideaSlides = [
     {title:'How many halves fit?', caption:'We have ¾ of a pizza. How many ½-pizza portions can we make?'},
@@ -62,7 +62,7 @@
     {title:'Look at what is left', caption:'One shaded quarter remains. That is half of another half-pizza portion.'},
     {title:'Put the parts together', caption:'One full half, plus half of another half: ¾ ÷ ½ = 1½.'}
   ];
-  let slideIndex = 0, lessonStarted = false, slideTimer = null;
+  let slideIndex = 0, lessonStarted = true, slideTimer = null;
   function clearSlideTimer() { clearTimeout(slideTimer); slideTimer = null; }
   function isIdea() { return stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview')); }
   function advanceSlide() {
@@ -127,10 +127,18 @@
       $('replayButton').hidden = false;
       await narration.play();
       if (ticket === requestNumber) voiceStatus('Playing your teacher’s explanation.');
-    } catch {
+    } catch (error) {
       if (ticket === requestNumber) {
-        voiceStatus('Audio is unavailable. The slides will continue so you can read along.');
-        if (isIdea()) scheduleSilentSlide();
+        if (error?.name === 'NotAllowedError') {
+          voiceOn = false;
+          voiceNeedsGesture = true;
+          spokenKey = '';
+          voiceStatus('Your browser needs one tap to allow sound. Tap the button to hear the lesson.');
+          render();
+        } else {
+          voiceStatus('Audio is unavailable. The slides will continue so you can read along.');
+          if (isIdea()) scheduleSilentSlide();
+        }
       }
     }
   }
@@ -140,9 +148,9 @@
   });
   $('voiceButton').addEventListener('click', () => {
     voiceOn = !voiceOn;
-    if (isIdea()) lessonStarted = true;
+    voiceNeedsGesture = false;
+    if (voiceOn) { spokenKey = ''; clearSlideTimer(); voiceStatus(''); }
     $('voiceButton').setAttribute('aria-pressed', String(voiceOn));
-    $('voiceButton').innerHTML = voiceOn ? '<span aria-hidden="true">◼</span> Voice on' : '<span aria-hidden="true">▶</span> Listen to your teacher';
     if (!voiceOn) { stopNarration(); $('replayButton').hidden = true; voiceStatus('Reading without audio.'); scheduleSilentSlide(); }
     render();
   });
@@ -205,7 +213,7 @@
         dot.className = index === slideIndex ? 'is-current' : index < slideIndex ? 'is-complete' : '';
         return dot;
       }));
-      $('guideMessage').textContent = lessonStarted ? `Slide ${slideIndex + 1}: ${ideaSlides[slideIndex].caption}` : `${name}, press “Start the lesson” once. I’ll explain all five slides aloud.`;
+      $('guideMessage').textContent = `Slide ${slideIndex + 1}: ${ideaSlides[slideIndex].caption}`;
     } else {
       explanation.replaceChildren();
       $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
@@ -236,7 +244,9 @@
     });
     $('checkButton').disabled = busy || (guidedIdea && (!lessonStarted || slideIndex < ideaSlides.length - 1)) || (!reviewMode && !guidedIdea && !isContinue && choice === null && !correct);
     $('checkButton').textContent = reviewMode ? stageIndex < resumeIndex ? (stageIndex === 0 ? 'Try together →' : 'Your turn →') : `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : guidedIdea ? 'Try together →' : isContinue ? 'Continue →' : 'Check answer →';
-    if (guidedIdea) $('voiceButton').innerHTML = voiceOn ? '<span aria-hidden="true">◼</span> Voice on' : `<span aria-hidden="true">▶</span> ${lessonStarted ? 'Listen to this slide' : 'Start the lesson'}`;
+    $('voiceButton').classList.toggle('requires-gesture', voiceNeedsGesture);
+    $('voiceButton').setAttribute('aria-pressed', String(voiceOn));
+    $('voiceButton').innerHTML = voiceNeedsGesture ? '<span aria-hidden="true">▶</span> Tap to hear the lesson' : voiceOn ? '<span aria-hidden="true">◼</span> Voice on' : '<span aria-hidden="true">▶</span> Listen to your teacher';
     $('sidebarProgressLabel').textContent = `${resumeIndex + 1} of ${stages.length} steps`;
     $('sidebarProgressBar').style.width = `${(resumeIndex + 1) / stages.length * 100}%`;
     document.querySelectorAll('.step-list li,.footer-dot').forEach((item, index) => {
@@ -295,8 +305,7 @@
         await lessonRequest('review', {kid_id:child.id, plan_id:planId, step_index:index});
       stageIndex = index;
       if (index === 0) {
-        slideIndex = 0; lessonStarted = false; voiceOn = false;
-        $('voiceButton').setAttribute('aria-pressed', 'false');
+        slideIndex = 0; lessonStarted = true; voiceOn = true; voiceNeedsGesture = false; spokenKey = '';
         stopNarration();
       }
       activeStep = step?.step || null;
