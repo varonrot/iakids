@@ -60,10 +60,15 @@
   function renderModel(stage) {
     const scene = document.querySelector('.visual-stage');
     const model = $('fractionModel');
+    const image = $('generatedVisual');
+    const imageUrl = activeStep?.visual?.url;
+    image.hidden = !imageUrl;
+    scene.classList.toggle('has-generated-image', !!imageUrl);
+    if (imageUrl) { image.src = imageUrl; image.alt = activeStep.visual.alt_text || 'Lesson illustration'; }
     const isModel = stage.visual.type === 'bar';
     scene.classList.toggle('is-model', isModel);
     model.hidden = !isModel;
-    scene.setAttribute('aria-label', isModel ? stage.visual.label : 'A pizza divided into four equal quarters. Three remain. Two quarters make one half, and one quarter is half of another half.');
+    scene.setAttribute('aria-label', imageUrl ? image.alt : isModel ? stage.visual.label : 'A pizza divided into four equal quarters. Three remain. Two quarters make one half, and one quarter is half of another half.');
     if (!isModel) return;
     model.replaceChildren();
     const bar = document.createElement('div');
