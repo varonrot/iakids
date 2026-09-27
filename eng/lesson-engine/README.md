@@ -6,7 +6,7 @@ The English contract is isolated from the Hebrew lesson logic. `teacher-plan.js`
 
 The migration in `sql/2027_eng_lesson_engine.sql` has been applied to the Supabase project. It adds `2027_eng_lesson_plans` (shared, server-only), `2027_eng_lesson_visuals` (shared media paths), `2027_eng_lesson_progress` (per-child, parent-readable, server-written), and a private `2027-eng-lesson-media` bucket. It does not modify the existing `2027_test_prep_lessons` record used by the current opening text.
 
-The next slice is the authenticated English API that calls OpenAI, validates and stores a plan, checks an answer before advancing progress, and asks Gemini for an illustration only when that shared visual is missing. The browser must receive only `public_step` output and a signed image URL. A generated plan must pass math/content review before approval. Until that API and its UI connection exist, the live page still uses its current fixed three questions.
+`backend-ai-tutor-he/eng_lesson_routes_2027.py` stages the authenticated start and answer routes. It checks the parent and child, requires the selected topic and quick check, loads an approved shared plan, sends only the active step, and advances progress after a server-side answer check. It is not imported by the current application yet, and there is no approved plan to serve. The next slice is OpenAI draft generation and math/content review, Gemini visual generation when the shared asset is missing, route registration, and the browser connection. Until those are complete, the live page still uses its current fixed three questions.
 
 Run `node --test eng/lesson-engine/teacher-plan.test.js` from the repository root.
 Run `python -m unittest test_eng_lessons_2027.py` from `backend-ai-tutor-he/`.
