@@ -50,6 +50,7 @@
   ];
   let stageIndex = 0, choice = null, correct = false, hintUsed = false;
   let planId = null, activeStep = null, pendingStep = null, complete = false, busy = false;
+  let resumeIndex = 0, resumeStep = null, reviewMode = false;
   $('learnerName').textContent = name;
   $('headerSubject').textContent = payload.draft?.subject || 'Math';
   $('headerGrade').textContent = `Grade ${payload.draft?.grade || 5}`;
@@ -95,21 +96,21 @@
     $('sceneTitle').textContent = stage.lead;
     $('sceneLead').textContent = stageIndex === 0 ? 'A short visual idea, then one question.' : (activeStep?.teacher_text || stage.message);
     $('sceneTakeaway').textContent = stage.takeaway;
-    $('sceneTakeaway').hidden = stageIndex > 0 && !correct;
+    $('sceneTakeaway').hidden = stageIndex > 0 && !correct && !reviewMode;
     document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:'= ?'}));
     $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
-    $('questionText').textContent = isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
-    $('questionLabel').textContent = stage.eyebrow;
+    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
+    $('questionLabel').textContent = reviewMode ? 'REVIEW' : stage.eyebrow;
     $('hintCopy').textContent = stage.hint;
-    $('hintCopy').hidden = !hintUsed;
-    $('hintButton').hidden = correct || isContinue || !!activeStep;
-    $('answerFeedback').hidden = !correct;
+    $('hintCopy').hidden = reviewMode || !hintUsed;
+    $('hintButton').hidden = reviewMode || correct || isContinue || !!activeStep;
+    $('answerFeedback').hidden = !reviewMode && !correct;
     $('answerFeedback').classList.remove('is-error');
-    $('answerFeedback').textContent = correct ? 'Exactly. Nice work!' : '';
+    $('answerFeedback').textContent = reviewMode ? `Your progress is saved at Step ${resumeIndex + 1}.` : correct ? 'Exactly. Nice work!' : '';
     const options = $('answerOptions');
     options.replaceChildren();
     optionsList.forEach((value, optionIndex) => {
-      if (isContinue) return;
+      if (isContinue || reviewMode) return;
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = value;
@@ -122,13 +123,18 @@
       });
       options.append(button);
     });
-    $('checkButton').disabled = busy || (!isContinue && choice === null && !correct);
-    $('checkButton').textContent = correct ? complete ? 'Finish lesson →' : 'Continue →' : isContinue ? 'Continue →' : 'Check answer →';
-    $('sidebarProgressLabel').textContent = `${stageIndex + 1} of ${stages.length} steps`;
-    $('sidebarProgressBar').style.width = `${(stageIndex + 1) / stages.length * 100}%`;
+    $('checkButton').disabled = busy || (!reviewMode && !isContinue && choice === null && !correct);
+    $('checkButton').textContent = reviewMode ? `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : isContinue ? 'Continue →' : 'Check answer →';
+    $('sidebarProgressLabel').textContent = `${resumeIndex + 1} of ${stages.length} steps`;
+    $('sidebarProgressBar').style.width = `${(resumeIndex + 1) / stages.length * 100}%`;
     document.querySelectorAll('.step-list li,.footer-dot').forEach((item, index) => {
       item.classList.toggle('is-current', index === stageIndex);
-      item.classList.toggle('is-complete', index < stageIndex);
+      item.classList.toggle('is-complete', index < resumeIndex);
+    });
+    document.querySelectorAll('.step-jump').forEach((button, index) => {
+      button.disabled = busy || correct || index > resumeIndex;
+      button.setAttribute('aria-current', index === stageIndex ? 'step' : 'false');
+      button.title = index < resumeIndex ? `Review Step ${index + 1}` : '';
     });
     renderModel(stage);
   }
@@ -156,6 +162,7 @@
       const result = await lessonRequest('start', {kid_id:child.id});
       if (result.complete) { location.assign('../../#test-prep'); return; }
       planId = result.plan_id; stageIndex = result.step_index; activeStep = result.step;
+      resumeIndex = stageIndex; resumeStep = activeStep;
       render();
     } catch (error) {
       showError(error.message);
@@ -163,12 +170,38 @@
       $('checkButton').disabled = false;
     }
   }
+  async function openStep(index) {
+    if (busy || correct || index > resumeIndex) return;
+    if (index === resumeIndex) {
+      if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; choice = null; hintUsed = false; render(); }
+      return;
+    }
+    busy = true;
+    document.querySelectorAll('.step-jump').forEach(button => { button.disabled = true; });
+    try {
+      const step = document.body.classList.contains('is-preview') ? null :
+        await lessonRequest('review', {kid_id:child.id, plan_id:planId, step_index:index});
+      stageIndex = index;
+      activeStep = step?.step || null;
+      reviewMode = true;
+      choice = null; hintUsed = false;
+      render();
+    } catch (error) { showError(error.message); }
+    finally {
+      busy = false;
+      document.querySelectorAll('.step-jump').forEach((button, stepIndex) => { button.disabled = correct || stepIndex > resumeIndex; });
+      $('checkButton').disabled = !reviewMode && !correct && activeStep?.interaction?.type !== 'continue' && choice === null;
+    }
+  }
+  document.querySelectorAll('.step-jump').forEach((button, index) => button.addEventListener('click', () => openStep(index)));
   $('hintButton').addEventListener('click', () => { hintUsed = true; $('hintCopy').hidden = false; });
   $('checkButton').addEventListener('click', async () => {
+    if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; choice = null; hintUsed = false; render(); return; }
     if (document.body.classList.contains('is-preview')) {
       if (correct) {
         if (stageIndex === stages.length - 1) { location.assign('../../#test-prep'); return; }
-        stageIndex++; choice = null; correct = false; hintUsed = false; render(); return;
+        stageIndex++; resumeIndex = stageIndex; resumeStep = activeStep;
+        choice = null; correct = false; hintUsed = false; render(); return;
       }
       if (choice === null) return;
       // The design preview has no account or server-side answer check.
@@ -183,6 +216,7 @@
     if (correct) {
       if (complete) { location.assign('../../#test-prep'); return; }
       stageIndex = pendingStep.step_index; activeStep = pendingStep.step; pendingStep = null;
+      resumeIndex = stageIndex; resumeStep = activeStep;
       choice = null; correct = false; hintUsed = false; render(); return;
     }
     if (choice === null && activeStep?.interaction.type !== 'continue') return;
