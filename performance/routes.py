@@ -83,6 +83,14 @@ ROUTES = {
 
     # ---------------------------------------------------------------- English Test Prep (test_prep_2027.py): cached per diagnostic, one model call on a new one
     "test-prep-lesson":     dict(method="POST", path="/api/eng/test-prep/lesson", body={"kid_id": KID}, kind="model", p95_ms=9000, ramp=False, db_max=4),
+    # English lesson engine (eng_lesson_routes_2027.py / eng_lesson_admin_2027.py, 2026-09-27): no model on the child path
+    "eng-lesson-start":     dict(method="POST", path="/api/eng/lesson-engine/start", body={"kid_id": KID}, kind="read", p95_ms=1500, ramp=False, db_max=8),
+    "eng-lesson-answer":    dict(method="POST", path="/api/eng/lesson-engine/answer", body={"kid_id": KID, "plan_id": "00000000-0000-0000-0000-000000000000", "step_index": 0}, kind="write", p95_ms=1500, ramp=False, db_max=10),
+    "admin-eng-draft":      dict(method="GET",  path="/api/admin/eng/lesson-engine/draft", kind="admin", p95_ms=1000, ramp=False, db_max=1),
+    "admin-eng-generate":   dict(method="POST", path="/api/admin/eng/lesson-engine/generate", kind="admin", p95_ms=20000, ramp=False, db_max=2),
+    "admin-eng-approve":    dict(method="POST", path="/api/admin/eng/lesson-engine/approve", kind="admin", p95_ms=1000, ramp=False, db_max=2),
+    "admin-eng-visual":     dict(method="POST", path="/api/admin/eng/lesson-engine/visual/generate", body={"plan_id": "00000000-0000-0000-0000-000000000000", "step_index": 0}, kind="admin", p95_ms=30000, ramp=False, db_max=4),
+    "admin-eng-visual-approve": dict(method="POST", path="/api/admin/eng/lesson-engine/visual/approve", body={"plan_id": "00000000-0000-0000-0000-000000000000", "step_index": 0}, kind="admin", p95_ms=1000, ramp=False, db_max=2),
 
     # ---------------------------------------------------------------- admin (measured once)
     "admin-whoami":         dict(method="GET",  path="/api/admin/whoami", kind="admin", p95_ms=800, ramp=False, db_max=0),

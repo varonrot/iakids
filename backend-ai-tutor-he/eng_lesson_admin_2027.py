@@ -1,18 +1,19 @@
 """Admin-only OpenAI drafts for the English lesson engine."""
 
+import os
 from typing import Literal
 
 from fastapi import Header, HTTPException
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-from main import (aclient, app, generate_lesson_hero_image_bytes, guard_reply_payload,
+from main import (LimitedRequest, aclient, app, generate_lesson_hero_image_bytes, guard_reply_payload,
                   llm_model, require_admin, sb, signed_url_cached, spend_daily_budget)
 from eng_lessons_2027 import teacher_messages, validate_first_fraction_plan
 
 TABLE = "2027_eng_lesson_plans"
 PROMPT_VERSION = 2
-MODEL = llm_model("gpt-4o-mini")
+MODEL = llm_model(os.getenv("ENG_LESSON_DRAFT_MODEL", "gpt-4o-mini"))
 BUCKET = "2027-eng-lesson-media"
 
 
@@ -64,10 +65,20 @@ def read_english_draft(authorization: str = Header(None)):
     return {"draft": rows[0] if rows else None}
 
 
+def _save_draft(content: dict):
+    saved = (sb.table(TABLE).upsert({
+        "language": "en", "grade": 5, "subject": "Math", "topic": "Dividing fractions",
+        "skill_id": "division-as-groups", "prompt_version": PROMPT_VERSION,
+        "status": "draft", "content": content
+    }, on_conflict="language,grade,subject,topic,skill_id,prompt_version")
+             .execute().data or [])
+    return {"draft": saved[0] if saved else _draft_record()[0]}
+
+
 @app.post("/api/admin/eng/lesson-engine/generate")
 async def generate_english_draft(authorization: str = Header(None)):
-    user = require_admin(authorization)
-    rows = _draft_record()
+    user = await run_in_threadpool(require_admin, authorization)
+    rows = await run_in_threadpool(_draft_record)
     if rows and rows[0]["status"] == "approved":
         raise HTTPException(status_code=409, detail="This version is already approved. Use a new prompt version.")
     spend_daily_budget(user.id, "model")
@@ -81,15 +92,13 @@ async def generate_english_draft(authorization: str = Header(None)):
         if parsed is None:
             raise ValueError("No structured teacher plan")
         content = guard_reply_payload(parsed.model_dump(exclude_none=True), "ENG LESSON DRAFT")
-        validate_first_fraction_plan(content)
+        try:
+            validate_first_fraction_plan(content)
+        except ValueError as exc:
+            # the model answered, but the draft breaks the lesson rules: say which, so the admin can retry
+            raise HTTPException(status_code=422, detail=f"The teacher draft did not pass the lesson checks: {exc}")
         # The model's mathematical choices remain a draft until an admin reviews them.
-        saved = (sb.table(TABLE).upsert({
-            "language": "en", "grade": 5, "subject": "Math", "topic": "Dividing fractions",
-            "skill_id": "division-as-groups", "prompt_version": PROMPT_VERSION,
-            "status": "draft", "content": content
-        }, on_conflict="language,grade,subject,topic,skill_id,prompt_version")
-                 .execute().data or [])
-        return {"draft": saved[0] if saved else _draft_record()[0]}
+        return await run_in_threadpool(_save_draft, content)
     except HTTPException:
         raise
     except Exception as exc:
@@ -109,7 +118,7 @@ def approve_english_draft(authorization: str = Header(None)):
     return {"approved": True, "id": rows[0]["id"]}
 
 
-class VisualRequest(BaseModel):
+class VisualRequest(LimitedRequest):
     plan_id: str = Field(max_length=60)
     step_index: int = Field(ge=0, le=2)
 
@@ -161,9 +170,10 @@ def _generate_visual(plan_id: str, index: int):
 
 @app.post("/api/admin/eng/lesson-engine/visual/generate")
 async def generate_english_visual(body: VisualRequest, authorization: str = Header(None)):
-    user = require_admin(authorization)
-    if _visual_record(body.plan_id, body.step_index):
-        return _visual_response(_visual_record(body.plan_id, body.step_index)[0])
+    user = await run_in_threadpool(require_admin, authorization)
+    existing = await run_in_threadpool(_visual_record, body.plan_id, body.step_index)
+    if existing:
+        return await run_in_threadpool(_visual_response, existing[0])
     spend_daily_budget(user.id, "vision")
     try:
         return await run_in_threadpool(_generate_visual, body.plan_id, body.step_index)

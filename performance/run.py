@@ -168,6 +168,7 @@ env.update({
     "AI_PROVIDER": "openrouter", "TTS_PROVIDER": "openrouter", "STT_PROVIDER": "openai",
     "MEDIA_JOBS_MODE": "queue", "RATE_LIMIT_PER_MINUTE": "1000000",
     "ADMIN_EMAILS": "perf-test-parent@example.invalid",
+    "ADMIN_REQUIRE_GOOGLE": "0",            # the fake parent signs in with email; admin routes are measured as that parent
     "ENGLISH_FREE_SECONDS_PER_DAY": "100000000", "ENGLISH_PAID_SECONDS_PER_DAY": "100000000",   # measure the server, not the allowance
     **({"SUPABASE_JWT_ISSUER": PROD["SUPABASE_URL"].rstrip("/") + "/auth/v1"} if args.db == "prod" else {}),
     "OPS_LOG_DIR": str(LOG), "PYTHONUNBUFFERED": "1",

@@ -73,6 +73,8 @@ def _from_schema(s, defs, depth=0):
         return {k: _from_schema(v, defs, depth + 1) for k, v in (s.get("properties") or {}).items()}
     if t == "array":
         n = max(int(s.get("minItems") or 0), 4)
+        if s.get("maxItems") is not None:
+            n = min(n, int(s["maxItems"]))
         items = [_from_schema(s.get("items") or {"type": "string"}, defs, depth + 1) for _ in range(n)]
         # distinct strings: a multiple-choice question needs 4 different options
         return [f"{x} {i + 1}" if isinstance(x, str) else x for i, x in enumerate(items)]
@@ -82,7 +84,7 @@ def _from_schema(s, defs, depth=0):
         return float(s.get("minimum") or 1)
     if t == "boolean":
         return True
-    return HEBREW
+    return HEBREW[:int(s["maxLength"])] if s.get("maxLength") else HEBREW
 
 
 def _content(body):

@@ -2,6 +2,13 @@
 
 Rule (2026-09-16): every `commit` + `push` adds an entry here that says exactly what was fixed, how it showed up, and how it was verified. Newest first. Build numbers refer to the workspace stamp (`IAKIDS • build 0.7.N`).
 
+## 2026-09-27 — English lesson engine: gate coverage, admin routes, migrations (build 0.7.155)
+
+- **Found (review of the pulled lesson engine)**: `eng_lesson_routes_2027.py` and `eng_lesson_admin_2027.py` are loaded through `test_prep_2027.py`, which the gate did not follow, so no rule saw their 7 routes. With them included the gate found: `VisualRequest` a plain `BaseModel` (no size limits), two async admin routes doing database calls on the event loop (every child's request waits while an admin generates), no performance entries. Also: the SQL lived in `eng/lesson-engine/sql/` with no rollback, anonymous callers could still query `2027_eng_lesson_progress` (RLS returned 0 rows), the draft model was written in the code, and `*.test.js` would be published.
+- **Fix**: both modules in `ROUTE_MODULES`; `VisualRequest(LimitedRequest)`; database calls in the thread pool; `ENG_LESSON_DRAFT_MODEL` (default unchanged, gpt-4o-mini); a draft that breaks the lesson rules answers 422 with the reason instead of 502; the SQL moved to `supabase/migrations/20260927_01`–`04` (already applied, rollbacks keep data) plus `20260927_05_eng_progress_no_anon_read.sql` (**to run**); `*.test.js` and `eng/lesson-engine` out of Pages, the Render public build and the privacy rule. Performance: 7 routes measured; the fake model respects list and text limits; the harness parent may act as admin (admins now need Google).
+- **Verified**: `prompt_gate.py --all` passes; negative test — `VisualRequest` back to `BaseModel` fails the gate; the lesson-engine tests pass (9 Python, 4 JS).
+- **Build**: 0.7.155.
+
 ## 2026-09-26 — Security fixes, tutor server (build 0.7.154)
 
 - **Other families' homework files (high)**: `homework-analyze` only checked that the storage path *started* with the caller's id; the storage client resolves `..`, so a crafted path signed and downloaded another family's file (verified offline with a mock transport). **Fix**: `homework_storage_path_ok` requires exactly `<user>/<child>/<name>`; `/api/kid/files` re-checks stored paths before signing; the admin image path cannot climb out of its lesson.

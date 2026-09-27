@@ -23,11 +23,11 @@ for dir in "${public_dirs[@]}"; do
   [[ -d "$dir" ]] || continue
   while IFS= read -r -d '' file; do
     case "/$file" in
-      */tools/*|*/prompts/*|*/data/*|*/tests/*|*/test/*|*/__pycache__/*|*/node_modules/*) continue ;;
+      */tools/*|*/prompts/*|*/data/*|*/tests/*|*/test/*|*/__pycache__/*|*/node_modules/*|*/lesson-engine/*) continue ;;
     esac
     name=${file##*/}
     case "$name" in
-      .*|*back_up*|*backup*|*BACKUP*|*old*|*.map) continue ;;
+      .*|*back_up*|*backup*|*BACKUP*|*old*|*.map|*.test.js) continue ;;
       *.html|*.htm|*.css|*.js|*.svg|*.png|*.jpg|*.jpeg|*.gif|*.webp|*.avif|*.ico|*.woff|*.woff2|*.ttf|*.otf|*.eot|*.mp3|*.mp4|*.webm|*.ogg|*.wav|*.pdf|*.webmanifest) ;;
       *) continue ;;
     esac

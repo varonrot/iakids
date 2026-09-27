@@ -23,3 +23,5 @@ exclude:
   - "*.pyc"
   - "*.env"
   - "*.log"
+  - "*.test.js"
+  - eng/lesson-engine

@@ -32,7 +32,8 @@ MAIN = ROOT / "backend-ai-tutor-he" / "main.py"
 # Route modules that register on main.app (`from main import app`). The gate reads them together with
 # main.py as ONE source, so every rule below (security, prompts, models, performance) covers their routes too.
 ROUTE_MODULES = [ROOT / "backend-ai-tutor-he" / "english_tutor.py", ROOT / "backend-ai-tutor-he" / "qbank_admin.py",
-                 ROOT / "backend-ai-tutor-he" / "admin_guard.py", ROOT / "backend-ai-tutor-he" / "test_prep_2027.py"]
+                 ROOT / "backend-ai-tutor-he" / "admin_guard.py", ROOT / "backend-ai-tutor-he" / "test_prep_2027.py",
+                 ROOT / "backend-ai-tutor-he" / "eng_lesson_routes_2027.py", ROOT / "backend-ai-tutor-he" / "eng_lesson_admin_2027.py"]
 
 
 def api_source() -> str:
@@ -1951,7 +1952,8 @@ def admin_route_checks() -> list:
     return bad
 
 PAGES_PRIVATE = ["backend", "backend-ai-tutor-he", '"iakids_*_prompt*.txt"', '"V*_BACKUP"', "tools", "docs", "performance",
-                 "supabase", "ops", '"*.md"', '"*.py"', '"*.sql"', '"*.sh"', '"*.env"']
+                 "supabase", "ops", '"*.md"', '"*.py"', '"*.sql"', '"*.sh"', '"*.env"',
+                 '"*.test.js"', "eng/lesson-engine"]
 
 
 def pages_privacy_checks() -> list:
