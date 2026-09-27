@@ -50,17 +50,17 @@
   ];
   let stageIndex = 0, choice = null, correct = false, hintUsed = false;
   let planId = null, activeStep = null, pendingStep = null, complete = false, busy = false;
-  let resumeIndex = 0, resumeStep = null, reviewMode = false, revealIndex = 0;
+  let resumeIndex = 0, resumeStep = null, reviewMode = false;
   const narration = new Audio();
   narration.preload = 'none';
   let voiceOn = false, spokenKey = '', requestNumber = 0;
   const narrationUrls = new Map();
-  const ideaBeats = [
-    {message:'When we divide, we ask how many groups of a certain size fit. Here we have three quarters of a pizza, and each portion we want to make is one half of a pizza. Let’s see how many half-pizza portions fit in what we have.', button:'Look at the pieces →'},
-    {message:'The pizza is cut into four equal pieces. Three are shaded, so we have three quarters. One half of this same pizza takes two of those quarter pieces.', button:'Make one half →'},
-    {message:'Take two shaded quarters and put them together. That gives us one complete half-pizza portion. We still have one shaded quarter left.', button:'Look at what is left →'},
-    {message:'A full half needs two quarters, but we have only one quarter left. So the leftover piece makes half of a half-pizza portion. It still counts, even though it is not a full portion.', button:'Put the groups together →'},
-    {message:'We made one full half-pizza portion and half of another portion. That is one and a half portions altogether. Check it: one half plus one quarter gives us the three quarters we started with. So three quarters divided by one half is one and a half.', button:'Try together →'}
+  const ideaParagraphs = [
+    'When we divide, we ask how many groups of a certain size fit. Here we have three quarters of a pizza, and each portion we want to make is one half of a pizza. Let’s see how many half-pizza portions fit in what we have.',
+    'The pizza is cut into four equal pieces. Three are shaded, so we have three quarters. One half of this same pizza takes two of those quarter pieces.',
+    'Take two shaded quarters and put them together. That gives us one complete half-pizza portion. We still have one shaded quarter left.',
+    'A full half needs two quarters, but we have only one quarter left. So the leftover piece makes half of a half-pizza portion. It still counts, even though it is not a full portion.',
+    'We made one full half-pizza portion and half of another portion. That is one and a half portions altogether. Check it: one half plus one quarter gives us the three quarters we started with. So three quarters divided by one half is one and a half.'
   ];
   $('learnerName').textContent = name;
   $('headerSubject').textContent = payload.draft?.subject || 'Math';
@@ -69,7 +69,7 @@
   $('sidebarContext').textContent = `${payload.draft?.subject || 'Math'} · Grade ${payload.draft?.grade || 5}`;
   $('lessonApp').hidden = false;
 
-  function voiceKey() { return `${planId}:${stageIndex}:${stageIndex === 0 ? revealIndex : 0}`; }
+  function voiceKey() { return `${planId}:${stageIndex}`; }
   function voiceStatus(message) { $('voiceStatus').textContent = message; $('voiceStatus').hidden = !message; }
   function stopNarration() {
     requestNumber++;
@@ -98,7 +98,7 @@
       const cached = narrationUrls.get(key);
       const url = cached && cached.expires > Date.now() ? cached.url :
         (await lessonRequest('narration', {kid_id:child.id, plan_id:planId,
-          step_index:stageIndex, reveal_phase:stageIndex === 0 ? revealIndex : 0})).url;
+          step_index:stageIndex})).url;
       if (ticket !== requestNumber || !voiceOn) return;
       narrationUrls.set(key, {url, expires:Date.now() + 8 * 60 * 1000});
       narration.src = url;
@@ -125,9 +125,9 @@
     const image = $('generatedVisual');
     const imageUrl = activeStep?.visual?.url;
     const guidedIdea = stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview'));
-    image.hidden = !imageUrl || (guidedIdea && revealIndex < ideaBeats.length - 1);
+    image.hidden = !imageUrl || guidedIdea;
     scene.classList.toggle('has-generated-image', !!imageUrl && !image.hidden);
-    scene.dataset.reveal = stageIndex === 0 ? String(revealIndex) : '0';
+    scene.dataset.reveal = stageIndex === 0 ? '4' : '0';
     if (imageUrl) { image.src = imageUrl; image.alt = activeStep.visual.alt_text || 'Lesson illustration'; }
     image.onerror = () => { image.hidden = true; scene.classList.remove('has-generated-image'); };
     const isModel = stage.visual.type === 'bar';
@@ -155,18 +155,25 @@
     const interaction = activeStep?.interaction;
     const isContinue = interaction?.type === 'continue' || (stageIndex === 0 && document.body.classList.contains('is-preview'));
     const guidedIdea = stageIndex === 0 && isContinue;
-    const beat = ideaBeats[revealIndex];
     const optionsList = interaction?.options || stage.options;
     $('sceneEyebrow').textContent = stage.eyebrow;
     $('sceneCounter').textContent = `Step ${stageIndex + 1} of ${stages.length}`;
     $('sceneTitle').textContent = stage.lead;
     $('sceneLead').textContent = stageIndex === 0 ? (guidedIdea ? 'We will use equal pizza pieces to understand what dividing by one half means.' : 'Explore the visual, then check your understanding.') : (activeStep?.teacher_text || stage.message);
     $('sceneTakeaway').textContent = stage.takeaway;
-    $('sceneTakeaway').hidden = stageIndex === 0 ? guidedIdea && revealIndex < ideaBeats.length - 1 : !correct && !reviewMode;
-    const showIdeaAnswer = stageIndex === 0 && guidedIdea && revealIndex === ideaBeats.length - 1;
+    $('sceneTakeaway').hidden = stageIndex === 0 ? false : !correct && !reviewMode;
+    const showIdeaAnswer = stageIndex === 0 && guidedIdea;
     document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:showIdeaAnswer ? '= 1½' : '= ?'}));
-    $('guideMessage').textContent = guidedIdea ? `${name}, ${beat.message}` : stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
-    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea ? (revealIndex === ideaBeats.length - 1 ? 'Ready to try together?' : 'Follow the shaded pieces.') : isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
+    if (guidedIdea) {
+      $('guideMessage').replaceChildren(...ideaParagraphs.map((paragraph, index) => {
+        const part = document.createElement('p');
+        part.textContent = index === 0 ? `${name}, ${paragraph}` : paragraph;
+        return part;
+      }));
+    } else {
+      $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
+    }
+    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea || isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
     $('questionLabel').textContent = reviewMode ? 'REVIEW' : stage.eyebrow;
     $('hintCopy').textContent = stage.hint;
     $('hintCopy').hidden = reviewMode || !hintUsed;
@@ -191,7 +198,7 @@
       options.append(button);
     });
     $('checkButton').disabled = busy || (!reviewMode && !guidedIdea && !isContinue && choice === null && !correct);
-    $('checkButton').textContent = guidedIdea && revealIndex < ideaBeats.length - 1 ? beat.button : reviewMode ? `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : guidedIdea ? beat.button : isContinue ? 'Continue →' : 'Check answer →';
+    $('checkButton').textContent = reviewMode ? stageIndex < resumeIndex ? (stageIndex === 0 ? 'Try together →' : 'Your turn →') : `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : guidedIdea ? 'Try together →' : isContinue ? 'Continue →' : 'Check answer →';
     $('sidebarProgressLabel').textContent = `${resumeIndex + 1} of ${stages.length} steps`;
     $('sidebarProgressBar').style.width = `${(resumeIndex + 1) / stages.length * 100}%`;
     document.querySelectorAll('.step-list li,.footer-dot').forEach((item, index) => {
@@ -229,7 +236,7 @@
       const result = await lessonRequest('start', {kid_id:child.id});
       if (result.complete) { location.assign('../../#test-prep'); return; }
       planId = result.plan_id; stageIndex = result.step_index; activeStep = result.step;
-      resumeIndex = stageIndex; resumeStep = activeStep; revealIndex = 0;
+      resumeIndex = stageIndex; resumeStep = activeStep;
       render();
     } catch (error) {
       showError(error.message);
@@ -240,7 +247,7 @@
   async function openStep(index) {
     if (busy || correct || index > resumeIndex) return;
     if (index === resumeIndex) {
-      if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; revealIndex = 0; choice = null; hintUsed = false; render(); }
+      if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; choice = null; hintUsed = false; render(); }
       return;
     }
     busy = true;
@@ -251,7 +258,6 @@
       stageIndex = index;
       activeStep = step?.step || null;
       reviewMode = true;
-      revealIndex = 0;
       choice = null; hintUsed = false;
       render();
     } catch (error) { showError(error.message); }
@@ -274,7 +280,7 @@
     try {
       const result = document.body.classList.contains('is-preview') ? {hint:fallback} :
         await lessonRequest('help', {kid_id:child.id, plan_id:planId, step_index:stageIndex,
-          help_kind:'explain', reveal_phase:stageIndex === 0 ? revealIndex : 0});
+          help_kind:'explain'});
       $('hintCopy').textContent = result.hint || fallback;
     } catch { $('hintCopy').textContent = fallback; }
     finally {
@@ -284,15 +290,12 @@
     }
   });
   $('checkButton').addEventListener('click', async () => {
-    if (stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview')) && revealIndex < ideaBeats.length - 1) {
-      revealIndex++; hintUsed = false; render(); return;
-    }
-    if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; revealIndex = 0; choice = null; hintUsed = false; render(); return; }
+    if (reviewMode) { await openStep(Math.min(stageIndex + 1, resumeIndex)); return; }
     if (document.body.classList.contains('is-preview')) {
-      if (stageIndex === 0) { stageIndex = 1; resumeIndex = 1; revealIndex = 0; choice = null; render(); return; }
+      if (stageIndex === 0) { stageIndex = 1; resumeIndex = 1; choice = null; render(); return; }
       if (correct) {
         if (stageIndex === stages.length - 1) { location.assign('../../#test-prep'); return; }
-        stageIndex++; resumeIndex = stageIndex; resumeStep = activeStep; revealIndex = 0;
+        stageIndex++; resumeIndex = stageIndex; resumeStep = activeStep;
         choice = null; correct = false; hintUsed = false; render(); return;
       }
       if (choice === null) return;
@@ -308,7 +311,7 @@
     if (correct) {
       if (complete) { location.assign('../../#test-prep'); return; }
       stageIndex = pendingStep.step_index; activeStep = pendingStep.step; pendingStep = null;
-      resumeIndex = stageIndex; resumeStep = activeStep; revealIndex = 0;
+      resumeIndex = stageIndex; resumeStep = activeStep;
       choice = null; correct = false; hintUsed = false; render(); return;
     }
     if (choice === null && activeStep?.interaction.type !== 'continue') return;

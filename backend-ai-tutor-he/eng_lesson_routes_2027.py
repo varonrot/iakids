@@ -50,14 +50,12 @@ class HelpRequest(LimitedRequest):
     step_index: int = Field(ge=0, le=2)
     help_kind: str = Field(pattern="^(hint|explain)$")
     option_index: int | None = Field(default=None, ge=0, le=3)
-    reveal_phase: int = Field(default=0, ge=0, le=4)
 
 
 class NarrationRequest(LimitedRequest):
     kid_id: str
     plan_id: str
     step_index: int = Field(ge=0, le=2)
-    reveal_phase: int = Field(default=0, ge=0, le=4)
 
 
 class AnswerRequest(LimitedRequest):
@@ -209,7 +207,7 @@ def _narration_context(user_id: str, kid_id: str, body: NarrationRequest):
     if not rows or body.step_index > int(rows[0]["current_step"]):
         raise HTTPException(status_code=403, detail="This lesson step is not available.")
     if body.step_index == 0 and plan["content"]["steps"][0]["interaction"]["type"] == "continue":
-        return IDEA_NARRATION[body.reveal_phase]
+        return " ".join(IDEA_NARRATION)
     return str(plan["content"]["steps"][body.step_index]["teacher_text"])[:450]
 
 
@@ -308,7 +306,7 @@ async def help_english_lesson(body: HelpRequest, authorization: str = Header(Non
     await run_in_threadpool(spend_daily_budget, user_id, "model")
     context = ("The child picked " + repr(action["options"][body.option_index])
                if body.help_kind == "hint" else
-               "The child asked for another explanation at reveal phase " + str(body.reveal_phase))
+               "The child asked for another explanation of the current visual.")
     try:
         response = await aclient.chat.completions.create(
             model=llm_model(os.getenv("ENG_LESSON_HELP_MODEL", "gpt-4o-mini")),

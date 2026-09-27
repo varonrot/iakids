@@ -222,10 +222,9 @@ class EnglishLessonRouteTests(unittest.TestCase):
             def execute(self): return types.SimpleNamespace(data=[{"current_step": 1}])
         route.sb = types.SimpleNamespace(table=lambda *_: ReadOnlyTable())
         route._approved_plan = lambda *_: {"id": "plan-1", "content": PLAN}
-        body = types.SimpleNamespace(kid_id="child-1", plan_id="plan-1", step_index=0,
-                                     reveal_phase=1)
+        body = types.SimpleNamespace(kid_id="child-1", plan_id="plan-1", step_index=0)
         self.assertEqual(route._narration_context("parent-1", "child-1", body),
-                         route.IDEA_NARRATION[1])
+                         " ".join(route.IDEA_NARRATION))
         body.step_index = 2
         with self.assertRaises(route.HTTPException) as error:
             route._narration_context("parent-1", "child-1", body)
