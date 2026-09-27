@@ -8,7 +8,7 @@ from starlette.concurrency import run_in_threadpool
 
 from main import (aclient, app, generate_lesson_hero_image_bytes, guard_reply_payload,
                   llm_model, require_admin, sb, signed_url_cached, spend_daily_budget)
-from eng_lessons_2027 import teacher_messages, validate_plan
+from eng_lessons_2027 import teacher_messages, validate_first_fraction_plan
 
 TABLE = "2027_eng_lesson_plans"
 PROMPT_VERSION = 2
@@ -81,9 +81,7 @@ async def generate_english_draft(authorization: str = Header(None)):
         if parsed is None:
             raise ValueError("No structured teacher plan")
         content = guard_reply_payload(parsed.model_dump(exclude_none=True), "ENG LESSON DRAFT")
-        validate_plan(content)
-        if content["skill_id"] != "division-as-groups":
-            raise ValueError("Unexpected skill")
+        validate_first_fraction_plan(content)
         # The model's mathematical choices remain a draft until an admin reviews them.
         saved = (sb.table(TABLE).upsert({
             "language": "en", "grade": 5, "subject": "Math", "topic": "Dividing fractions",
@@ -105,7 +103,7 @@ def approve_english_draft(authorization: str = Header(None)):
     rows = _draft_record()
     if not rows or rows[0]["status"] != "draft":
         raise HTTPException(status_code=409, detail="No draft is awaiting review.")
-    validate_plan(rows[0]["content"])
+    validate_first_fraction_plan(rows[0]["content"])
     # A human reviewer must verify the mathematical examples and answer indexes.
     sb.table(TABLE).update({"status": "approved"}).eq("id", rows[0]["id"]).eq("status", "draft").execute()
     return {"approved": True, "id": rows[0]["id"]}
