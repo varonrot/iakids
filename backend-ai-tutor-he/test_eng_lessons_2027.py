@@ -29,6 +29,11 @@ class EnglishLessonContractTests(unittest.TestCase):
         self.assertNotIn("answer_index", str(result))
         self.assertNotIn("Three shaded quarters", str(result))
 
+    def test_approved_visual_can_be_projected_with_accessible_alt(self):
+        result = public_step(PLAN, 0, "https://example.invalid/signed-image", "Three shaded quarters")
+        self.assertEqual(result["step"]["visual"]["alt_text"], "Three shaded quarters")
+        self.assertNotIn("brief", result["step"]["visual"])
+
     def test_unexpected_private_fields_are_not_projected(self):
         plan = {**PLAN, "steps": [*PLAN["steps"]]}
         plan["steps"][1] = {**plan["steps"][1], "secret_note": "server only",
