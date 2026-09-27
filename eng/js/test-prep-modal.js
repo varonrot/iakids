@@ -273,7 +273,8 @@
     dialog.querySelector('.prep-learn-step').classList.toggle('prep-lesson-ready', complete);
     dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === (complete ? 1 : 0)));
     dialog.querySelector('.prep-start-quiz').textContent = complete ? 'Continue learning →' : quizIndex > 0 ? 'Continue quick check →' : 'Start quick check →';
-    dialog.querySelector('.prep-plan-footer p').textContent = complete ? 'Your quick check is saved. Your next step is ready.' : quizIndex > 0 ? 'Your answers are saved. Pick up where you left off.' : 'A short visual check is ready.';
+    const progressMessage = complete ? 'Your quick check is saved. Your next step is ready.' : quizIndex > 0 ? 'Your answers are saved. Pick up where you left off.' : 'A short visual check is ready.';
+    dialog.querySelector('.prep-plan-footer p').textContent = progressMessage + (quizDraft?.topics.length > 1 ? ' This lesson covers Dividing fractions only.' : '');
   }
   async function refreshQuickCheckProgress(draft) {
     if (!supportsQuickCheck(draft)) return;
@@ -433,7 +434,9 @@
     const supported = supportsQuickCheck(draft);
     dialog.querySelector('.prep-start-quiz').disabled = !supported;
     dialog.querySelector('.prep-start-quiz').textContent = 'Start quick check →';
-    dialog.querySelector('.prep-plan-footer p').textContent = supported ? 'Checking your saved progress…' : 'Interactive questions for these topics are coming next.';
+    dialog.querySelector('.prep-plan-footer p').textContent = supported
+      ? 'Starting with Dividing fractions. Other saved topics do not have interactive lessons yet.'
+      : 'Your topics are saved. The interactive lesson is currently available for Grade 5 Math · Dividing fractions.';
     const name = child?.child_name?.trim() || 'learner';
     dialog.querySelector('#prepPlanTitle').textContent = `Let’s get ready, ${name}!`;
     dialog.querySelector('.prep-plan-subtitle').textContent = `Your plan for ${draft.subject} · Grade ${draft.grade}`;
