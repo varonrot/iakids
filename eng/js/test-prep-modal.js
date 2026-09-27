@@ -98,7 +98,7 @@
     {key:'fractions-q2', top:[2,3], divisor:[1,3], choices:['1','2','3'], correct:'2', hint:'Both fractions are divided into thirds. Count how many one-third pieces are shaded.', explanation:'Two thirds contains two groups of one third.'},
     {key:'fractions-q3', top:[1,2], divisor:[1,4], choices:['1','2','4'], correct:'2', hint:'Split a half into two equal pieces. What fraction of the whole is each piece?', explanation:'A half contains two quarters, so the answer is 2.'}
   ];
-  let quizDraft = null, quizRows = new Map(), quizIndex = 0, quizChoice = null, quizHintUsed = false, quizBusy = false;
+  let quizDraft = null, activeTopic = null, quizRows = new Map(), quizIndex = 0, quizChoice = null, quizHintUsed = false, quizBusy = false;
   let selectedTopics = new Set();
   let customTopics = [];
   const topicsForm = dialog.querySelector('#prepTopicsForm');
@@ -193,7 +193,7 @@
     }
   }
   function supportsQuickCheck(draft) {
-    return draft.subject === 'Math' && draft.grade === 5 && draft.topics.includes('Dividing fractions');
+    return draft.subject === 'Math' && draft.grade === 5 && activeTopic === 'Dividing fractions';
   }
   function renderFractionBar([numerator, denominator], className) {
     const cells = Array.from({length:denominator}, (_, index) => '<span class="' + (index < numerator ? 'filled' : '') + '"></span>').join('');
@@ -274,7 +274,7 @@
     dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === (complete ? 1 : 0)));
     dialog.querySelector('.prep-start-quiz').textContent = complete ? 'Continue learning →' : quizIndex > 0 ? 'Continue quick check →' : 'Start quick check →';
     const progressMessage = complete ? 'Your quick check is saved. Your next step is ready.' : quizIndex > 0 ? 'Your answers are saved. Pick up where you left off.' : 'A short visual check is ready.';
-    dialog.querySelector('.prep-plan-footer p').textContent = progressMessage + (quizDraft?.topics.length > 1 ? ' This lesson covers Dividing fractions only.' : '');
+    dialog.querySelector('.prep-plan-footer p').textContent = progressMessage + (quizDraft?.topics.length > 1 ? ' Choose another topic above for its own lesson.' : '');
   }
   async function refreshQuickCheckProgress(draft) {
     if (!supportsQuickCheck(draft)) return;
@@ -284,17 +284,18 @@
     button.textContent = 'Checking progress…';
     try {
       const rows = await window.IAKidsAuth.loadQuickCheck(childId, 'Dividing fractions');
-      if (dialog.open && topicChildId === childId && quizDraft === draft) syncQuickCheckRows(rows);
+      if (dialog.open && topicChildId === childId && quizDraft === draft && activeTopic === 'Dividing fractions') syncQuickCheckRows(rows);
     } catch (error) {
-      if (dialog.open && topicChildId === childId && quizDraft === draft) {
+      if (dialog.open && topicChildId === childId && quizDraft === draft && activeTopic === 'Dividing fractions') {
         dialog.querySelector('.prep-plan-footer p').textContent = error.message;
         button.textContent = 'Try to continue →';
       }
     } finally {
-      if (dialog.open && topicChildId === childId && quizDraft === draft) button.disabled = false;
+      if (dialog.open && topicChildId === childId && quizDraft === draft && activeTopic === 'Dividing fractions') button.disabled = false;
     }
   }
   async function startQuickCheck() {
+    if (quizDraft && !supportsQuickCheck(quizDraft)) { startTopicLesson(); return; }
     if (!quizDraft || !supportsQuickCheck(quizDraft) || quizBusy) return;
     quizBusy = true;
     const button = dialog.querySelector('.prep-start-quiz');
@@ -320,6 +321,18 @@
       button.disabled = false;
       if (dialog.open) lessonCard.disabled = quizIndex < fractionQuestions.length;
     }
+  }
+  function startTopicLesson() {
+    const child = window.IAKidsAuth?.child;
+    if (!child?.id || !quizDraft?.topics.includes(activeTopic)) return;
+    sessionStorage.setItem('iakids.eng.lesson-workspace.v1', JSON.stringify({
+      version: 1, mode: 'topic', at: Date.now(),
+      child: {id: child.id, child_name: child.child_name},
+      draft: quizDraft, topic: activeTopic,
+      lesson: {headline: activeTopic}
+    }));
+    dialog.close();
+    location.assign(new URL('test-prep/lesson/', base).href);
   }
   function renderLesson(content) {
     const child = window.IAKidsAuth?.child;
@@ -422,32 +435,44 @@
       quizBusy = false;
     }
   }
-  function renderPlan(draft) {
+  function renderPlan(draft, topic = draft.topics[0]) {
     const child = window.IAKidsAuth?.child;
     quizDraft = draft;
+    activeTopic = topic;
     dialog.classList.remove('prep-quiz-active', 'prep-lesson-active');
     dialog.querySelector('.prep-quiz').hidden = true;
     dialog.querySelector('.prep-lesson').hidden = true;
-    dialog.querySelectorAll('.prep-plan-steps li').forEach((card, i) => card.classList.toggle('prep-plan-active', i === 0));
+    const cards = dialog.querySelectorAll('.prep-plan-steps li');
+    cards.forEach((card, i) => card.classList.toggle('prep-plan-active', i === 0));
     dialog.querySelector('.prep-learn-step-button').disabled = true;
     dialog.querySelector('.prep-learn-step').classList.remove('prep-lesson-ready');
     const supported = supportsQuickCheck(draft);
-    dialog.querySelector('.prep-start-quiz').disabled = !supported;
-    dialog.querySelector('.prep-start-quiz').textContent = 'Start quick check →';
+    dialog.querySelector('.prep-start-quiz').disabled = false;
+    dialog.querySelector('.prep-start-quiz').textContent = supported ? 'Start quick check →' : 'Start the lesson →';
     dialog.querySelector('.prep-plan-footer p').textContent = supported
-      ? 'Starting with Dividing fractions. Other saved topics do not have interactive lessons yet.'
-      : 'Your topics are saved. The interactive lesson is currently available for Grade 5 Math · Dividing fractions.';
+      ? 'Starting with Dividing fractions. Choose another topic above for its own lesson.'
+      : `Your teacher will prepare a short lesson about ${activeTopic}.`;
+    cards[0].querySelector('strong').textContent = supported ? 'Quick check' : 'Learn the idea';
+    cards[0].querySelector('small').textContent = supported ? 'See what you already know.' : 'Listen and watch a short explanation.';
+    cards[1].hidden = !supported;
+    cards[2].querySelector('.prep-plan-number').textContent = supported ? '3' : '2';
+    cards[3].querySelector('.prep-plan-number').textContent = supported ? '4' : '3';
     const name = child?.child_name?.trim() || 'learner';
     dialog.querySelector('#prepPlanTitle').textContent = `Let’s get ready, ${name}!`;
     dialog.querySelector('.prep-plan-subtitle').textContent = `Your plan for ${draft.subject} · Grade ${draft.grade}`;
     dialog.querySelector('.prep-plan-subject').textContent = draft.subject;
     const chips = dialog.querySelector('.prep-plan-chips');
     chips.replaceChildren();
-    draft.topics.forEach(topic => {
-      const chip = document.createElement('span');
-      chip.textContent = topic;
+    draft.topics.forEach((name, index) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'prep-plan-topic-chip';
+      chip.dataset.topicIndex = String(index);
+      chip.setAttribute('aria-pressed', String(name === activeTopic));
+      chip.textContent = name;
       chips.append(chip);
     });
+    dialog.querySelector('.prep-plan-intro').textContent = `Selected lesson: ${activeTopic}. Choose another saved topic below.`;
     const date = dialog.querySelector('.prep-plan-date');
     date.hidden = !draft.date;
     if (draft.date) date.textContent = `Test date: ${new Date(`${draft.date}T12:00:00`).toLocaleDateString('en', {year:'numeric', month:'long', day:'numeric'})}`;
@@ -484,6 +509,8 @@
     opener?.focus();
   });
   dialog.addEventListener('click', event => {
+    const topicChip = event.target.closest('.prep-plan-topic-chip');
+    if (topicChip && quizDraft) renderPlan(quizDraft, quizDraft.topics[Number(topicChip.dataset.topicIndex)]);
     if (event.target.closest('.prep-close,[data-prep-close]')) dialog.close();
     if (event.target.closest('.prep-edit-topics')) view('topics');
     if (event.target.closest('.prep-start-quiz')) startQuickCheck();

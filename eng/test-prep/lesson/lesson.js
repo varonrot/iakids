@@ -11,6 +11,7 @@
     };
     document.body.classList.add('is-preview');
   }
+  if (payload?.mode === 'topic') return;
   if (!payload || payload.version !== 1 || !payload.child?.id || !payload.lesson?.headline || Date.now() - payload.at > 24 * 60 * 60 * 1000 || Date.now() < payload.at) {
     document.getElementById('lessonEmpty').hidden = false;
     return;

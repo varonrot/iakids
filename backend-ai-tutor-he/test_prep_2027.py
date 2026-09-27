@@ -116,3 +116,6 @@ import eng_lesson_routes_2027  # noqa: E402,F401
 
 # Admin-only AI teacher draft and review routes.
 import eng_lesson_admin_2027  # noqa: E402,F401
+
+# Prompt-led lessons for other saved English topics.
+import eng_topic_lesson_2027  # noqa: E402,F401

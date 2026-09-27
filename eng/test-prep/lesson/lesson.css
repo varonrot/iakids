@@ -57,3 +57,11 @@
 
 .guide-voice button.requires-gesture{width:100%;min-height:52px;border-radius:14px;border-color:#079d95;background:#0b9d95;color:#fff;font-size:15px;box-shadow:0 8px 19px #0b9d9533}
 .guide-voice button.requires-gesture:hover{background:#087f84}
+.is-topic-lesson .visual-stage .plate,.is-topic-lesson .visual-stage .visual-note,.is-topic-lesson .visual-stage .equation{display:none}
+.topic-visual{display:none}
+.is-topic-lesson .topic-visual{position:absolute;inset:7% 8%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;border:1px solid #bfe4de;border-radius:26px;background:linear-gradient(145deg,#ebfaf5,#d5f1f5);text-align:center;padding:22px}
+.topic-visual-symbol{width:92px;height:92px;border-radius:25px;display:grid;place-items:center;background:#fff;color:#0a9f9e;font-size:57px;box-shadow:0 9px 27px #1b73641e}
+.topic-visual-label{max-width:440px;color:#19445d;font-size:clamp(20px,2vw,30px);font-weight:750;line-height:1.25;margin:0}
+.is-topic-lesson .step-jump{cursor:default}
+.is-topic-lesson .visual-stage.has-generated-image .topic-visual{display:none}
+.is-topic-lesson .generated-visual{inset:4%;width:92%;height:92%;object-fit:contain}

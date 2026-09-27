@@ -225,8 +225,8 @@ def _cached_narration(path: str) -> bool:
                sb.storage.from_(AUDIO_BUCKET).list(directory, {"limit": 100}))
 
 
-def _generate_narration(text: str) -> bytes:
-    script = ("Speak in warm, natural English as a patient female Grade 5 teacher. "
+def _generate_narration(text: str, grade: int = 5) -> bytes:
+    script = (f"Speak in warm, natural English as a patient female Grade {grade} teacher. "
               "Use a gentle pause between ideas. Read exactly these words, without adding anything:\n\n" + text)
     if TTS_PROVIDER == "openrouter":
         started = time.time()
