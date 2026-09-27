@@ -47,11 +47,23 @@ def _progress(user_id: str, kid_id: str, plan_id: str):
     return {"current_step": 0, "completed_at": None}
 
 
-def _approved_plan():
+def _approved_plan(user_id: str | None = None, kid_id: str | None = None):
+    if user_id and kid_id:
+        active = (sb.table("2027_eng_lesson_progress").select("plan_id")
+                  .eq("user_id", user_id).eq("child_id", kid_id).lt("current_step", 3)
+                  .order("updated_at", desc=True).limit(1).execute().data or [])
+        if active:
+            rows = (sb.table("2027_eng_lesson_plans").select("id,content")
+                    .eq("id", active[0]["plan_id"]).eq("status", "approved")
+                    .eq("language", "en").eq("grade", 5).eq("subject", SUBJECT)
+                    .eq("topic", TOPIC).eq("skill_id", "division-as-groups")
+                    .limit(1).execute().data or [])
+            if rows:
+                return rows[0]
     rows = (sb.table("2027_eng_lesson_plans").select("id,content")
             .eq("language", "en").eq("grade", 5).eq("subject", SUBJECT)
             .eq("topic", TOPIC).eq("skill_id", "division-as-groups")
-            .eq("prompt_version", 1).eq("status", "approved")
+            .eq("status", "approved").order("prompt_version", desc=True)
             .limit(1).execute().data or [])
     if not rows:
         raise HTTPException(status_code=409, detail="This lesson is being prepared.")
@@ -72,7 +84,7 @@ def _visible_step(plan_id: str, content: dict, index: int):
 @app.post("/api/eng/lesson-engine/start")
 async def start_english_lesson(body: StartRequest, authorization: str = Header(None)):
     user_id = await run_in_threadpool(_parent_and_child, authorization, body.kid_id)
-    plan = await run_in_threadpool(_approved_plan)
+    plan = await run_in_threadpool(_approved_plan, user_id, body.kid_id)
     progress = await run_in_threadpool(_progress, user_id, body.kid_id, plan["id"])
     index = int(progress["current_step"])
     if index >= 3:
@@ -82,7 +94,7 @@ async def start_english_lesson(body: StartRequest, authorization: str = Header(N
 
 
 def _submit(user_id: str, kid_id: str, body: AnswerRequest):
-    plan = _approved_plan()
+    plan = _approved_plan(user_id, kid_id)
     if plan["id"] != body.plan_id:
         raise HTTPException(status_code=409, detail="Restart the lesson to load its current plan.")
     progress = _progress(user_id, kid_id, plan["id"])
