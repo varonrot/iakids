@@ -334,71 +334,9 @@
     dialog.close();
     location.assign(new URL('test-prep/lesson/', base).href);
   }
-  function renderLesson(content) {
-    const child = window.IAKidsAuth?.child;
-    if (child?.id && quizDraft?.grade === 5 && quizDraft?.subject === 'Math') {
-      try {
-        sessionStorage.setItem('iakids.eng.lesson-workspace.v1', JSON.stringify({
-          version: 1, at: Date.now(),
-          child: {id: child.id, child_name: child.child_name},
-          draft: quizDraft, lesson: content
-        }));
-        dialog.close();
-        location.assign(new URL('test-prep/lesson/', base).href);
-        return;
-      } catch (error) {
-        console.warn('Lesson workspace handoff failed; showing the lesson here.', error);
-      }
-    }
-    dialog.querySelector('.prep-lesson-headline').textContent = content.headline;
-    dialog.querySelector('.prep-lesson-opening').textContent = content.opening;
-    dialog.querySelector('.prep-lesson-takeaway').textContent = content.takeaway;
-    dialog.querySelector('.prep-lesson-visual .prep-quiz-bars').innerHTML =
-      renderFractionBar([3,4], 'prep-quiz-bar-top') + renderFractionBar([1,2], 'prep-quiz-bar-bottom');
-    const steps = dialog.querySelector('.prep-lesson-steps');
-    steps.replaceChildren();
-    content.steps.forEach((step, index) => {
-      const item = document.createElement('li');
-      const heading = document.createElement('strong');
-      const body = document.createElement('p');
-      heading.textContent = (index + 1) + '. ' + step.title;
-      body.textContent = step.body;
-      item.append(heading, body);
-      steps.append(item);
-    });
-    dialog.querySelector('.prep-quiz').hidden = true;
-    dialog.querySelector('.prep-lesson').hidden = false;
-    dialog.classList.remove('prep-quiz-active');
-    dialog.classList.add('prep-lesson-active');
-    const cards = dialog.querySelectorAll('.prep-plan-steps li');
-    cards.forEach((card, i) => card.classList.toggle('prep-plan-active', i === 1));
-  }
-  async function startLesson() {
+  function startLesson() {
     if (quizBusy || quizIndex < fractionQuestions.length) return;
-    quizBusy = true;
-    const button = dialog.querySelector('.prep-quiz-submit');
-    const childId = topicChildId;
-    button.disabled = true;
-    button.textContent = 'Preparing your lesson…';
-    try {
-      const lesson = await window.IAKidsAuth.loadTestPrepLesson(childId);
-      if (!dialog.open || childId !== topicChildId) return;
-      renderLesson(lesson);
-    } catch (error) {
-      if (dialog.classList.contains('prep-quiz-active')) {
-        const feedback = dialog.querySelector('.prep-quiz-feedback');
-        feedback.textContent = error.message;
-        feedback.classList.add('prep-quiz-incorrect');
-        feedback.hidden = false;
-        button.textContent = 'Try lesson again →';
-        button.disabled = false;
-      } else {
-        dialog.querySelector('.prep-plan-footer p').textContent = error.message;
-        dialog.querySelector('.prep-start-quiz').textContent = 'Try to continue →';
-      }
-    } finally {
-      quizBusy = false;
-    }
+    startTopicLesson();
   }
   async function submitQuickCheck() {
     if (quizBusy || !quizDraft) return;

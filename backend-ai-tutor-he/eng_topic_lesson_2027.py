@@ -135,6 +135,10 @@ def _check_content(content: dict):
 async def _create_plan(grade: int, subject: str, topic: str, user_id: str):
     await run_in_threadpool(spend_daily_budget, user_id, "model")
     guide = SUBJECT_GUIDES[subject]
+    if subject == "Math" and topic == "Dividing fractions":
+        guide += (" For this introduction, explain 3/4 ÷ 1/2 = 1½ as how many half-sized "
+                  "groups fit into three quarters. Use equal quarters in any drawing; "
+                  "show the meaning before a reciprocal shortcut.")
     try:
         result = await aclient.beta.chat.completions.parse(
             model=llm_model(os.getenv("ENG_TOPIC_TEACHER_MODEL", "gpt-4o-mini")),
