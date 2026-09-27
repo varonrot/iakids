@@ -56,10 +56,11 @@
   let voiceOn = false, spokenKey = '', requestNumber = 0;
   const narrationUrls = new Map();
   const ideaBeats = [
-    {message:'Three of the four equal pizza pieces are shaded. How many half-pizza portions fit?', button:'Show one half →'},
-    {message:'Look at the top two quarters. Together they make one whole half.', button:'Look at the last quarter →'},
-    {message:'One quarter remains. It is half of another half. What does that make altogether?', button:'Show the answer →'},
-    {message:'One whole half plus half of another half makes one and a half halves.', button:'Try together →'}
+    {message:'When we divide, we ask how many groups of a certain size fit. Here we have three quarters of a pizza, and each portion we want to make is one half of a pizza. Let’s see how many half-pizza portions fit in what we have.', button:'Look at the pieces →'},
+    {message:'The pizza is cut into four equal pieces. Three are shaded, so we have three quarters. One half of this same pizza takes two of those quarter pieces.', button:'Make one half →'},
+    {message:'Take two shaded quarters and put them together. That gives us one complete half-pizza portion. We still have one shaded quarter left.', button:'Look at what is left →'},
+    {message:'A full half needs two quarters, but we have only one quarter left. So the leftover piece makes half of a half-pizza portion. It still counts, even though it is not a full portion.', button:'Put the groups together →'},
+    {message:'We made one full half-pizza portion and half of another portion. That is one and a half portions altogether. Check it: one half plus one quarter gives us the three quarters we started with. So three quarters divided by one half is one and a half.', button:'Try together →'}
   ];
   $('learnerName').textContent = name;
   $('headerSubject').textContent = payload.draft?.subject || 'Math';
@@ -124,7 +125,7 @@
     const image = $('generatedVisual');
     const imageUrl = activeStep?.visual?.url;
     const guidedIdea = stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview'));
-    image.hidden = !imageUrl || (guidedIdea && revealIndex < 3);
+    image.hidden = !imageUrl || (guidedIdea && revealIndex < ideaBeats.length - 1);
     scene.classList.toggle('has-generated-image', !!imageUrl && !image.hidden);
     scene.dataset.reveal = stageIndex === 0 ? String(revealIndex) : '0';
     if (imageUrl) { image.src = imageUrl; image.alt = activeStep.visual.alt_text || 'Lesson illustration'; }
@@ -159,13 +160,13 @@
     $('sceneEyebrow').textContent = stage.eyebrow;
     $('sceneCounter').textContent = `Step ${stageIndex + 1} of ${stages.length}`;
     $('sceneTitle').textContent = stage.lead;
-    $('sceneLead').textContent = stageIndex === 0 ? (guidedIdea ? 'Look at the three shaded quarters. We will build the answer together.' : 'A short visual idea, then one question.') : (activeStep?.teacher_text || stage.message);
+    $('sceneLead').textContent = stageIndex === 0 ? (guidedIdea ? 'We will use equal pizza pieces to understand what dividing by one half means.' : 'Explore the visual, then check your understanding.') : (activeStep?.teacher_text || stage.message);
     $('sceneTakeaway').textContent = stage.takeaway;
-    $('sceneTakeaway').hidden = stageIndex === 0 ? guidedIdea && revealIndex < 3 : !correct && !reviewMode;
-    const showIdeaAnswer = stageIndex === 0 && guidedIdea && revealIndex === 3;
+    $('sceneTakeaway').hidden = stageIndex === 0 ? guidedIdea && revealIndex < ideaBeats.length - 1 : !correct && !reviewMode;
+    const showIdeaAnswer = stageIndex === 0 && guidedIdea && revealIndex === ideaBeats.length - 1;
     document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:showIdeaAnswer ? '= 1½' : '= ?'}));
     $('guideMessage').textContent = guidedIdea ? `${name}, ${beat.message}` : stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
-    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea ? (revealIndex === 3 ? 'Ready to try together?' : 'Follow the shaded pieces.') : isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
+    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea ? (revealIndex === ideaBeats.length - 1 ? 'Ready to try together?' : 'Follow the shaded pieces.') : isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
     $('questionLabel').textContent = reviewMode ? 'REVIEW' : stage.eyebrow;
     $('hintCopy').textContent = stage.hint;
     $('hintCopy').hidden = reviewMode || !hintUsed;
@@ -190,7 +191,7 @@
       options.append(button);
     });
     $('checkButton').disabled = busy || (!reviewMode && !guidedIdea && !isContinue && choice === null && !correct);
-    $('checkButton').textContent = guidedIdea && revealIndex < 3 ? beat.button : reviewMode ? `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : guidedIdea ? beat.button : isContinue ? 'Continue →' : 'Check answer →';
+    $('checkButton').textContent = guidedIdea && revealIndex < ideaBeats.length - 1 ? beat.button : reviewMode ? `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : guidedIdea ? beat.button : isContinue ? 'Continue →' : 'Check answer →';
     $('sidebarProgressLabel').textContent = `${resumeIndex + 1} of ${stages.length} steps`;
     $('sidebarProgressBar').style.width = `${(resumeIndex + 1) / stages.length * 100}%`;
     document.querySelectorAll('.step-list li,.footer-dot').forEach((item, index) => {
@@ -283,7 +284,7 @@
     }
   });
   $('checkButton').addEventListener('click', async () => {
-    if (stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview')) && revealIndex < 3) {
+    if (stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview')) && revealIndex < ideaBeats.length - 1) {
       revealIndex++; hintUsed = false; render(); return;
     }
     if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; revealIndex = 0; choice = null; hintUsed = false; render(); return; }

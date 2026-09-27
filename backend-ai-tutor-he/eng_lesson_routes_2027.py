@@ -26,10 +26,11 @@ VOICE_MODEL = (OPENROUTER_TTS_MODEL if TTS_PROVIDER == "openrouter" else
                os.getenv("ENG_LESSON_VOICE_MODEL", "gemini-3.1-flash-tts-preview"))
 VOICE_NAME = "Aoede"
 IDEA_NARRATION = (
-    "Three of the four equal pizza pieces are shaded. How many half-pizza portions fit?",
-    "Look at the top two quarters. Together they make one whole half.",
-    "One quarter remains. It is half of another half. What does that make altogether?",
-    "One whole half plus half of another half makes one and a half halves.",
+    "When we divide, we ask how many groups of a certain size fit. Here we have three quarters of a pizza, and each portion we want to make is one half of a pizza. Let’s see how many half-pizza portions fit in what we have.",
+    "The pizza is cut into four equal pieces. Three are shaded, so we have three quarters. One half of this same pizza takes two of those quarter pieces.",
+    "Take two shaded quarters and put them together. That gives us one complete half-pizza portion. We still have one shaded quarter left.",
+    "A full half needs two quarters, but we have only one quarter left. So the leftover piece makes half of a half-pizza portion. It still counts, even though it is not a full portion.",
+    "We made one full half-pizza portion and half of another portion. That is one and a half portions altogether. Check it: one half plus one quarter gives us the three quarters we started with. So three quarters divided by one half is one and a half.",
 )
 
 
@@ -49,14 +50,14 @@ class HelpRequest(LimitedRequest):
     step_index: int = Field(ge=0, le=2)
     help_kind: str = Field(pattern="^(hint|explain)$")
     option_index: int | None = Field(default=None, ge=0, le=3)
-    reveal_phase: int = Field(default=0, ge=0, le=3)
+    reveal_phase: int = Field(default=0, ge=0, le=4)
 
 
 class NarrationRequest(LimitedRequest):
     kid_id: str
     plan_id: str
     step_index: int = Field(ge=0, le=2)
-    reveal_phase: int = Field(default=0, ge=0, le=3)
+    reveal_phase: int = Field(default=0, ge=0, le=4)
 
 
 class AnswerRequest(LimitedRequest):
