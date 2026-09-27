@@ -1,5 +1,5 @@
 {
- "run": "20260927-062020-fake",
+ "run": "20260927-150517-fake",
  "db": "fake",
  "scale": 1.0,
  "db_latency_ms": 100.0,
@@ -1637,6 +1637,66 @@
    "model_calls": 0,
    "prod_safe": false,
    "error": "{\"detail\":\"Generate this illustration first.\"}"
+  },
+  "eng-lesson-review": {
+   "kind": "read",
+   "status": 200,
+   "ms": 616.3,
+   "cpu_ms": 0.0,
+   "db_calls": 6,
+   "db_calls_cold": 8,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:2027_test_prep_topics": 1,
+    "GET table:2027_test_prep_quick_checks": 1,
+    "GET table:2027_test_prep_lessons": 1,
+    "GET table:2027_eng_lesson_progress": 1,
+    "GET table:2027_eng_lesson_plans": 1,
+    "GET table:2027_eng_lesson_visuals": 1
+   },
+   "db_ms": 603.2,
+   "db_by": {
+    "GET table:2027_test_prep_topics": 1,
+    "GET table:2027_test_prep_quick_checks": 1,
+    "GET table:2027_test_prep_lessons": 1,
+    "GET table:2027_eng_lesson_progress": 1,
+    "GET table:2027_eng_lesson_plans": 1,
+    "GET table:2027_eng_lesson_visuals": 1
+   },
+   "db_writes": 0,
+   "model_calls": 0,
+   "prod_safe": true,
+   "error": null
+  },
+  "eng-lesson-help": {
+   "kind": "model",
+   "status": 200,
+   "ms": 4698.1,
+   "cpu_ms": 0.0,
+   "db_calls": 6,
+   "db_calls_cold": 8,
+   "db_by_cold": {
+    "GET auth/v1/.well-known": 1,
+    "GET table:kids_profiles": 1,
+    "GET table:2027_test_prep_topics": 1,
+    "GET table:2027_test_prep_quick_checks": 1,
+    "GET table:2027_test_prep_lessons": 1,
+    "GET table:2027_eng_lesson_progress": 2,
+    "GET table:2027_eng_lesson_plans": 1
+   },
+   "db_ms": 906.9,
+   "db_by": {
+    "GET table:2027_test_prep_topics": 1,
+    "GET table:2027_test_prep_quick_checks": 1,
+    "GET table:2027_test_prep_lessons": 1,
+    "GET table:2027_eng_lesson_progress": 2,
+    "GET table:2027_eng_lesson_plans": 1
+   },
+   "db_writes": 0,
+   "model_calls": 1,
+   "prod_safe": false,
+   "error": null
   }
  },
  "box": {

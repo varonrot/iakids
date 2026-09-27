@@ -1,5 +1,6 @@
 """Exercise the answer transition without a database or provider credentials."""
 
+import asyncio
 import importlib.util
 import pathlib
 import sys
@@ -29,6 +30,10 @@ def load_routes():
     fake_main.app = App()
     fake_main.authenticate_user = lambda *_: None
     fake_main.get_child_by_id = lambda *_: None
+    fake_main.aclient = None
+    fake_main.guard_reply_payload = lambda value, *_: value
+    fake_main.llm_model = lambda name: name
+    fake_main.spend_daily_budget = lambda *_: None
     fake_main.sb = None
     fake_main.signed_url_cached = lambda *_: ""
     fake_fastapi = types.ModuleType("fastapi")
@@ -148,6 +153,58 @@ class EnglishLessonRouteTests(unittest.TestCase):
             route._review("parent-1", "child-1", body)
         self.assertEqual(error.exception.status_code, 403)
         self.assertEqual(reads[-1], "2027_eng_lesson_progress")
+
+
+    def test_help_only_for_current_step_and_wrong_choice(self):
+        route = load_routes()
+        reads = []
+
+        class ReadOnlyTable:
+            def select(self, *_):
+                return self
+
+            def eq(self, *_):
+                return self
+
+            def limit(self, *_):
+                return self
+
+            def execute(self):
+                reads.append("progress")
+                return types.SimpleNamespace(data=[{"current_step": 1}])
+
+        route.sb = types.SimpleNamespace(table=lambda *_: ReadOnlyTable())
+        route._approved_plan = lambda *_: {"id": "plan-1", "content": PLAN}
+        body = types.SimpleNamespace(kid_id="child-1", plan_id="plan-1", step_index=1,
+                                     help_kind="hint", option_index=0, reveal_phase=0)
+        self.assertEqual(route._help_context("parent-1", "child-1", body), PLAN["steps"][1])
+        body.option_index = 1
+        with self.assertRaises(route.HTTPException) as error:
+            route._help_context("parent-1", "child-1", body)
+        self.assertEqual(error.exception.status_code, 422)
+        body.option_index, body.step_index = 0, 2
+        with self.assertRaises(route.HTTPException) as error:
+            route._help_context("parent-1", "child-1", body)
+        self.assertEqual(error.exception.status_code, 409)
+        self.assertEqual(len(reads), 3)
+
+
+    def test_ai_hint_never_reveals_correct_option(self):
+        route = load_routes()
+        route._parent_and_child = lambda *_: "parent-1"
+        route._help_context = lambda *_: PLAN["steps"][1]
+
+        async def model_reply(**kwargs):
+            return types.SimpleNamespace(choices=[
+                types.SimpleNamespace(message=types.SimpleNamespace(content="The answer is 2."))
+            ])
+
+        route.aclient = types.SimpleNamespace(chat=types.SimpleNamespace(
+            completions=types.SimpleNamespace(create=model_reply)))
+        body = types.SimpleNamespace(kid_id="child-1", plan_id="plan-1", step_index=1,
+                                     help_kind="hint", option_index=0, reveal_phase=0)
+        result = asyncio.run(route.help_english_lesson(body, "Bearer token"))
+        self.assertEqual(result["hint"], "Count the shaded equal pieces one at a time.")
 
 
 if __name__ == "__main__":

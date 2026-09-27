@@ -50,7 +50,13 @@
   ];
   let stageIndex = 0, choice = null, correct = false, hintUsed = false;
   let planId = null, activeStep = null, pendingStep = null, complete = false, busy = false;
-  let resumeIndex = 0, resumeStep = null, reviewMode = false;
+  let resumeIndex = 0, resumeStep = null, reviewMode = false, revealIndex = 0;
+  const ideaBeats = [
+    {message:'Three of the four equal pizza pieces are shaded. How many half-pizza portions fit?', button:'Show one half →'},
+    {message:'Look at the top two quarters. Together they make one whole half.', button:'Look at the last quarter →'},
+    {message:'One quarter remains. It is half of another half. What does that make altogether?', button:'Show the answer →'},
+    {message:'One whole half plus half of another half makes one and a half halves.', button:'Try together →'}
+  ];
   $('learnerName').textContent = name;
   $('headerSubject').textContent = payload.draft?.subject || 'Math';
   $('headerGrade').textContent = `Grade ${payload.draft?.grade || 5}`;
@@ -63,14 +69,16 @@
     const model = $('fractionModel');
     const image = $('generatedVisual');
     const imageUrl = activeStep?.visual?.url;
-    image.hidden = !imageUrl;
-    scene.classList.toggle('has-generated-image', !!imageUrl);
+    const guidedIdea = stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview'));
+    image.hidden = !imageUrl || (guidedIdea && revealIndex < 3);
+    scene.classList.toggle('has-generated-image', !!imageUrl && !image.hidden);
+    scene.dataset.reveal = stageIndex === 0 ? String(revealIndex) : '0';
     if (imageUrl) { image.src = imageUrl; image.alt = activeStep.visual.alt_text || 'Lesson illustration'; }
     image.onerror = () => { image.hidden = true; scene.classList.remove('has-generated-image'); };
     const isModel = stage.visual.type === 'bar';
     scene.classList.toggle('is-model', isModel);
     model.hidden = !isModel;
-    scene.setAttribute('aria-label', imageUrl ? image.alt : isModel ? stage.visual.label : 'A pizza divided into four equal quarters. Three remain. Two quarters make one half, and one quarter is half of another half.');
+    scene.setAttribute('aria-label', !image.hidden ? image.alt : isModel ? stage.visual.label : 'A pizza divided into four equal quarters, with three quarters shaded.');
     if (!isModel) return;
     model.replaceChildren();
     const bar = document.createElement('div');
@@ -89,21 +97,24 @@
   function render() {
     const stage = stages[stageIndex];
     const interaction = activeStep?.interaction;
-    const isContinue = interaction?.type === 'continue';
+    const isContinue = interaction?.type === 'continue' || (stageIndex === 0 && document.body.classList.contains('is-preview'));
+    const guidedIdea = stageIndex === 0 && isContinue;
+    const beat = ideaBeats[revealIndex];
     const optionsList = interaction?.options || stage.options;
     $('sceneEyebrow').textContent = stage.eyebrow;
     $('sceneCounter').textContent = `Step ${stageIndex + 1} of ${stages.length}`;
     $('sceneTitle').textContent = stage.lead;
-    $('sceneLead').textContent = stageIndex === 0 ? 'A short visual idea, then one question.' : (activeStep?.teacher_text || stage.message);
+    $('sceneLead').textContent = stageIndex === 0 ? (guidedIdea ? 'Look at the three shaded quarters. We will build the answer together.' : 'A short visual idea, then one question.') : (activeStep?.teacher_text || stage.message);
     $('sceneTakeaway').textContent = stage.takeaway;
-    $('sceneTakeaway').hidden = stageIndex > 0 && !correct && !reviewMode;
-    document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:'= ?'}));
-    $('guideMessage').textContent = stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
-    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
+    $('sceneTakeaway').hidden = stageIndex === 0 ? guidedIdea && revealIndex < 3 : !correct && !reviewMode;
+    const showIdeaAnswer = stageIndex === 0 && guidedIdea && revealIndex === 3;
+    document.querySelector('.equation').replaceChildren(document.createTextNode(stage.equation + ' '), Object.assign(document.createElement('span'), {textContent:showIdeaAnswer ? '= 1½' : '= ?'}));
+    $('guideMessage').textContent = guidedIdea ? `${name}, ${beat.message}` : stageIndex === 0 ? `${name}, ${activeStep?.teacher_text || stage.message}` : (activeStep?.teacher_text || stage.message);
+    $('questionText').textContent = reviewMode ? 'Take another look at this step.' : guidedIdea ? (revealIndex === 3 ? 'Ready to try together?' : 'Follow the shaded pieces.') : isContinue ? 'Ready to try together?' : (interaction?.prompt || stage.question);
     $('questionLabel').textContent = reviewMode ? 'REVIEW' : stage.eyebrow;
     $('hintCopy').textContent = stage.hint;
     $('hintCopy').hidden = reviewMode || !hintUsed;
-    $('hintButton').hidden = reviewMode || correct || isContinue || !!activeStep;
+    $('hintButton').hidden = reviewMode || correct;
     $('answerFeedback').hidden = !reviewMode && !correct;
     $('answerFeedback').classList.remove('is-error');
     $('answerFeedback').textContent = reviewMode ? `Your progress is saved at Step ${resumeIndex + 1}.` : correct ? 'Exactly. Nice work!' : '';
@@ -123,8 +134,8 @@
       });
       options.append(button);
     });
-    $('checkButton').disabled = busy || (!reviewMode && !isContinue && choice === null && !correct);
-    $('checkButton').textContent = reviewMode ? `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : isContinue ? 'Continue →' : 'Check answer →';
+    $('checkButton').disabled = busy || (!reviewMode && !guidedIdea && !isContinue && choice === null && !correct);
+    $('checkButton').textContent = guidedIdea && revealIndex < 3 ? beat.button : reviewMode ? `Back to Step ${resumeIndex + 1} →` : correct ? complete ? 'Finish lesson →' : 'Continue →' : guidedIdea ? beat.button : isContinue ? 'Continue →' : 'Check answer →';
     $('sidebarProgressLabel').textContent = `${resumeIndex + 1} of ${stages.length} steps`;
     $('sidebarProgressBar').style.width = `${(resumeIndex + 1) / stages.length * 100}%`;
     document.querySelectorAll('.step-list li,.footer-dot').forEach((item, index) => {
@@ -162,7 +173,7 @@
       const result = await lessonRequest('start', {kid_id:child.id});
       if (result.complete) { location.assign('../../#test-prep'); return; }
       planId = result.plan_id; stageIndex = result.step_index; activeStep = result.step;
-      resumeIndex = stageIndex; resumeStep = activeStep;
+      resumeIndex = stageIndex; resumeStep = activeStep; revealIndex = 0;
       render();
     } catch (error) {
       showError(error.message);
@@ -173,7 +184,7 @@
   async function openStep(index) {
     if (busy || correct || index > resumeIndex) return;
     if (index === resumeIndex) {
-      if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; choice = null; hintUsed = false; render(); }
+      if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; revealIndex = 0; choice = null; hintUsed = false; render(); }
       return;
     }
     busy = true;
@@ -184,6 +195,7 @@
       stageIndex = index;
       activeStep = step?.step || null;
       reviewMode = true;
+      revealIndex = 0;
       choice = null; hintUsed = false;
       render();
     } catch (error) { showError(error.message); }
@@ -194,13 +206,37 @@
     }
   }
   document.querySelectorAll('.step-jump').forEach((button, index) => button.addEventListener('click', () => openStep(index)));
-  $('hintButton').addEventListener('click', () => { hintUsed = true; $('hintCopy').hidden = false; });
+  $('hintButton').addEventListener('click', async () => {
+    if (busy || reviewMode) return;
+    busy = true;
+    hintUsed = true;
+    const fallback = stageIndex === 0 ? 'Look at the two quarters on top, then the quarter left over.' : stages[stageIndex].hint;
+    const button = $('hintButton');
+    button.disabled = true; button.textContent = 'Thinking of a hint…';
+    $('checkButton').disabled = true;
+    $('hintCopy').textContent = 'Thinking of a hint…'; $('hintCopy').hidden = false;
+    try {
+      const result = document.body.classList.contains('is-preview') ? {hint:fallback} :
+        await lessonRequest('help', {kid_id:child.id, plan_id:planId, step_index:stageIndex,
+          help_kind:'explain', reveal_phase:stageIndex === 0 ? revealIndex : 0});
+      $('hintCopy').textContent = result.hint || fallback;
+    } catch { $('hintCopy').textContent = fallback; }
+    finally {
+      busy = false;
+      button.disabled = false; button.textContent = '✦ Explain another way';
+      $('checkButton').disabled = stageIndex !== 0 && choice === null && !correct && activeStep?.interaction?.type !== 'continue';
+    }
+  });
   $('checkButton').addEventListener('click', async () => {
-    if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; choice = null; hintUsed = false; render(); return; }
+    if (stageIndex === 0 && (activeStep?.interaction?.type === 'continue' || document.body.classList.contains('is-preview')) && revealIndex < 3) {
+      revealIndex++; hintUsed = false; render(); return;
+    }
+    if (reviewMode) { reviewMode = false; stageIndex = resumeIndex; activeStep = resumeStep; revealIndex = 0; choice = null; hintUsed = false; render(); return; }
     if (document.body.classList.contains('is-preview')) {
+      if (stageIndex === 0) { stageIndex = 1; resumeIndex = 1; revealIndex = 0; choice = null; render(); return; }
       if (correct) {
         if (stageIndex === stages.length - 1) { location.assign('../../#test-prep'); return; }
-        stageIndex++; resumeIndex = stageIndex; resumeStep = activeStep;
+        stageIndex++; resumeIndex = stageIndex; resumeStep = activeStep; revealIndex = 0;
         choice = null; correct = false; hintUsed = false; render(); return;
       }
       if (choice === null) return;
@@ -216,7 +252,7 @@
     if (correct) {
       if (complete) { location.assign('../../#test-prep'); return; }
       stageIndex = pendingStep.step_index; activeStep = pendingStep.step; pendingStep = null;
-      resumeIndex = stageIndex; resumeStep = activeStep;
+      resumeIndex = stageIndex; resumeStep = activeStep; revealIndex = 0;
       choice = null; correct = false; hintUsed = false; render(); return;
     }
     if (choice === null && activeStep?.interaction.type !== 'continue') return;
@@ -229,12 +265,18 @@
         hint_used:hintUsed});
       feedback.hidden = false;
       if (!result.correct) {
-        feedback.textContent = 'Take another look at the visual, then try again.';
+        feedback.textContent = 'Let’s look at the pieces again.';
         feedback.classList.add('is-error');
-        $('hintCopy').textContent = result.hint || 'Look at the visual and try again.';
-        $('hintCopy').hidden = false;
+        const selectedOption = choice;
+        const fallback = result.hint || 'Look at the visual and try again.';
+        $('hintCopy').textContent = 'Thinking of a hint…'; $('hintCopy').hidden = false;
         hintUsed = true; choice = null;
         $('answerOptions').querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed','false'));
+        try {
+          const help = await lessonRequest('help', {kid_id:child.id, plan_id:planId,
+            step_index:stageIndex, help_kind:'hint', option_index:selectedOption});
+          $('hintCopy').textContent = help.hint || fallback;
+        } catch { $('hintCopy').textContent = fallback; }
         return;
       }
       correct = true;

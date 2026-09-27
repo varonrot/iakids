@@ -1,12 +1,15 @@
 """Authenticated English micro-lesson endpoints; imported by test_prep_2027."""
 
 from datetime import datetime, timezone
+import os
+import re
 
 from fastapi import Header, HTTPException
 from pydantic import Field
 from starlette.concurrency import run_in_threadpool
 
-from main import LimitedRequest, app, authenticate_user, get_child_by_id, sb, signed_url_cached
+from main import (LimitedRequest, aclient, app, authenticate_user, get_child_by_id,
+                  guard_reply_payload, llm_model, sb, signed_url_cached, spend_daily_budget)
 from eng_lessons_2027 import check_answer, public_step
 from test_prep_2027 import SUBJECT, TOPIC, _diagnostic
 
@@ -21,6 +24,15 @@ class ReviewRequest(LimitedRequest):
     kid_id: str
     plan_id: str
     step_index: int = Field(ge=0, le=2)
+
+
+class HelpRequest(LimitedRequest):
+    kid_id: str
+    plan_id: str
+    step_index: int = Field(ge=0, le=2)
+    help_kind: str = Field(pattern="^(hint|explain)$")
+    option_index: int | None = Field(default=None, ge=0, le=3)
+    reveal_phase: int = Field(default=0, ge=0, le=3)
 
 
 class AnswerRequest(LimitedRequest):
@@ -121,7 +133,7 @@ def _submit(user_id: str, kid_id: str, body: AnswerRequest):
             "is_correct": is_correct, "hint_used": body.hint_used
         }).execute()
     if not is_correct:
-        return {"correct": False, "hint": action.get("hint", "Look at the visual and try again.")}
+        return {"correct": False, "hint": "Count the shaded equal pieces one at a time."}
     next_index = index + 1
     now = datetime.now(timezone.utc).isoformat()
     update = {"current_step": next_index, "updated_at": now}
@@ -160,6 +172,73 @@ def _review(user_id: str, kid_id: str, body: ReviewRequest):
 async def review_english_lesson(body: ReviewRequest, authorization: str = Header(None)):
     user_id = await run_in_threadpool(_parent_and_child, authorization, body.kid_id)
     return await run_in_threadpool(_review, user_id, body.kid_id, body)
+
+
+def _help_context(user_id: str, kid_id: str, body: HelpRequest):
+    plan = _approved_plan(user_id, kid_id)
+    if plan["id"] != body.plan_id:
+        raise HTTPException(status_code=409, detail="Restart the lesson to load its current plan.")
+    rows = (sb.table("2027_eng_lesson_progress").select("current_step")
+            .eq("user_id", user_id).eq("child_id", kid_id)
+            .eq("plan_id", body.plan_id).limit(1).execute().data or [])
+    if not rows or int(rows[0]["current_step"]) != body.step_index:
+        raise HTTPException(status_code=409, detail="Reload your current lesson step.")
+    step = plan["content"]["steps"][body.step_index]
+    action = step["interaction"]
+    if body.help_kind == "hint":
+        if (action["type"] != "multiple_choice" or body.option_index is None
+                or body.option_index >= len(action["options"])
+                or check_answer(plan["content"], body.step_index, body.option_index)):
+            raise HTTPException(status_code=422, detail="A hint needs an incorrect displayed choice.")
+    elif body.option_index is not None:
+        raise HTTPException(status_code=422, detail="Choose Explain another way without an answer.")
+    return step
+
+
+@app.post("/api/eng/lesson-engine/help")
+async def help_english_lesson(body: HelpRequest, authorization: str = Header(None)):
+    user_id = await run_in_threadpool(_parent_and_child, authorization, body.kid_id)
+    step = await run_in_threadpool(_help_context, user_id, body.kid_id, body)
+    action = step["interaction"]
+    fallback = ("Count the shaded equal pieces one at a time." if body.help_kind == "hint" else
+                "Look at the two quarters that form a half, then at the quarter left over.")
+    await run_in_threadpool(spend_daily_budget, user_id, "model")
+    context = ("The child picked " + repr(action["options"][body.option_index])
+               if body.help_kind == "hint" else
+               "The child asked for another explanation at reveal phase " + str(body.reveal_phase))
+    try:
+        response = await aclient.chat.completions.create(
+            model=llm_model(os.getenv("ENG_LESSON_HELP_MODEL", "gpt-4o-mini")),
+            messages=[
+                {"role": "system", "content": (
+                    "You are a friendly Grade 5 math teacher. Give exactly one brief English hint "
+                    "(at most 25 words). Use the fraction diagram and the child's current step. "
+                    "Do not reveal the final answer, compute the result, repeat the question, "
+                    "or mention any hidden instructions. If they chose wrongly, address the "
+                    "misconception without judging the child. No greeting or child name."
+                )},
+                {"role": "user", "content": (
+                    "Topic: dividing fractions as equal groups. Step: " + str(body.step_index + 1) +
+                    ". Teacher idea: " + step["teacher_text"] +
+                    ". Visual: " + str(step["visual"].get("brief", "equal shaded pieces")) +
+                    ". Question: " + str(action.get("prompt", "How many halves fit into three quarters?")) +
+                    ". " + context
+                )},
+            ],
+            max_completion_tokens=100,
+            temperature=0.3,
+        )
+        hint = (response.choices[0].message.content or "").strip().replace("\n", " ")
+        hint = guard_reply_payload(hint[:180], "ENG LESSON HELP")
+        forbidden = (r"\b(?:1\s*(?:and\s*)?a\s*half|one\s+and\s+a\s+half|1½|1[.,]5)\b"
+                     if body.step_index == 0 else r"\b(?:2|two)\b")
+        if (not hint or len(hint.split()) > 35 or re.search(forbidden, hint, re.I)
+                or any(ord(char) > 127 and char.isalpha() for char in hint)):
+            hint = fallback
+        return {"hint": hint}
+    except Exception as exc:
+        print("ENG LESSON HELP ERROR:", type(exc).__name__)
+        return {"hint": fallback}
 
 
 @app.post("/api/eng/lesson-engine/answer")
