@@ -30,21 +30,21 @@
       title:'See the idea', eyebrow:'SEE THE IDEA', equation:'¾ ÷ ½', lead:aiLesson.headline,
       message:aiLesson.opening || 'Look at the pizza. Two quarters make one half.',
       takeaway:'Two quarters make one half. The last quarter is half of another half.',
-      question:'How many halves fit into three quarters?', options:['1','1½','2'], answer:'1½', hint:'Two quarters make one half. The third quarter is half of another half.',
+      question:'How many halves fit into three quarters?', options:['1','1½','2'], hint:'Two quarters make one half. The third quarter is half of another half.',
       visual:{type:'pizza'}
     },
     {
       title:'Try together', eyebrow:'TRY TOGETHER', equation:'⅔ ÷ ⅓', lead:'Count equal pieces',
       message:'A third is one of three equal parts. Let’s count the thirds in two thirds.',
       takeaway:'Two thirds contains two one-third pieces.',
-      question:'How many one-third pieces fit into two thirds?', options:['1','2','3'], answer:'2', hint:'Count the shaded thirds, one at a time.',
+      question:'How many one-third pieces fit into two thirds?', options:['1','2','3'], hint:'Count the shaded thirds, one at a time.',
       visual:{type:'bar', parts:3, filled:2, label:'2 of 3 equal parts are shaded'}
     },
     {
       title:'Your turn', eyebrow:'YOUR TURN', equation:'½ ÷ ¼', lead:'One last check',
       message:'You’ve seen how to count equal pieces. Try this one yourself.',
       takeaway:'A half contains two quarters.',
-      question:'How many quarters fit into one half?', options:['1','2','4'], answer:'2', hint:'A half is the same size as two quarters.',
+      question:'How many quarters fit into one half?', options:['1','2','4'], hint:'A half is the same size as two quarters.',
       visual:{type:'bar', parts:4, filled:2, label:'2 of 4 equal parts are shaded'}
     }
   ];
@@ -164,11 +164,7 @@
         stageIndex++; choice = null; correct = false; hintUsed = false; render(); return;
       }
       if (choice === null) return;
-      const stage = stages[stageIndex];
-      if (stage.options[choice] !== stage.answer) {
-        showError('Take another look at the visual, then try again.');
-        $('hintCopy').hidden = false; choice = null; $('checkButton').disabled = true; return;
-      }
+      // The design preview has no account or server-side answer check.
       correct = true; complete = stageIndex === stages.length - 1;
       $('answerFeedback').hidden = false; $('answerFeedback').textContent = 'Exactly. Nice work!';
       $('answerFeedback').classList.remove('is-error');
