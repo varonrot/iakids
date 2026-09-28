@@ -108,6 +108,36 @@ class TopicLessonTests(unittest.TestCase):
 
 
 class GenerationRetryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_invalid_interaction_structure_regenerates_before_review(self):
+        route = load_topic()
+        calls, saved = [], []
+        async def parse(**kwargs):
+            calls.append(kwargs)
+            if len(calls) == 1:
+                invalid = copy.deepcopy(PLAN)
+                invalid["steps"][1]["interaction"] = {"type": "continue"}
+                parsed = types.SimpleNamespace(model_dump=lambda **_: invalid)
+            elif len(calls) == 2:
+                parsed = types.SimpleNamespace(model_dump=lambda **_: copy.deepcopy(PLAN))
+            else:
+                parsed = types.SimpleNamespace(approved=True, issue="")
+            return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
+        class Table:
+            def upsert(self, value, **kwargs): saved.append(value); return self
+            def execute(self): return types.SimpleNamespace(data=[])
+        route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
+            completions=types.SimpleNamespace(parse=parse))))
+        route.sb = types.SimpleNamespace(table=lambda _: Table())
+        route.spend_daily_budget = lambda *_: None
+        route.llm_model = lambda value: value
+        route.guard_reply_payload = lambda content, *_: content
+        route._plan = lambda *_: [{"id": "corrected-plan", "content": saved[-1]}] if saved else []
+        plan = await route._create_plan(5, "Math", "Dividing fractions", "parent")
+        self.assertEqual(plan["id"], "corrected-plan")
+        self.assertEqual(len(calls), 3)
+        self.assertIn("Lesson structure invalid", calls[1]["messages"][1]["content"])
+        self.assertEqual(len(saved), 1)
+
     async def test_review_rejection_regenerates_and_only_saves_approved_plan(self):
         route = load_topic()
         calls, saved = [], []

@@ -22,7 +22,7 @@ from eng_lesson_routes_2027 import (AUDIO_BUCKET, BUCKET, _cached_narration,
 
 SKILL = "ai-guided-introduction"
 PROMPT_VERSION = 1
-MAX_DRAFTS = 3
+MAX_DRAFTS = 4
 SUBJECTS = {"Math", "English", "Science", "Hebrew", "History", "Geography", "Other"}
 SUBJECT_GUIDES = {
     "Math": "Show a concrete example. Check every arithmetic claim. Teach the reason before any shortcut.",
@@ -173,7 +173,14 @@ async def _create_plan(grade: int, subject: str, topic: str, user_id: str):
             if parsed is None:
                 raise ValueError("No structured lesson")
             content = guard_reply_payload(parsed.model_dump(exclude_none=True), "ENG TOPIC LESSON")
-            _check_content(content)
+            try:
+                _check_content(content)
+            except ValueError as exc:
+                feedback = (f"Lesson structure invalid: {exc}. The three interactions must be, "
+                            "in order: continue, multiple_choice, multiple_choice. "
+                            "Both questions need 2–4 distinct answers and a correct answer_index.")
+                print(f"ENG TOPIC LESSON STRUCTURE: draft {attempt + 1}/{MAX_DRAFTS} rejected: {str(exc)[:150]}")
+                continue
             await run_in_threadpool(spend_daily_budget, user_id, "model")
             review = await aclient.beta.chat.completions.parse(
             model=llm_model(os.getenv("ENG_TOPIC_REVIEW_MODEL", "gpt-4o-mini")),
@@ -196,7 +203,7 @@ async def _create_plan(grade: int, subject: str, topic: str, user_id: str):
             feedback = verdict.issue if verdict else "No review was returned."
             print(f"ENG TOPIC LESSON REVIEW: draft {attempt + 1}/{MAX_DRAFTS} rejected: {feedback[:150]}")
         else:
-            raise ValueError("Independent lesson review rejected all drafts: " + feedback)
+            raise ValueError("No valid approved lesson after retries: " + feedback)
         await run_in_threadpool(
             lambda: sb.table("2027_eng_lesson_plans").upsert({
                 "language": "en", "grade": grade, "subject": subject, "topic": topic,
