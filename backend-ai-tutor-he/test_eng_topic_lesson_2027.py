@@ -20,6 +20,13 @@ PLAN = {"version": 1, "skill_id": "ai-guided-introduction", "slides": [
 ]}
 
 
+def teacher_draft(plan=PLAN):
+    draft = copy.deepcopy(plan)
+    steps = draft.pop("steps")
+    draft.update(zip(("see_the_idea", "try_together", "your_turn"), steps))
+    return draft
+
+
 def load_topic():
     import eng_lessons_2027
     from pydantic import BaseModel, Field
@@ -62,6 +69,14 @@ def load_topic():
 
 
 class TopicLessonTests(unittest.TestCase):
+    def test_teacher_schema_requires_both_questions(self):
+        route = load_topic()
+        route.TopicPlan.model_validate(teacher_draft())
+        bad = teacher_draft()
+        bad["try_together"]["interaction"] = {"type": "continue"}
+        with self.assertRaises(ValueError):
+            route.TopicPlan.model_validate(bad)
+
     def test_contract_and_answer_key_stays_on_server(self):
         route = load_topic()
         route._check_content(PLAN)
@@ -114,11 +129,11 @@ class GenerationRetryTests(unittest.IsolatedAsyncioTestCase):
         async def parse(**kwargs):
             calls.append(kwargs)
             if len(calls) == 1:
-                invalid = copy.deepcopy(PLAN)
-                invalid["steps"][1]["interaction"] = {"type": "continue"}
+                invalid = teacher_draft()
+                invalid["try_together"]["interaction"] = {"type": "continue"}
                 parsed = types.SimpleNamespace(model_dump=lambda **_: invalid)
             elif len(calls) == 2:
-                parsed = types.SimpleNamespace(model_dump=lambda **_: copy.deepcopy(PLAN))
+                parsed = types.SimpleNamespace(model_dump=lambda **_: teacher_draft())
             else:
                 parsed = types.SimpleNamespace(approved=True, issue="")
             return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
@@ -146,7 +161,7 @@ class GenerationRetryTests(unittest.IsolatedAsyncioTestCase):
             if len(calls) % 2:
                 return types.SimpleNamespace(choices=[types.SimpleNamespace(
                     message=types.SimpleNamespace(parsed=types.SimpleNamespace(
-                        model_dump=lambda **_: copy.deepcopy(PLAN))))])
+                        model_dump=lambda **_: teacher_draft())))])
             verdict = types.SimpleNamespace(approved=len(calls) == 4,
                                             issue="The answer key does not match the options.")
             return types.SimpleNamespace(choices=[types.SimpleNamespace(
@@ -175,7 +190,7 @@ class GenerationRetryTests(unittest.IsolatedAsyncioTestCase):
         async def parse(**kwargs):
             nonlocal count
             count += 1
-            parsed = (types.SimpleNamespace(model_dump=lambda **_: copy.deepcopy(PLAN)) if count % 2
+            parsed = (types.SimpleNamespace(model_dump=lambda **_: teacher_draft()) if count % 2
                       else types.SimpleNamespace(approved=False, issue="Incorrect answer key."))
             return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
         route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
