@@ -4,6 +4,7 @@ import pathlib
 import sys
 import types
 import unittest
+import copy
 from unittest.mock import patch
 
 
@@ -104,6 +105,60 @@ class TopicLessonTests(unittest.TestCase):
         self.assertTrue(result["correct"])
         self.assertEqual(result["step_index"], 2)
         self.assertEqual(updates[-1]["current_step"], 2)
+
+
+class GenerationRetryTests(unittest.IsolatedAsyncioTestCase):
+    async def test_review_rejection_regenerates_and_only_saves_approved_plan(self):
+        route = load_topic()
+        calls, saved = [], []
+        async def parse(**kwargs):
+            calls.append(kwargs)
+            if len(calls) % 2:
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(
+                    message=types.SimpleNamespace(parsed=types.SimpleNamespace(
+                        model_dump=lambda **_: copy.deepcopy(PLAN))))])
+            verdict = types.SimpleNamespace(approved=len(calls) == 4,
+                                            issue="The answer key does not match the options.")
+            return types.SimpleNamespace(choices=[types.SimpleNamespace(
+                message=types.SimpleNamespace(parsed=verdict))])
+        class Table:
+            def upsert(self, value, **kwargs):
+                saved.append(value)
+                return self
+            def execute(self): return types.SimpleNamespace(data=[])
+        route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
+            completions=types.SimpleNamespace(parse=parse))))
+        route.sb = types.SimpleNamespace(table=lambda _: Table())
+        route.spend_daily_budget = lambda *_: None
+        route.llm_model = lambda value: value
+        route.guard_reply_payload = lambda content, *_: content
+        route._plan = lambda *_: [{"id": "approved-plan", "content": saved[-1]}] if saved else []
+        plan = await route._create_plan(5, "Math", "Percentages", "parent")
+        self.assertEqual(plan["id"], "approved-plan")
+        self.assertEqual(len(calls), 4)
+        self.assertEqual(len(saved), 1)
+        self.assertIn("answer key", calls[2]["messages"][1]["content"])
+
+    async def test_all_rejected_drafts_are_not_saved(self):
+        route = load_topic()
+        count, saved = 0, []
+        async def parse(**kwargs):
+            nonlocal count
+            count += 1
+            parsed = (types.SimpleNamespace(model_dump=lambda **_: copy.deepcopy(PLAN)) if count % 2
+                      else types.SimpleNamespace(approved=False, issue="Incorrect answer key."))
+            return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
+        route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
+            completions=types.SimpleNamespace(parse=parse))))
+        route.spend_daily_budget = lambda *_: None
+        route.llm_model = lambda value: value
+        route.guard_reply_payload = lambda content, *_: content
+        route.sb = types.SimpleNamespace(table=lambda _: saved.append(1))
+        with self.assertRaises(route.HTTPException) as failure:
+            await route._create_plan(5, "Math", "Percentages", "parent")
+        self.assertEqual(failure.exception.status_code, 502)
+        self.assertEqual(count, route.MAX_DRAFTS * 2)
+        self.assertEqual(saved, [])
 
 
 if __name__ == "__main__":

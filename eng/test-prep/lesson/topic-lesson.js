@@ -133,6 +133,7 @@
     $('sceneLead').textContent = first ? 'Listen and watch your teacher explain.' : step.teacher_text;
     visual.querySelector('.topic-visual-label').textContent = first ? slide.visual_label : payload.topic;
     const scene = document.querySelector('.visual-stage');
+    scene.setAttribute('aria-label', first ? slide.visual_label : `${payload.topic} lesson illustration`);
     const image = $('generatedVisual');
     const imageKey = `${planId}:${slideIndex}`;
     image.hidden = true;
@@ -226,6 +227,16 @@
     finally { busy = false; $('checkButton').disabled = !correct && stepIndex > 0 && choice === null; }
   });
   async function start() {
+    // The HTML shell also serves the fractions pilot; clear its copy before this topic loads.
+    $('sceneTakeaway').hidden = true;
+    $('sceneTakeaway').textContent = '';
+    $('questionLabel').textContent = 'YOUR LESSON';
+    $('questionText').textContent = 'Your teacher is preparing the lesson…';
+    $('hintButton').hidden = true;
+    $('hintCopy').hidden = true;
+    $('answerOptions').replaceChildren();
+    document.querySelector('.visual-stage').setAttribute('aria-label', `Preparing an illustration for ${payload.topic}`);
+    visual.querySelector('.topic-visual-label').textContent = `Getting ${payload.topic} ready`;
     $('sceneTitle').textContent = `Preparing ${payload.topic}`;
     $('sceneLead').textContent = 'Your teacher is building a short lesson for this topic.';
     $('guideMessage').textContent = 'This can take a moment the first time. The lesson will be saved for next time.';
@@ -245,6 +256,8 @@
       status(''); setStep(result);
     } catch (e) {
       status(''); error(e.message);
+      $('questionText').textContent = 'This lesson needs another try.';
+      visual.querySelector('.topic-visual-label').textContent = 'Your teacher is ready to try again';
       $('checkButton').textContent = 'Try loading again →';
       $('checkButton').disabled = false;
       $('checkButton').onclick = () => location.reload();

@@ -22,6 +22,7 @@ from eng_lesson_routes_2027 import (AUDIO_BUCKET, BUCKET, _cached_narration,
 
 SKILL = "ai-guided-introduction"
 PROMPT_VERSION = 1
+MAX_DRAFTS = 3
 SUBJECTS = {"Math", "English", "Science", "Hebrew", "History", "Geography", "Other"}
 SUBJECT_GUIDES = {
     "Math": "Show a concrete example. Check every arithmetic claim. Teach the reason before any shortcut.",
@@ -133,14 +134,16 @@ def _check_content(content: dict):
 
 
 async def _create_plan(grade: int, subject: str, topic: str, user_id: str):
-    await run_in_threadpool(spend_daily_budget, user_id, "model")
     guide = SUBJECT_GUIDES[subject]
     if subject == "Math" and topic == "Dividing fractions":
         guide += (" For this introduction, explain 3/4 ÷ 1/2 = 1½ as how many half-sized "
                   "groups fit into three quarters. Use equal quarters in any drawing; "
                   "show the meaning before a reciprocal shortcut.")
     try:
-        result = await aclient.beta.chat.completions.parse(
+        feedback = ""
+        for attempt in range(MAX_DRAFTS):
+            await run_in_threadpool(spend_daily_budget, user_id, "model")
+            result = await aclient.beta.chat.completions.parse(
             model=llm_model(os.getenv("ENG_TOPIC_TEACHER_MODEL", "gpt-4o-mini")),
             messages=[
                 {"role": "system", "content": (
@@ -158,17 +161,21 @@ async def _create_plan(grade: int, subject: str, topic: str, user_id: str):
                     "then two multiple_choice interactions. Use visual kind none for all three steps. "
                     f"Set version 1 and skill_id {SKILL}. Subject guidance: {guide}"
                 )},
-                {"role": "user", "content": json.dumps({"grade": grade, "subject": subject, "topic": topic})},
+                {"role": "user", "content": json.dumps({
+                    "grade": grade, "subject": subject, "topic": topic,
+                    "previous_review_issue": feedback,
+                    "instruction": "If there was a review issue, make a fresh corrected lesson. Verify every option and answer_index against the question before returning."
+                })},
             ],
             response_format=TopicPlan,
         )
-        parsed = result.choices[0].message.parsed
-        if parsed is None:
-            raise ValueError("No structured lesson")
-        content = guard_reply_payload(parsed.model_dump(exclude_none=True), "ENG TOPIC LESSON")
-        _check_content(content)
-        await run_in_threadpool(spend_daily_budget, user_id, "model")
-        review = await aclient.beta.chat.completions.parse(
+            parsed = result.choices[0].message.parsed
+            if parsed is None:
+                raise ValueError("No structured lesson")
+            content = guard_reply_payload(parsed.model_dump(exclude_none=True), "ENG TOPIC LESSON")
+            _check_content(content)
+            await run_in_threadpool(spend_daily_budget, user_id, "model")
+            review = await aclient.beta.chat.completions.parse(
             model=llm_model(os.getenv("ENG_TOPIC_REVIEW_MODEL", "gpt-4o-mini")),
             messages=[
                 {"role": "system", "content": (
@@ -183,9 +190,13 @@ async def _create_plan(grade: int, subject: str, topic: str, user_id: str):
             ],
             response_format=LessonReview,
         )
-        verdict = review.choices[0].message.parsed
-        if verdict is None or not verdict.approved:
-            raise ValueError("Independent lesson review rejected the draft: " + (verdict.issue if verdict else "No review"))
+            verdict = review.choices[0].message.parsed
+            if verdict is not None and verdict.approved:
+                break
+            feedback = verdict.issue if verdict else "No review was returned."
+            print(f"ENG TOPIC LESSON REVIEW: draft {attempt + 1}/{MAX_DRAFTS} rejected: {feedback[:150]}")
+        else:
+            raise ValueError("Independent lesson review rejected all drafts: " + feedback)
         await run_in_threadpool(
             lambda: sb.table("2027_eng_lesson_plans").upsert({
                 "language": "en", "grade": grade, "subject": subject, "topic": topic,
