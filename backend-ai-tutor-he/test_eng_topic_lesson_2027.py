@@ -56,6 +56,13 @@ def load_topic():
     fake_routes = types.ModuleType("eng_lesson_routes_2027")
     fake_routes.AUDIO_BUCKET = "2027-eng-lesson-audio"
     fake_routes.BUCKET = "2027-eng-lesson-media"
+    fake_routes.IDEA_NARRATION = (
+        "We ask how many half-sized portions fit into three quarters of one pizza.",
+        "The pizza has four equal quarters, and exactly three of them are shaded.",
+        "Two of the shaded quarters make one complete half-pizza portion.",
+        "The final quarter is half the size of one half-pizza portion.",
+        "One portion and half of another fit into three quarters of a pizza.",
+    )
     for name in ("_cached_narration", "_generate_narration", "_narration_path"):
         setattr(fake_routes, name, lambda *args: None)
     path = pathlib.Path(__file__).with_name("eng_topic_lesson_2027.py")
@@ -69,6 +76,19 @@ def load_topic():
 
 
 class TopicLessonTests(unittest.TestCase):
+    def test_reviewed_first_fraction_plan_has_correct_math_and_answer_keys(self):
+        route = load_topic()
+        plan = route._first_fraction_plan()
+        route._check_content(plan)
+        self.assertEqual(len(plan["slides"]), 5)
+        self.assertEqual([step["interaction"]["type"] for step in plan["steps"]],
+                         ["continue", "multiple_choice", "multiple_choice"])
+        self.assertEqual(plan["steps"][1]["interaction"]["options"][1], "One and a half")
+        self.assertEqual(plan["steps"][2]["interaction"]["options"][1], "Two")
+        self.assertTrue(route.check_answer(plan, 1, 1))
+        self.assertTrue(route.check_answer(plan, 2, 1))
+        self.assertFalse(route.check_answer(plan, 1, 2))
+
     def test_teacher_schema_requires_both_questions(self):
         route = load_topic()
         route.TopicPlan.model_validate(teacher_draft())

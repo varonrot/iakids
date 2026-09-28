@@ -18,7 +18,7 @@ from main import (LimitedRequest, aclient, app, authenticate_user, get_child_by_
                   spend_daily_budget)
 from eng_lessons_2027 import check_answer, public_step, validate_plan
 from eng_lesson_routes_2027 import (AUDIO_BUCKET, BUCKET, _cached_narration,
-                                    _generate_narration, _narration_path)
+                                    _generate_narration, _narration_path, IDEA_NARRATION)
 
 SKILL = "ai-guided-introduction"
 PROMPT_VERSION = 1
@@ -168,6 +168,55 @@ def _check_content(content: dict):
             raise ValueError("Incomplete slide")
 
 
+def _first_fraction_plan():
+    """Reviewed Grade 5 introduction; later fraction skills remain separate lessons."""
+    titles = ("How many groups fit?", "Three equal quarters", "Make one half",
+              "A quarter is half a portion", "One and a half portions")
+    visuals = (
+        "Three of four equal pizza quarters are shaded; one half-sized serving is outlined",
+        "A pizza divided into four equal quarters, with exactly three quarters shaded",
+        "Two shaded quarters together form one half; one shaded quarter remains",
+        "One remaining shaded quarter is half the size of a half-pizza portion",
+        "One complete half-pizza portion plus half of another portion from three quarters",
+    )
+    return {
+        "version": 1, "skill_id": SKILL,
+        "slides": [{"title": title, "narration": narration, "visual_label": visual}
+                   for title, narration, visual in zip(titles, IDEA_NARRATION, visuals)],
+        "steps": [
+            {"phase": "see_the_idea", "teacher_text":
+             "Three quarters contain one full half-sized group and half of another group: one and a half groups.",
+             "visual": {"kind": "none"}, "interaction": {"type": "continue"}},
+            {"phase": "try_together", "teacher_text":
+             "Look at the three shaded quarters. Two quarters make one half-sized group, and the last quarter makes half of another group.",
+             "visual": {"kind": "none"}, "interaction": {
+                 "type": "multiple_choice", "prompt": "How many half-pizza groups fit into three quarters of a pizza?",
+                 "options": ["One", "One and a half", "Two", "Three"], "answer_index": 1,
+                 "hint": "Make a group from two quarters, then look at the one quarter left."}},
+            {"phase": "your_turn", "teacher_text":
+             "Try the same equal-parts idea on your own. A half of a pizza is made from two quarters.",
+             "visual": {"kind": "none"}, "interaction": {
+                 "type": "multiple_choice", "prompt": "How many quarter-pizza pieces fit into one half of a pizza?",
+                 "options": ["One", "Two", "Three", "Four"], "answer_index": 1,
+                 "hint": "Picture the same pizza cut into four equal pieces and shade a half."}},
+        ],
+    }
+
+
+def _save_first_fraction_plan():
+    content = _first_fraction_plan()
+    _check_content(content)
+    sb.table("2027_eng_lesson_plans").upsert({
+        "language": "en", "grade": 5, "subject": "Math", "topic": "Dividing fractions",
+        "skill_id": SKILL, "prompt_version": PROMPT_VERSION, "status": "approved", "content": content
+    }, on_conflict="language,grade,subject,topic,skill_id,prompt_version",
+       ignore_duplicates=True).execute()
+    rows = _plan(5, "Math", "Dividing fractions")
+    if not rows:
+        raise RuntimeError("Reviewed fraction lesson was not saved")
+    return rows[0]
+
+
 async def _create_plan(grade: int, subject: str, topic: str, user_id: str):
     guide = SUBJECT_GUIDES[subject]
     if subject == "Math" and topic == "Dividing fractions":
@@ -306,7 +355,12 @@ async def start_topic_lesson(body: Start, authorization: str = Header(None)):
     draft = await run_in_threadpool(_saved_topic, user_id, body.kid_id, body.topic)
     grade, subject = int(draft["grade"]), draft["subject"]
     rows = await run_in_threadpool(_plan, grade, subject, body.topic)
-    plan = rows[0] if rows else await _create_plan(grade, subject, body.topic, user_id)
+    if rows:
+        plan = rows[0]
+    elif grade == 5 and subject == "Math" and body.topic == "Dividing fractions":
+        plan = await run_in_threadpool(_save_first_fraction_plan)
+    else:
+        plan = await _create_plan(grade, subject, body.topic, user_id)
     index = await run_in_threadpool(_progress, user_id, body.kid_id, plan["id"])
     if index >= 3:
         return {"plan_id": plan["id"], "complete": True}
