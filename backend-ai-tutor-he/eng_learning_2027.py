@@ -96,6 +96,12 @@ class PlanReadyRequest(LimitedRequest):
     expected_revision: int = Field(ge=0)
 
 
+class PlanDeleteRequest(LimitedRequest):
+    kid_id: str
+    plan_id: UUID
+    expected_revision: int = Field(ge=0)
+
+
 class PlanVoiceRequest(LimitedRequest):
     kid_id: str
     plan_id: UUID
@@ -327,6 +333,21 @@ def _owned_plan(user_id, kid_id, plan_id):
     if not rows:
         raise HTTPException(status_code=404, detail="This learning plan is not available.")
     return rows[0]
+
+
+@app.post("/api/eng/learning/plan/delete")
+async def delete_learning_plan(body: PlanDeleteRequest, authorization: str = Header(None)):
+    user_id, _, _ = await run_in_threadpool(_child, authorization, body.kid_id)
+    saved = await run_in_threadpool(_owned_plan, user_id, body.kid_id, body.plan_id)
+    if saved["revision"] != body.expected_revision:
+        raise HTTPException(status_code=409, detail="Open the saved plan again before deleting it.")
+    rows = (sb.table(PLAN_TABLE).delete()
+            .eq("id", str(body.plan_id)).eq("user_id", user_id)
+            .eq("child_id", body.kid_id).eq("revision", body.expected_revision)
+            .select("id").execute().data or [])
+    if not rows:
+        raise HTTPException(status_code=409, detail="Open the saved plan again before deleting it.")
+    return {"deleted": True, "plan_id": str(body.plan_id)}
 
 
 @app.post("/api/eng/learning/plan/ready")

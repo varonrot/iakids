@@ -41,6 +41,10 @@ class Table:
         self.mode, self.write = 'update', row
         return self
 
+    def delete(self):
+        self.mode = 'delete'
+        return self
+
     def execute(self):
         if self.mode == 'insert':
             row = {'id': str(uuid4()), **self.write}
@@ -51,6 +55,8 @@ class Table:
             if self.mode == 'update':
                 for row in result:
                     row.update(self.write)
+            if self.mode == 'delete':
+                self.rows = [row for row in self.rows if row not in result]
         self.mode, self.write, self.filters = 'select', None, []
         return types.SimpleNamespace(data=result)
 
@@ -247,6 +253,29 @@ class LearningTests(unittest.TestCase):
             'Bearer token'))['plan']
         self.assertIsNone(revised['ready_at'])
         self.assertEqual(revised['revision'], 2)
+
+    def test_delete_plan_requires_owner_and_current_revision(self):
+        route, table = load_route()
+        plan_id = str(uuid4())
+        other_id = str(uuid4())
+        table.rows.extend([
+            {'id': plan_id, 'user_id': 'parent-id', 'child_id': 'child-id',
+             'revision': 2, 'dialogue': [], 'plan_history': [], 'content': {}},
+            {'id': other_id, 'user_id': 'parent-id', 'child_id': 'another-child',
+             'revision': 0, 'dialogue': [], 'plan_history': [], 'content': {}},
+        ])
+        with self.assertRaises(route.HTTPException) as wrong_child:
+            asyncio.run(route.delete_learning_plan(route.PlanDeleteRequest(
+                kid_id='child-id', plan_id=other_id, expected_revision=0), 'Bearer token'))
+        self.assertEqual(wrong_child.exception.status_code, 404)
+        with self.assertRaises(route.HTTPException) as stale:
+            asyncio.run(route.delete_learning_plan(route.PlanDeleteRequest(
+                kid_id='child-id', plan_id=plan_id, expected_revision=1), 'Bearer token'))
+        self.assertEqual(stale.exception.status_code, 409)
+        result = asyncio.run(route.delete_learning_plan(route.PlanDeleteRequest(
+            kid_id='child-id', plan_id=plan_id, expected_revision=2), 'Bearer token'))
+        self.assertTrue(result['deleted'])
+        self.assertEqual([row['id'] for row in table.rows], [other_id])
 
     def test_intro_voice_covers_welcome_and_selected_subject(self):
         route, table = load_route()

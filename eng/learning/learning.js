@@ -187,10 +187,34 @@
     if (!plans.length) return;
     const heading = document.createElement('h2'); heading.textContent = 'Your saved plans'; target.append(heading);
     for (const plan of plans) {
-      const button = document.createElement('button'); button.type = 'button';
-      button.textContent = `${plan.subject} · ${plan.topic}${plan.ready_at ? ' · Ready ✓' : ''} →`;
-      button.addEventListener('click', () => showPlan(plan)); target.append(button);
+      const row = document.createElement('div'); row.className = 'saved-plan-row';
+      const open = document.createElement('button'); open.type = 'button'; open.className = 'saved-plan-open';
+      open.textContent = `${plan.subject} · ${plan.topic}${plan.ready_at ? ' · Ready ✓' : ''} →`;
+      open.addEventListener('click', () => showPlan(plan));
+      const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'saved-plan-edit';
+      edit.textContent = 'Edit'; edit.setAttribute('aria-label', `Edit ${plan.subject} · ${plan.topic} plan`);
+      edit.addEventListener('click', () => {
+        showPlan(plan); $('plannerInput').placeholder = 'Tell the guide what to change in this plan…';
+        $('plannerInput').focus();
+      });
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'saved-plan-delete';
+      remove.textContent = 'Delete'; remove.setAttribute('aria-label', `Delete ${plan.subject} · ${plan.topic} plan`);
+      remove.addEventListener('click', () => deletePlan(plan));
+      row.append(open, edit, remove); target.append(row);
     }
+  }
+  async function deletePlan(plan) {
+    if (busy || !child || !plans.some(item => item.id === plan.id)) return;
+    if (!window.confirm(`Delete your ${plan.subject} · ${plan.topic} plan? This also removes its conversation and cannot be undone.`)) return;
+    busy = true;
+    try {
+      await api('plan/delete', {kid_id: child.id, plan_id: plan.id, expected_revision: plan.revision});
+      plans = plans.filter(item => item.id !== plan.id);
+      if (activePlan?.id === plan.id) renderPath();
+      else renderSavedPlans();
+    } catch (err) {
+      error(err.message);
+    } finally { busy = false; }
   }
   function renderPath() {
     stopPlanVoice(); if (recognition) recognition.stop(); activePlan = null;
