@@ -106,6 +106,38 @@ class LearningTests(unittest.TestCase):
         self.assertEqual(result['subjects'][0]['units'][0]['skills'][0]['id'], 'equivalent-fractions')
         self.assertEqual(load_route(4)[0]._public_catalog(4), [])
 
+    def test_grade_library_and_saved_plan_reuse(self):
+        route, table = load_route(5)
+        library = asyncio.run(route.learning_library('child-id', 'Bearer token'))
+        self.assertIn('Dividing fractions', library['subjects'][0]['topics'])
+        self.assertNotIn('Dividing fractions', [t for s in
+            asyncio.run(load_route(2)[0].learning_library('child-id', 'Bearer token'))['subjects']
+            for t in s['topics']])
+
+        calls = []
+        class Completions:
+            async def parse(self, **kwargs):
+                calls.append(kwargs)
+                plan = route.CurriculumPlan(title='Understanding division of fractions',
+                    subject='Math', topic='Dividing fractions', units=[
+                        route.CurriculumUnit(title='Understand the operation', lessons=[
+                            route.CurriculumLesson(title='What division asks', goal='Interpret division in context.')])])
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(
+                    message=types.SimpleNamespace(parsed=plan))])
+        route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
+            completions=Completions())))
+        request = route.PlanRequest(kid_id='child-id', subject='Math', topic='Dividing fractions')
+        first = asyncio.run(route.create_learning_plan(request, 'Bearer token'))
+        second = asyncio.run(route.create_learning_plan(request, 'Bearer token'))
+        self.assertFalse(first['reused'])
+        self.assertTrue(second['reused'])
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(table.rows[0]['child_id'], 'child-id')
+        self.assertEqual(table.rows[0]['grade'], 5)
+        self.assertEqual(table.rows[0]['content']['units'][0]['lessons'][0]['title'], 'What division asks')
+        with self.assertRaises(route.HTTPException):
+            asyncio.run(route.create_learning_plan(route.PlanRequest(kid_id='child-id'), 'Bearer token'))
+
     def test_start_reply_resume_isolated_to_parent_and_child(self):
         route, table = load_route()
 

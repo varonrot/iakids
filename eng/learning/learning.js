@@ -10,7 +10,8 @@
     {auth: {flowType: 'pkce', storageKey: 'iakids-eng-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false}}
   );
   const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson'];
-  let user, children = [], child, catalog, subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
+  let user, children = [], child, catalog = [], library = [], plans = [], subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
+  let plannerStage = 'subjects';
   let voiceEnabled = true, audioSerial = 0, playingKey = '';
   let lessonDiagram, teacherTurns = [];
   const audioUrls = new Map();
@@ -49,9 +50,9 @@
     $('learnerChip').hidden = false;
     show('loading');
     try {
-      const result = await api(`catalog?kid_id=${encodeURIComponent(kid.id)}`);
-      catalog = result.subjects; recent = result.recent;
-      subject = null; unit = null; renderPath();
+      const result = await api(`library?kid_id=${encodeURIComponent(kid.id)}`);
+      library = result.subjects; plans = result.plans;
+      subject = null; unit = null; plannerStage = 'subjects'; renderPath();
     } catch (err) { childPicker(); error(err.message); }
   }
   function choice(iconText, titleText, detailText, action) {
@@ -61,46 +62,86 @@
     const detail = document.createElement('small'); detail.textContent = detailText;
     button.append(icon, title, detail); button.addEventListener('click', action); return button;
   }
-  function renderPath() {
-    show('path');
-    const title = $('pathTitle'), description = $('pathDescription'), list = $('pathChoices'), crumbs = $('crumbs');
-    list.replaceChildren(); crumbs.replaceChildren();
-    const addCrumb = (label, action) => { const button = document.createElement('button'); button.type = 'button'; button.textContent = label; button.addEventListener('click', action); crumbs.append(button); };
-    addCrumb(`Grade ${child.age}`, () => { subject = null; unit = null; renderPath(); });
-    if (subject) addCrumb(subject.title, () => { unit = null; renderPath(); });
-    if (unit) addCrumb(unit.title, () => renderPath());
-    if (!subject) {
-      title.textContent = `What will you learn, ${child.child_name}?`;
-      description.textContent = 'Choose a subject to explore your learning path.';
-      catalog.forEach(item => list.append(choice('∑', item.title, `${item.units.length} learning areas`, () => { subject = item; renderPath(); })));
-    } else if (!unit) {
-      title.textContent = `Explore ${subject.title}`;
-      description.textContent = 'Pick an area to see the ideas in learning order.';
-      subject.units.forEach(item => list.append(choice(item.id === 'fractions' ? '⅓' : '%', item.title, `${item.skills.length} learning steps`, () => { unit = item; renderPath(); })));
-    } else {
-      title.textContent = `${unit.title}, step by step`;
-      description.textContent = 'Choose a skill, or let us guide you from the beginning.';
-      unit.skills.forEach((item, index) => list.append(choice(item.icon, item.title, `Step ${index + 1} · Learn with your teacher`, () => start(item))));
-    }
-    if (!catalog.length) { description.textContent = `Learning paths for Grade ${child.age} are being prepared.`; $('notSure').hidden = true; }
-    else $('notSure').hidden = false;
-    $('recent').hidden = !recent;
-    if (recent) $('recentButton').textContent = 'Resume lesson →';
+  function plannerBubble(role, message) {
+    const bubble = document.createElement('div'); bubble.className = `planner-bubble ${role}`;
+    bubble.textContent = message; $('plannerMessages').append(bubble);
+    $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
+    return bubble;
   }
-  $('notSure').addEventListener('click', () => {
-    if (!subject) subject = catalog[0];
-    if (!unit) unit = subject.units[0];
-    start(unit.skills[0]);
-  });
-  $('recentButton').addEventListener('click', async () => {
-    if (!recent || busy) return;
-    const chosen = catalog.flatMap(s => s.units).find(u => u.id === recent.unit_id);
-    subject = catalog.find(s => s.units.includes(chosen)); unit = chosen;
-    if (!unit) { error('That lesson is no longer available. Choose a new step.'); return; }
-    busy = true; show('loading');
-    try { openLesson(await api('resume', {kid_id: child.id, session_id: recent.id})); }
-    catch (err) { renderPath(); error(err.message); }
-    finally { busy = false; }
+  function plannerButton(label, icon, action) {
+    const button = document.createElement('button'); button.type = 'button';
+    const mark = document.createElement('span'); mark.className = 'planner-icon'; mark.textContent = icon;
+    const words = document.createElement('span'); words.textContent = label;
+    button.append(mark, words); button.addEventListener('click', action); return button;
+  }
+  function plannerOptions(items) { $('plannerChoices').replaceChildren(...items); }
+  function renderSavedPlans() {
+    const target = $('savedPlans'); target.replaceChildren();
+    if (!plans.length) return;
+    const heading = document.createElement('h2'); heading.textContent = 'Your saved plans'; target.append(heading);
+    for (const plan of plans) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = `${plan.subject} · ${plan.topic} →`;
+      button.addEventListener('click', () => showPlan(plan)); target.append(button);
+    }
+  }
+  function renderPath() {
+    show('path'); $('plannerGrade').textContent = `${child.child_name} · Grade ${child.age}`;
+    $('plannerMessages').replaceChildren(); $('plannerTree').replaceChildren();
+    $('plannerSubtitle').textContent = 'Choose a subject to begin. Your plan will appear here.';
+    renderSavedPlans(); plannerStage = 'subjects'; subject = null;
+    plannerBubble('guide', `Hi ${child.child_name}! What would you like to learn today? Choose a Grade ${child.age} subject, or write your own idea below.`);
+    plannerOptions(library.map(item => plannerButton(item.title, item.icon, () => chooseSubject(item))));
+  }
+  function chooseSubject(item) {
+    if (busy) return;
+    subject = item; plannerStage = 'topics';
+    plannerBubble('learner', item.title);
+    plannerBubble('guide', `Great. Which ${item.title} topic would you like to explore? You can also describe one in your own words.`);
+    const buttons = item.topics.map(topic => plannerButton(topic, '✦', () => createPlan(item.title, topic, '')));
+    buttons.push(plannerButton('← Change subject', '↩', renderPath)); plannerOptions(buttons);
+    $('plannerInput').placeholder = `Or write a ${item.title} topic…`;
+  }
+  function showPlan(plan) {
+    const content = plan.content; if (!content?.units) return;
+    plannerStage = 'plan'; subject = null;
+    const tree = $('plannerTree'); tree.replaceChildren();
+    const title = document.createElement('h2'); title.textContent = content.title; tree.append(title);
+    const meta = document.createElement('p'); meta.textContent = `${content.subject} · ${content.topic} · Grade ${child.age}`; tree.append(meta);
+    content.units.forEach((part, index) => {
+      const details = document.createElement('details'); details.open = index === 0;
+      const summary = document.createElement('summary'); summary.textContent = `${index + 1}. ${part.title}`;
+      const list = document.createElement('ol');
+      for (const lesson of part.lessons) {
+        const row = document.createElement('li'), name = document.createElement('strong'), goal = document.createElement('small');
+        name.textContent = lesson.title; goal.textContent = lesson.goal; row.append(name, goal); list.append(row);
+      }
+      details.append(summary, list); tree.append(details);
+    });
+    $('plannerSubtitle').textContent = 'Your plan is saved. Open each part to see its lessons.';
+    $('plannerMessages').replaceChildren();
+    plannerBubble('guide', `Your ${content.topic} plan is ready, ${child.child_name}. I arranged the lessons in learning order. You can explore the plan on the left.`);
+    plannerOptions([plannerButton('Create another plan', '＋', renderPath)]);
+  }
+  async function createPlan(chosenSubject, topic, requestText) {
+    if (busy) return;
+    busy = true; $('plannerSend').disabled = true;
+    plannerBubble('learner', topic || requestText);
+    plannerOptions([]); const pending = plannerBubble('guide', 'I’m building your learning plan…');
+    try {
+      const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText}, 90000);
+      plans = [result.plan, ...plans.filter(item => item.id !== result.plan.id)].slice(0, 12);
+      renderSavedPlans(); showPlan(result.plan); $('plannerInput').value = '';
+    } catch (err) {
+      pending.textContent = 'The plan could not be created. Please try again.';
+      error(err.message); plannerOptions([plannerButton('Try again', '↻', () => createPlan(chosenSubject, topic, requestText)),
+        plannerButton('Change subject', '↩', renderPath)]);
+    } finally { busy = false; $('plannerSend').disabled = false; }
+  }
+  $('plannerForm').addEventListener('submit', event => {
+    event.preventDefault(); const value = $('plannerInput').value.trim();
+    if (!value) return;
+    createPlan(subject?.title || '', '', value);
   });
   async function start(skill) {
     if (busy) return;
