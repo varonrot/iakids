@@ -12,6 +12,7 @@
   const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson'];
   let user, children = [], child, catalog, subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
   let voiceEnabled = true, audioSerial = 0, playingKey = '';
+  let lessonDiagram, teacherTurns = [];
   const audioUrls = new Map();
   try { voiceEnabled = localStorage.getItem(voiceKey) !== 'off'; } catch {}
   // The key is public. Keep the exact same anon key as the English dashboard.
@@ -187,32 +188,59 @@
     for (let i = 0; i < denominator; i++) { const cell = document.createElement('i'); if (i < shaded) cell.className = 'filled'; track.append(cell); }
     row.append(title, track); return row;
   }
-  function diagram(kind) {
+  function examples(kind, text) {
+    const fractions = [...text.matchAll(/\b(\d{1,2})\s*\/\s*(\d{1,2})\b/g)]
+      .map(([, numerator, denominator]) => ({numerator: Number(numerator), denominator: Number(denominator)}))
+      .filter(({numerator, denominator}) => denominator >= 2 && denominator <= 16 && numerator <= denominator);
+    if (['equivalent', 'compare', 'add', 'unlike'].includes(kind)) {
+      const unique = fractions.filter((fraction, index) => fractions.findIndex(other =>
+        other.numerator === fraction.numerator && other.denominator === fraction.denominator) === index);
+      return unique.length >= 2 ? unique.slice(0, 2) : null;
+    }
+    if (kind === 'line') {
+      const mixed = text.match(/\b(\d)\s+(\d{1,2})\s*\/\s*(\d{1,2})\b/);
+      if (mixed && Number(mixed[3]) >= 2 && Number(mixed[3]) <= 16 && Number(mixed[2]) < Number(mixed[3]))
+        return {whole: Number(mixed[1]), numerator: Number(mixed[2]), denominator: Number(mixed[3])};
+      return null;
+    }
+    const percent = text.match(/\b(\d{1,3})\s*%/);
+    return percent && Number(percent[1]) <= 100 ? Number(percent[1]) : null;
+  }
+  function diagram(kind, turns) {
     const target = $('diagram'); target.replaceChildren();
-    let caption = '';
-    if (kind === 'equivalent') { target.append(bar('1/3', 3, 1), bar('3/9', 9, 3)); caption = 'The shaded amount stays the same when each third is divided into three equal parts.'; }
-    else if (kind === 'compare') { target.append(bar('5/8', 8, 5), bar('3/4', 8, 6)); caption = 'Both bars show the same whole. Count the shaded parts and explain what you notice.'; }
-    else if (kind === 'percent' || kind === 'percent-convert') {
-      const grid = document.createElement('div'); grid.className = 'hundred'; const count = kind === 'percent' ? 25 : 75;
-      for (let i = 0; i < 100; i++) { const cell = document.createElement('i'); if (i < count) cell.className = 'filled'; grid.append(cell); }
-      target.append(grid); caption = `${count} of 100 equal squares are shaded: ${count}%.`;
-    } else if (kind === 'line') {
+    // Use the latest complete example. A follow-up that says only "that fraction"
+    // keeps the preceding diagram rather than introducing unrelated numbers.
+    const example = [...turns].reverse().filter(turn => turn.role === 'assistant')
+      .map(turn => examples(kind, turn.text)).find(value => value !== null);
+    let caption = 'The teacher’s next numerical example will appear here.';
+    if (Array.isArray(example)) {
+      target.append(...example.map(({numerator, denominator}) =>
+        bar(`${numerator}/${denominator}`, denominator, numerator)));
+      caption = 'Each bar represents the same whole. Compare the shaded areas.';
+    } else if (typeof example === 'number') {
+      const grid = document.createElement('div'); grid.className = 'hundred';
+      for (let i = 0; i < 100; i++) { const cell = document.createElement('i'); if (i < example) cell.className = 'filled'; grid.append(cell); }
+      target.append(grid); caption = `${example} of 100 equal squares are shaded.`;
+    } else if (kind === 'line' && example) {
+      const {whole, numerator, denominator} = example;
+      const max = Math.max(3, whole + 1), steps = max * denominator;
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 470 100'); svg.setAttribute('class', 'number-line'); svg.setAttribute('aria-hidden', 'true');
+      const x = step => 25 + 420 * step / steps;
       svg.innerHTML = '<path d="M25 48H445" stroke="#126c83" stroke-width="3"/>' +
-        Array.from({length:13}, (_,i) => `<path d="M${25+i*35} 40v16" stroke="#126c83" stroke-width="2"/>`).join('') +
-        '<circle cx="270" cy="48" r="7" fill="#0bb8ad"/><text x="20" y="83">0</text><text x="160" y="83">1</text><text x="300" y="83">2</text><text x="440" y="83">3</text>';
-      target.append(svg); caption = 'The point is at 1 3/4 on a line divided into fourths.';
-    } else if (kind === 'add') { target.append(bar('2/3', 3, 2), bar('1/3', 3, 1)); caption = 'Equal-sized thirds can be combined: 2/3 + 1/3 = 1.'; }
-    else if (kind === 'unlike') { target.append(bar('5/12', 12, 5), bar('1/6', 12, 2)); caption = 'One sixth can be shown as two twelfths before adding.'; }
-    else if (kind === 'percent-quantity') { target.append(bar('25%', 4, 1)); caption = 'One quarter of 80 is 20, so 25% of 80 is 20.'; }
+        Array.from({length: steps + 1}, (_, i) => `<path d="M${x(i)} 40v16" stroke="#126c83" stroke-width="2"/>`).join('') +
+        `<circle cx="${x(whole * denominator + numerator)}" cy="48" r="7" fill="#0bb8ad"/>` +
+        Array.from({length: max + 1}, (_, i) => `<text x="${x(i * denominator) - 5}" y="83">${i}</text>`).join('');
+      target.append(svg); caption = `The point is at ${whole} ${numerator}/${denominator} on a line divided into ${denominator} equal parts per whole.`;
+    }
     $('diagramCaption').textContent = caption; target.setAttribute('aria-label', caption);
   }
   function openLesson(result) {
     stopVoice();
     current = result.session_id; count = result.turn_count; ++generation;
     $('gradeLabel').textContent = child.age; $('skillTitle').textContent = result.skill.title;
-    diagram(result.skill.diagram); $('messages').replaceChildren();
+    lessonDiagram = result.skill.diagram; teacherTurns = result.turns.filter(turn => turn.role === 'assistant');
+    diagram(lessonDiagram, teacherTurns); $('messages').replaceChildren();
     result.turns.forEach((turn, index) => {
       const item = bubble(turn.role, turn.text);
       if (turn.role === 'assistant') replayButton(item, index);
@@ -242,6 +270,7 @@
       const result = await api('reply', {kid_id: child.id, session_id: current, message: text, expected_turn_count: count});
       count = result.turn_count; waiting.querySelector('.bubble-text').textContent = result.text;
       waiting.classList.remove('pending'); replayButton(waiting, count - 1); $('messageInput').value = '';
+      teacherTurns.push({role: 'assistant', text: result.text}); diagram(lessonDiagram, teacherTurns);
       renderChoices(result.options);
       playTeacher(count - 1, true);
     } catch (err) { mine.remove(); waiting.remove(); renderChoices(previousOptions); error(err.message); }
