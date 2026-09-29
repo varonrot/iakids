@@ -224,16 +224,31 @@
     plannerOptions(library.map(item => plannerButton(item.title, item.icon, () => chooseSubject(item))));
     playPlanIntro(introVoice, true);
   }
-  function chooseSubject(item) {
+  function chooseSubject(item, fresh = false) {
     if (busy) return;
     stopPlanVoice(); introVoice = {stage: 'subject', subject: item.title};
     subject = item; plannerStage = 'topics';
-    plannerBubble('learner', item.title);
+    if (!fresh) plannerBubble('learner', item.title);
     plannerBubble('guide', `Great. Which ${item.title} topic would you like to explore? You can also describe one in your own words.`, -1, introVoice);
-    const buttons = item.topics.map(topic => plannerButton(topic, '✦', () => createPlan(item.title, topic, '')));
+    const buttons = item.topics.map(topic => {
+      const saved = plans.find(plan => plan.subject === item.title && plan.topic.toLowerCase() === topic.toLowerCase());
+      return plannerButton(saved ? `${topic} · Open saved plan` : topic, saved ? '↗' : '✦',
+        saved ? () => showPlan(saved, true) : () => createPlan(item.title, topic, ''));
+    });
     buttons.push(plannerButton('← Change subject', '↩', renderPath)); plannerOptions(buttons);
     $('plannerInput').placeholder = `Or write a ${item.title} topic…`;
     playPlanIntro(introVoice, true);
+  }
+  function startAnotherPlan() {
+    if (busy || !activePlan) return;
+    const previous = activePlan;
+    const currentSubject = library.find(item => item.title.toLowerCase() === previous.subject.toLowerCase());
+    if (!currentSubject) { renderPath(); return; }
+    stopPlanVoice(); if (recognition) recognition.stop(); activePlan = null;
+    $('plannerMessages').replaceChildren(); $('plannerTree').replaceChildren();
+    $('plannerSubtitle').textContent = `Your ${previous.topic} plan is saved. Choose another ${currentSubject.title} topic, or change subject.`;
+    renderSavedPlans();
+    chooseSubject(currentSubject, true);
   }
   function planActions(options = []) {
     const suggestions = options.length ? options : ['I know some of this already', 'Add more practice questions', 'Change the plan'];
@@ -243,7 +258,7 @@
       ready.classList.add('planner-ready'); actions.push(ready);
     }
     return [...actions, ...suggestions.map(label => plannerButton(label, '✦', () => replyToPlan(label))),
-      plannerButton('Create another plan', '＋', renderPath)];
+      plannerButton('Create another plan', '＋', startAnotherPlan)];
   }
   function showPlan(plan, autoVoice = false, editMode = false) {
     const content = plan.content; if (!content?.units) return;
