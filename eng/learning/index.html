@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./learning.css?v=20260929-08">
+  <link rel="stylesheet" href="./learning.css?v=20260929-09">
 </head>
 <body>
   <header class="topbar">
@@ -23,7 +23,7 @@
     <section id="chooseChild" class="state-card" hidden><span class="eyebrow">YOUR LEARNING SPACE</span><h1>Who’s learning today?</h1><p>Choose a learner to continue.</p><div id="childChoices" class="choice-grid"></div></section>
     <section id="path" class="planner" hidden aria-label="Create a learning plan">
       <aside class="planner-outline"><a href="../" class="back">← Dashboard</a><span class="eyebrow">MY LEARNING SYSTEM</span><h1>Your learning path</h1><p id="plannerSubtitle">Choose a subject to begin. Your plan will appear here.</p><div id="plannerTree" class="planner-tree"></div><div id="savedPlans" class="saved-plans"></div></aside>
-      <div class="planner-dialog"><div class="planner-head"><span class="teacher-avatar" aria-hidden="true">✦</span><div><strong>Your learning guide</strong><small id="plannerGrade">Ready to build your plan</small></div></div><div id="plannerMessages" class="planner-messages" role="log" aria-live="polite"></div><div id="plannerChoices" class="planner-choices" aria-label="Suggested choices"></div><form id="plannerForm" class="planner-composer"><label for="plannerInput">Or tell me what you want to learn</label><div><textarea id="plannerInput" placeholder="For example: I want to understand dividing fractions" maxlength="500" rows="2" required></textarea><button id="plannerSend" type="submit">Send ↑</button></div></form></div>
+      <div class="planner-dialog"><div class="planner-head"><span class="teacher-avatar" aria-hidden="true">✦</span><div><strong>Your learning guide</strong><small id="plannerGrade">Ready to build your plan</small></div><button id="plannerVoiceToggle" class="voice-toggle" type="button" aria-pressed="true">🔊 Voice on</button></div><div id="plannerMessages" class="planner-messages" role="log" aria-live="polite"></div><div id="plannerVoiceStatus" class="voice-status" role="status" hidden></div><div id="plannerChoices" class="planner-choices" aria-label="Suggested choices"></div><form id="plannerForm" class="planner-composer"><label for="plannerInput">Tell me what you know, or what you would change</label><div><textarea id="plannerInput" placeholder="For example: I want to understand dividing fractions" maxlength="500" rows="2" required></textarea><button id="plannerMic" class="planner-mic" type="button" aria-label="Speak your message" aria-pressed="false" title="Speak your message">🎙</button><button id="plannerSend" type="submit">Send ↑</button></div></form><audio id="plannerAudio" preload="none"></audio></div>
     </section>
     <section id="lesson" class="lesson" hidden>
       <div class="lesson-heading"><div><button id="backToPath" class="back-button" type="button">← Learning path</button><span class="eyebrow">MATH · GRADE <span id="gradeLabel"></span></span><h1 id="skillTitle"></h1></div><span class="lesson-label">Learn · Ask · Try</span></div>
@@ -35,6 +35,6 @@
     <p id="error" class="error" role="alert" hidden></p>
   </main>
   <script src="../js/vendor/supabase-2.57.4.js" defer></script>
-  <script src="./learning.js?v=20260929-08" defer></script>
+  <script src="./learning.js?v=20260929-09" defer></script>
 </body>
 </html>

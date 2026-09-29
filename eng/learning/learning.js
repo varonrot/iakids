@@ -12,6 +12,8 @@
   const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson'];
   let user, children = [], child, catalog = [], library = [], plans = [], subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
   let plannerStage = 'subjects';
+  let activePlan = null, planAudioSerial = 0;
+  const planAudioUrls = new Map();
   let voiceEnabled = true, audioSerial = 0, playingKey = '';
   let lessonDiagram, teacherTurns = [];
   const audioUrls = new Map();
@@ -44,7 +46,7 @@
     show('chooseChild');
   }
   async function selectChild(kid) {
-    child = kid; ++generation;
+    child = kid; ++generation; stopPlanVoice(); if (recognition) recognition.stop();
     try { sessionStorage.setItem(childKey, JSON.stringify({userId: user.id, id: kid.id})); } catch {}
     $('learnerChip').textContent = `${kid.child_name} · Grade ${kid.age} ▾`;
     $('learnerChip').hidden = false;
@@ -62,12 +64,91 @@
     const detail = document.createElement('small'); detail.textContent = detailText;
     button.append(icon, title, detail); button.addEventListener('click', action); return button;
   }
-  function plannerBubble(role, message) {
+  function plannerBubble(role, message, index = -1) {
     const bubble = document.createElement('div'); bubble.className = `planner-bubble ${role}`;
-    bubble.textContent = message; $('plannerMessages').append(bubble);
+    const words = document.createElement('span'); words.textContent = message; bubble.append(words);
+    if (role === 'guide' && index >= 0) {
+      const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'plan-listen';
+      listen.textContent = '▶ Listen'; listen.addEventListener('click', () => playPlanVoice(index)); bubble.append(listen);
+    }
+    $('plannerMessages').append(bubble);
     $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
     return bubble;
   }
+  function stopPlanVoice() {
+    ++planAudioSerial; $('plannerAudio').pause(); $('plannerAudio').removeAttribute('src');
+    $('plannerAudio').load(); $('plannerVoiceStatus').hidden = true;
+  }
+  function updatePlannerVoice() {
+    $('plannerVoiceToggle').textContent = voiceEnabled ? '🔊 Voice on' : '🔇 Voice off';
+    $('plannerVoiceToggle').setAttribute('aria-pressed', String(voiceEnabled));
+  }
+  async function playPlanVoice(index, automatic = false) {
+    if (!activePlan || (automatic && !voiceEnabled)) return;
+    if (!voiceEnabled) {
+      voiceEnabled = true; try { localStorage.setItem(voiceKey, 'on'); } catch {}
+      updatePlannerVoice(); updateVoiceToggle();
+    }
+    const token = ++planAudioSerial, planId = activePlan.id;
+    $('plannerAudio').pause(); $('plannerVoiceStatus').textContent = 'Preparing the guide’s voice…';
+    $('plannerVoiceStatus').hidden = false;
+    try {
+      const key = `${planId}:${index}`;
+      let cached = planAudioUrls.get(key);
+      if (!cached || cached.expiresAt < Date.now()) {
+        const result = await api('plan/audio', {kid_id: child.id, plan_id: planId, turn_index: index}, 120000);
+        cached = {url: result.url, expiresAt: Date.now() + 9 * 60 * 1000}; planAudioUrls.set(key, cached);
+      }
+      if (token !== planAudioSerial || activePlan?.id !== planId || !voiceEnabled) return;
+      $('plannerAudio').src = cached.url; await $('plannerAudio').play();
+      if (token === planAudioSerial) $('plannerVoiceStatus').hidden = true;
+    } catch (err) {
+      if (token !== planAudioSerial) return;
+      $('plannerVoiceStatus').textContent = err.name === 'NotAllowedError'
+        ? 'Tap ▶ Listen to hear the guide.' : 'Voice is unavailable. You can continue reading.';
+    }
+  }
+  $('plannerVoiceToggle').addEventListener('click', () => {
+    voiceEnabled = !voiceEnabled; try { localStorage.setItem(voiceKey, voiceEnabled ? 'on' : 'off'); } catch {}
+    updatePlannerVoice(); updateVoiceToggle();
+    if (!voiceEnabled) stopPlanVoice();
+    else if (activePlan) {
+      const turns = activePlan.dialogue || [];
+      const index = turns.findLastIndex(turn => turn.role === 'assistant');
+      if (index >= 0) playPlanVoice(index);
+    }
+  });
+  $('plannerAudio').addEventListener('error', () => {
+    $('plannerVoiceStatus').textContent = 'Voice could not load. Tap ▶ Listen to try again.';
+    $('plannerVoiceStatus').hidden = false;
+  });
+  updatePlannerVoice();
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  if (!Recognition) $('plannerMic').hidden = true;
+  else $('plannerMic').addEventListener('click', () => {
+    if (recognition) { recognition.stop(); return; }
+    stopPlanVoice();
+    const instance = new Recognition(), original = $('plannerInput').value.trim();
+    recognition = instance; instance.lang = 'en-US'; instance.interimResults = true;
+    $('plannerMic').classList.add('listening'); $('plannerMic').setAttribute('aria-pressed', 'true');
+    $('plannerMic').title = 'Listening… tap to stop';
+    instance.onresult = event => {
+      const transcript = Array.from(event.results, result => result[0].transcript).join(' ');
+      $('plannerInput').value = `${original}${original ? ' ' : ''}${transcript}`.slice(0, 500);
+    };
+    instance.onerror = event => {
+      if (event.error !== 'aborted') error(event.error === 'not-allowed'
+        ? 'Allow microphone access to speak, or type your message.'
+        : 'Could not hear you. You can type your message.');
+    };
+    instance.onend = () => {
+      recognition = null; $('plannerMic').classList.remove('listening');
+      $('plannerMic').setAttribute('aria-pressed', 'false'); $('plannerMic').title = 'Speak your message';
+      $('plannerInput').focus();
+    };
+    try { instance.start(); } catch { instance.onend(); error('Microphone is unavailable. You can type your message.'); }
+  });
   function plannerButton(label, icon, action) {
     const button = document.createElement('button'); button.type = 'button';
     const mark = document.createElement('span'); mark.className = 'planner-icon'; mark.textContent = icon;
@@ -86,10 +167,12 @@
     }
   }
   function renderPath() {
+    stopPlanVoice(); if (recognition) recognition.stop(); activePlan = null;
     show('path'); $('plannerGrade').textContent = `${child.child_name} · Grade ${child.age}`;
     $('plannerMessages').replaceChildren(); $('plannerTree').replaceChildren();
     $('plannerSubtitle').textContent = 'Choose a subject to begin. Your plan will appear here.';
     renderSavedPlans(); plannerStage = 'subjects'; subject = null;
+    $('plannerInput').placeholder = 'For example: I want to understand dividing fractions';
     plannerBubble('guide', `Hi ${child.child_name}! What would you like to learn today? Choose a Grade ${child.age} subject, or write your own idea below.`);
     plannerOptions(library.map(item => plannerButton(item.title, item.icon, () => chooseSubject(item))));
   }
@@ -102,9 +185,14 @@
     buttons.push(plannerButton('← Change subject', '↩', renderPath)); plannerOptions(buttons);
     $('plannerInput').placeholder = `Or write a ${item.title} topic…`;
   }
-  function showPlan(plan) {
+  function planActions(options = []) {
+    const suggestions = options.length ? options : ['I know some of this already', 'Add more practice questions', 'Change the plan'];
+    return [...suggestions.map(label => plannerButton(label, '✦', () => replyToPlan(label))),
+      plannerButton('Create another plan', '＋', renderPath)];
+  }
+  function showPlan(plan, autoVoice = false) {
     const content = plan.content; if (!content?.units) return;
-    plannerStage = 'plan'; subject = null;
+    stopPlanVoice(); if (recognition) recognition.stop(); activePlan = plan; plannerStage = 'plan'; subject = null;
     const tree = $('plannerTree'); tree.replaceChildren();
     const title = document.createElement('h2'); title.textContent = content.title; tree.append(title);
     const meta = document.createElement('p'); meta.textContent = `${content.subject} · ${content.topic} · Grade ${child.age}`; tree.append(meta);
@@ -114,14 +202,27 @@
       const list = document.createElement('ol');
       for (const lesson of part.lessons) {
         const row = document.createElement('li'), name = document.createElement('strong'), goal = document.createElement('small');
-        name.textContent = lesson.title; goal.textContent = lesson.goal; row.append(name, goal); list.append(row);
+        name.textContent = lesson.title; goal.textContent = lesson.goal; row.append(name, goal);
+        if (lesson.practice_questions?.length) {
+          const questions = document.createElement('ul'); questions.className = 'plan-questions';
+          lesson.practice_questions.forEach(question => {
+            const item = document.createElement('li'); item.textContent = question; questions.append(item);
+          });
+          row.append(questions);
+        }
+        list.append(row);
       }
       details.append(summary, list); tree.append(details);
     });
-    $('plannerSubtitle').textContent = 'Your plan is saved. Open each part to see its lessons.';
+    $('plannerSubtitle').textContent = 'Your plan is saved. Open each part to see its lessons, or ask the guide to adjust it.';
     $('plannerMessages').replaceChildren();
-    plannerBubble('guide', `Your ${content.topic} plan is ready, ${child.child_name}. I arranged the lessons in learning order. You can explore the plan on the left.`);
-    plannerOptions([plannerButton('Create another plan', '＋', renderPath)]);
+    const dialogue = plan.dialogue?.length ? plan.dialogue : [{role: 'assistant',
+      text: 'Your plan is ready. Tell me what you already know, ask for more practice questions, or tell me what you would like to change.'}];
+    dialogue.forEach((turn, index) => plannerBubble(turn.role === 'user' ? 'learner' : 'guide', turn.text,
+      turn.role === 'assistant' && plan.dialogue?.length ? index : -1));
+    plannerOptions(planActions(dialogue.at(-1)?.options || []));
+    $('plannerInput').placeholder = 'I already know the basics. Can we spend more time on…?';
+    if (autoVoice && dialogue.at(-1)?.role === 'assistant') playPlanVoice(dialogue.length - 1, true);
   }
   async function createPlan(chosenSubject, topic, requestText) {
     if (busy) return;
@@ -131,17 +232,35 @@
     try {
       const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText}, 90000);
       plans = [result.plan, ...plans.filter(item => item.id !== result.plan.id)].slice(0, 12);
-      renderSavedPlans(); showPlan(result.plan); $('plannerInput').value = '';
+      renderSavedPlans(); showPlan(result.plan, true); $('plannerInput').value = '';
     } catch (err) {
       pending.textContent = 'The plan could not be created. Please try again.';
       error(err.message); plannerOptions([plannerButton('Try again', '↻', () => createPlan(chosenSubject, topic, requestText)),
         plannerButton('Change subject', '↩', renderPath)]);
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
+  async function replyToPlan(message) {
+    if (busy || !activePlan) return;
+    const planId = activePlan.id, expectedRevision = activePlan.revision;
+    busy = true; $('plannerSend').disabled = true; plannerOptions([]);
+    plannerBubble('learner', message);
+    const pending = plannerBubble('guide', 'Thinking about your plan…');
+    try {
+      const result = await api('plan/reply', {kid_id: child.id, plan_id: planId,
+        message, expected_revision: expectedRevision}, 90000);
+      if (activePlan?.id !== planId) return;
+      plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
+      renderSavedPlans(); showPlan(result.plan, true); $('plannerInput').value = '';
+    } catch (err) {
+      pending.remove(); $('plannerMessages').lastElementChild?.remove();
+      error(err.message); plannerOptions(planActions());
+    } finally { busy = false; $('plannerSend').disabled = false; }
+  }
   $('plannerForm').addEventListener('submit', event => {
     event.preventDefault(); const value = $('plannerInput').value.trim();
     if (!value) return;
-    createPlan(subject?.title || '', '', value);
+    if (plannerStage === 'plan') replyToPlan(value);
+    else createPlan(subject?.title || '', '', value);
   });
   async function start(skill) {
     if (busy) return;
@@ -201,7 +320,7 @@
     }
   }
   $('voiceToggle').addEventListener('click', () => {
-    voiceEnabled = !voiceEnabled; updateVoiceToggle();
+    voiceEnabled = !voiceEnabled; updateVoiceToggle(); updatePlannerVoice();
     try { localStorage.setItem(voiceKey, voiceEnabled ? 'on' : 'off'); } catch {}
     if (!voiceEnabled) stopVoice();
     else if (current) playTeacher(count - 1);
@@ -333,7 +452,7 @@
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); $('messageForm').requestSubmit(); }
   });
   $('backToPath').addEventListener('click', () => { stopVoice(); ++generation; renderPath(); });
-  $('learnerChip').addEventListener('click', () => { stopVoice(); ++generation; childPicker(); });
+  $('learnerChip').addEventListener('click', () => { stopVoice(); stopPlanVoice(); if (recognition) recognition.stop(); ++generation; childPicker(); });
   async function initialize() {
     if (!auth) { show('signin'); return; }
     try {

@@ -32,6 +32,8 @@ class Table:
         return self
 
     def insert(self, row):
+        if 'request_key' in row:
+            row = {'revision': 0, 'plan_history': [], **row}
         self.mode, self.write = 'insert', row
         return self
 
@@ -137,6 +139,68 @@ class LearningTests(unittest.TestCase):
         self.assertEqual(table.rows[0]['content']['units'][0]['lessons'][0]['title'], 'What division asks')
         with self.assertRaises(route.HTTPException):
             asyncio.run(route.create_learning_plan(route.PlanRequest(kid_id='child-id'), 'Bearer token'))
+
+    def test_plan_conversation_changes_saved_plan_and_preserves_old_version(self):
+        route, table = load_route()
+        plan_id = str(uuid4())
+        old = {'title': 'Fractions', 'subject': 'Math', 'topic': 'Fractions', 'units': [
+            {'title': 'The basics', 'lessons': [{'title': 'What is a fraction?',
+                                               'goal': 'Recognize equal parts.', 'practice_questions': []}]}]}
+        table.rows.append({'id': plan_id, 'user_id': 'parent-id', 'child_id': 'child-id',
+                           'grade': 5, 'subject': 'Math', 'topic': 'Fractions', 'content': old,
+                           'dialogue': [{'role': 'assistant', 'text': 'Your plan is ready.'}],
+                           'revision': 0, 'plan_history': []})
+        class Completions:
+            async def parse(self, **kwargs):
+                revised = route.CurriculumPlan(title='Fractions', subject='Math',
+                    topic='Fractions', units=[route.CurriculumUnit(title='Quick review', lessons=[
+                        route.CurriculumLesson(title='Check the basics',
+                            goal='Verify prior knowledge before harder work.',
+                            practice_questions=['Is 2/4 equal to 1/2? Explain.'])])])
+                answer = route.PlannerResponse(
+                    text='I moved the basics to a quick check and added practice questions.',
+                    revised_plan=revised, options=['Add another question'])
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(
+                    message=types.SimpleNamespace(parsed=answer))])
+        route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
+            completions=Completions())))
+        route.guard_reply_payload = lambda text, *_: text
+        request = route.PlanReplyRequest(kid_id='child-id', plan_id=plan_id,
+                                         message='I know the basics. Add questions.', expected_revision=0)
+        result = asyncio.run(route.reply_to_learning_plan(request, 'Bearer token'))
+        self.assertTrue(result['changed'])
+        self.assertEqual(result['plan']['revision'], 1)
+        self.assertEqual(result['plan']['content']['units'][0]['lessons'][0]['practice_questions'],
+                         ['Is 2/4 equal to 1/2? Explain.'])
+        self.assertEqual(table.rows[0]['plan_history'][0]['content'], old)
+        self.assertEqual([turn['role'] for turn in table.rows[0]['dialogue']],
+                         ['assistant', 'user', 'assistant'])
+        with self.assertRaises(route.HTTPException) as stale:
+            asyncio.run(route.reply_to_learning_plan(request, 'Bearer token'))
+        self.assertEqual(stale.exception.status_code, 409)
+        with self.assertRaises(route.HTTPException) as wrong_child:
+            asyncio.run(route.learning_plan_audio(route.PlanVoiceRequest(
+                kid_id='another-child', plan_id=plan_id, turn_index=0), 'Bearer token'))
+        self.assertEqual(wrong_child.exception.status_code, 404)
+
+        saved_audio = {}
+        class Storage:
+            def from_(self, bucket):
+                return self
+            def upload(self, path, wav, options):
+                saved_audio[path] = wav
+        route.sb = types.SimpleNamespace(table=lambda name: table, storage=Storage())
+        route._cached_narration = lambda path: path in saved_audio
+        route._generate_narration = lambda text, grade: b'wav'
+        route.signed_url_cached = lambda bucket, path, expiry: path
+        voice = asyncio.run(route.learning_plan_audio(route.PlanVoiceRequest(
+            kid_id='child-id', plan_id=plan_id, turn_index=2), 'Bearer token'))
+        self.assertIn(f'learning-plans/v1/{plan_id}/2-', voice['url'])
+        self.assertEqual(len(saved_audio), 1)
+        with self.assertRaises(route.HTTPException) as child_audio:
+            asyncio.run(route.learning_plan_audio(route.PlanVoiceRequest(
+                kid_id='child-id', plan_id=plan_id, turn_index=1), 'Bearer token'))
+        self.assertEqual(child_audio.exception.status_code, 422)
 
     def test_start_reply_resume_isolated_to_parent_and_child(self):
         route, table = load_route()
