@@ -9,7 +9,7 @@
     {auth: {flowType: 'pkce', storageKey: 'iakids-eng-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false}}
   );
   const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson'];
-  let user, children = [], child, catalog, subject, unit, recent, current, count = 0, busy = false, generation = 0;
+  let user, children = [], child, catalog, subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
   // The key is public. Keep the exact same anon key as the English dashboard.
 
   function show(name) { views.forEach(id => { $(id).hidden = id !== name; }); $('error').hidden = true; }
@@ -109,6 +109,16 @@
     item.textContent = text; $('messages').append(item); $('messages').scrollTop = $('messages').scrollHeight;
     return item;
   }
+  function renderChoices(options) {
+    activeOptions = Array.isArray(options) ? options : [];
+    const target = $('answerChoices'); target.replaceChildren();
+    for (const option of activeOptions) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.textContent = option; button.addEventListener('click', () => sendMessage(option));
+      target.append(button);
+    }
+    target.hidden = !activeOptions.length;
+  }
   function bar(label, denominator, shaded) {
     const row = document.createElement('div'); row.className = 'bar-row';
     const title = document.createElement('b'); title.textContent = label;
@@ -142,6 +152,8 @@
     $('gradeLabel').textContent = child.age; $('skillTitle').textContent = result.skill.title;
     diagram(result.skill.diagram); $('messages').replaceChildren();
     result.turns.forEach(turn => bubble(turn.role, turn.text));
+    const latest = result.turns.at(-1);
+    renderChoices(latest?.role === 'assistant' ? latest.options : []);
     $('generatedImage').hidden = true; $('imageStatus').hidden = false; $('imageStatus').textContent = 'Preparing an illustration…';
     $('messageInput').value = ''; show('lesson');
     recent = {id: current, unit_id: unit.id};
@@ -152,16 +164,22 @@
       $('generatedImage').hidden = false; $('imageStatus').hidden = true;
     }).catch(() => { if (version === generation) $('imageStatus').textContent = 'Explore the exact diagram below.'; });
   }
-  $('messageForm').addEventListener('submit', async event => {
-    event.preventDefault(); if (busy || !current) return;
-    const text = $('messageInput').value.trim(); if (!text) return;
+  async function sendMessage(value) {
+    if (busy || !current) return;
+    const text = value.trim(); if (!text) return;
     busy = true; $('sendButton').disabled = true; $('messageInput').disabled = true;
+    const previousOptions = activeOptions;
+    renderChoices([]);
     const mine = bubble('user', text); const waiting = bubble('assistant', 'Your teacher is thinking…', true);
     try {
       const result = await api('reply', {kid_id: child.id, session_id: current, message: text, expected_turn_count: count});
       count = result.turn_count; waiting.textContent = result.text; waiting.classList.remove('pending'); $('messageInput').value = '';
-    } catch (err) { mine.remove(); waiting.remove(); error(err.message); }
+      renderChoices(result.options);
+    } catch (err) { mine.remove(); waiting.remove(); renderChoices(previousOptions); error(err.message); }
     finally { busy = false; $('sendButton').disabled = false; $('messageInput').disabled = false; $('messageInput').focus(); }
+  }
+  $('messageForm').addEventListener('submit', event => {
+    event.preventDefault(); sendMessage($('messageInput').value);
   });
   $('messageInput').addEventListener('keydown', event => {
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); $('messageForm').requestSubmit(); }

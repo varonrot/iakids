@@ -98,6 +98,18 @@ class Illustration(LimitedRequest):
 
 class TeacherMessage(BaseModel):
     text: str = Field(min_length=8, max_length=800)
+    options: list[str] = Field(default_factory=list, max_length=4)
+
+
+def _answer_options(values):
+    """Only short, distinct choices become buttons; open questions remain free text."""
+    choices = []
+    for value in values:
+        choice = value.strip()
+        if not choice or len(choice) > 80 or choice.casefold() in {item.casefold() for item in choices}:
+            continue
+        choices.append(choice)
+    return choices if 2 <= len(choices) <= 4 else []
 
 
 def _child(authorization, kid_id):
@@ -156,6 +168,11 @@ def _teacher_prompt(name, grade, subject, unit, skill):
         "After that, address the learner's actual answer. Explain a misconception without shame, "
         "give a small hint when needed, and increase difficulty only after understanding. "
         "Keep each turn under 100 words and at most one question. The child may type freely. "
+        "Return text and optional options. If the current question has a few meaningful, distinct "
+        "answers, provide 2 to 4 short answer options as buttons. For a comparison, ask which is "
+        "greater with choices first; ask why after the child chooses. Never put the answer in the "
+        "explanation before asking. For open-ended reasoning or a child's own question, return an "
+        "empty options list. Buttons never replace the child's ability to write freely. "
         "Do not dump a complete lesson, use pizza/cake/candy examples, claim to remember a prior "
         "conversation, or claim a skill is mastered from one answer. Be mathematically accurate. "
         "Use only the reviewed numeric examples above unless the learner supplies another problem. "
@@ -177,7 +194,8 @@ async def _generate(name, grade, subject, unit, skill, turns, user_id):
     parsed = result.choices[0].message.parsed
     if not parsed:
         raise ValueError("The teacher returned no message")
-    return guard_reply_payload(parsed.text.strip(), "ENG LEARNING TEACHER")
+    return {"text": guard_reply_payload(parsed.text.strip(), "ENG LEARNING TEACHER"),
+            "options": _answer_options(parsed.options)}
 
 
 @app.post("/api/eng/learning/start")
@@ -185,13 +203,13 @@ async def start_learning(body: Start, authorization: str = Header(None)):
     user_id, child, grade = await run_in_threadpool(_child, authorization, body.kid_id)
     subject, unit, skill = _skill(grade, body.unit_id, body.skill_id)
     try:
-        text = await _generate(child["child_name"], grade, subject, unit, skill, [], user_id)
+        answer = await _generate(child["child_name"], grade, subject, unit, skill, [], user_id)
     except HTTPException:
         raise
     except Exception as exc:
         print("ENG LEARNING START ERROR:", type(exc).__name__)
         raise HTTPException(status_code=502, detail="The teacher could not start. Please try again.")
-    turns = [{"role": "assistant", "text": text}]
+    turns = [{"role": "assistant", **answer}]
     row = (sb.table(TABLE).insert({"user_id": user_id, "child_id": body.kid_id,
             "grade": grade, "subject": subject["title"], "unit_id": unit["id"],
             "skill_id": skill["id"], "turns": turns, "turn_count": 1})
@@ -229,14 +247,14 @@ async def reply_learning(body: Reply, authorization: str = Header(None)):
     except Exception as exc:
         print("ENG LEARNING REPLY ERROR:", type(exc).__name__)
         raise HTTPException(status_code=502, detail="The teacher could not reply. Please try again.")
-    turns.append({"role": "assistant", "text": answer})
+    turns.append({"role": "assistant", **answer})
     updated = (sb.table(TABLE).update({"turns": turns, "turn_count": len(turns),
                 "updated_at": datetime.now(timezone.utc).isoformat()})
                .eq("id", saved["id"]).eq("user_id", user_id)
                .eq("turn_count", saved["turn_count"]).select("id").execute().data or [])
     if not updated:
         raise HTTPException(status_code=409, detail="Another reply was saved. Reload the lesson to continue.")
-    return {"text": answer, "turn_count": len(turns)}
+    return {**answer, "turn_count": len(turns)}
 
 
 def _cached_image(grade, skill_id):

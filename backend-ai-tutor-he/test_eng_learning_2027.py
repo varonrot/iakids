@@ -105,7 +105,9 @@ class LearningTests(unittest.TestCase):
         route, table = load_route()
 
         async def answer(*args):
-            return 'Hi Alona. What do you notice about the shaded area?'
+            if args[5]:
+                return {'text': 'Good choice. What do you notice about the shaded area?', 'options': []}
+            return {'text': 'Hi Alona. Which bar shows more?', 'options': ['5/8', '3/4']}
 
         route._generate = answer
         created = asyncio.run(route.start_learning(
@@ -114,14 +116,17 @@ class LearningTests(unittest.TestCase):
         self.assertEqual(table.rows[0]['user_id'], 'parent-id')
         self.assertEqual(table.rows[0]['child_id'], 'child-id')
         self.assertEqual(created['turn_count'], 1)
+        self.assertEqual(created['turns'][0]['options'], ['5/8', '3/4'])
 
         reply = asyncio.run(route.reply_learning(route.Reply(
             kid_id='child-id', session_id=created['session_id'], message='Both are the same size.',
             expected_turn_count=1), 'Bearer token'))
         self.assertEqual(reply['turn_count'], 3)
+        self.assertEqual(reply['options'], [])
         resumed = asyncio.run(route.resume_learning(route.Resume(
             kid_id='child-id', session_id=created['session_id']), 'Bearer token'))
         self.assertEqual([turn['role'] for turn in resumed['turns']], ['assistant', 'user', 'assistant'])
+        self.assertEqual(resumed['turns'][0]['options'], ['5/8', '3/4'])
 
         with self.assertRaises(route.HTTPException) as wrong_child:
             asyncio.run(route.resume_learning(route.Resume(
@@ -141,6 +146,12 @@ class LearningTests(unittest.TestCase):
                     kid_id='child-id', unit_id='fractions', skill_id=skill), 'Bearer token'))
             self.assertEqual(invalid.exception.status_code, 422)
             self.assertEqual(table.rows, [])
+
+    def test_choices_are_optional_short_and_distinct(self):
+        route, _ = load_route()
+        self.assertEqual(route._answer_options([' 5/8 ', '3/4', '5/8']), ['5/8', '3/4'])
+        self.assertEqual(route._answer_options(['Only one']), [])
+        self.assertEqual(route._answer_options(['A' * 81, 'B']), [])
 
 
 if __name__ == '__main__':
