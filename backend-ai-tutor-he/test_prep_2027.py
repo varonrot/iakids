@@ -122,3 +122,6 @@ import eng_topic_lesson_2027  # noqa: E402,F401
 
 # Standalone question/answer Practice, separate from Test Prep and Hebrew.
 import eng_practice_2027  # noqa: E402,F401
+
+# Curriculum-led English learning path with adaptive tutor chat.
+import eng_learning_2027  # noqa: E402,F401
