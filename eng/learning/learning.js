@@ -194,13 +194,9 @@
       const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'saved-plan-edit';
       edit.textContent = 'Edit'; edit.setAttribute('aria-label', `Edit ${plan.subject} · ${plan.topic} plan`);
       edit.addEventListener('click', () => {
-        showPlan(plan); $('plannerInput').placeholder = 'Tell the guide what to change in this plan…';
-        $('plannerInput').focus();
+        showPlan(plan, false, true); $('plannerInput').focus();
       });
-      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'saved-plan-delete';
-      remove.textContent = 'Delete'; remove.setAttribute('aria-label', `Delete ${plan.subject} · ${plan.topic} plan`);
-      remove.addEventListener('click', () => deletePlan(plan));
-      row.append(open, edit, remove); target.append(row);
+      row.append(open, edit); target.append(row);
     }
   }
   async function deletePlan(plan) {
@@ -249,12 +245,20 @@
     return [...actions, ...suggestions.map(label => plannerButton(label, '✦', () => replyToPlan(label))),
       plannerButton('Create another plan', '＋', renderPath)];
   }
-  function showPlan(plan, autoVoice = false) {
+  function showPlan(plan, autoVoice = false, editMode = false) {
     const content = plan.content; if (!content?.units) return;
     stopPlanVoice(); if (recognition) recognition.stop(); activePlan = plan; introVoice = null; plannerStage = 'plan'; subject = null;
     const tree = $('plannerTree'); tree.replaceChildren();
     const title = document.createElement('h2'); title.textContent = content.title; tree.append(title);
     const meta = document.createElement('p'); meta.textContent = `${content.subject} · ${content.topic} · Grade ${child.age}`; tree.append(meta);
+    if (editMode) {
+      const tools = document.createElement('div'); tools.className = 'planner-edit-tools';
+      const hint = document.createElement('p'); hint.textContent = 'Tell the guide what you would like to change in this plan.';
+      const remove = document.createElement('button'); remove.type = 'button';
+      remove.textContent = 'Delete this plan';
+      remove.addEventListener('click', () => deletePlan(activePlan));
+      tools.append(hint, remove); tree.append(tools);
+    }
     content.units.forEach((part, index) => {
       const details = document.createElement('details'); details.open = index === 0;
       const summary = document.createElement('summary'); summary.textContent = `${index + 1}. ${part.title}`;
@@ -282,7 +286,9 @@
     dialogue.forEach((turn, index) => plannerBubble(turn.role === 'user' ? 'learner' : 'guide', turn.text,
       turn.role === 'assistant' && plan.dialogue?.length ? index : -1));
     plannerOptions(planActions(dialogue.at(-1)?.options || []));
-    $('plannerInput').placeholder = 'I already know the basics. Can we spend more time on…?';
+    $('plannerInput').placeholder = editMode
+      ? 'Tell the guide what to change in this plan…'
+      : 'I already know the basics. Can we spend more time on…?';
     if (autoVoice && dialogue.at(-1)?.role === 'assistant') playPlanVoice(dialogue.length - 1, true);
   }
   async function createPlan(chosenSubject, topic, requestText) {
@@ -311,7 +317,8 @@
         message, expected_revision: expectedRevision}, 90000);
       if (activePlan?.id !== planId) return;
       plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
-      renderSavedPlans(); showPlan(result.plan, true); $('plannerInput').value = '';
+      const editing = !!document.querySelector('#plannerTree .planner-edit-tools');
+      renderSavedPlans(); showPlan(result.plan, true, editing); $('plannerInput').value = '';
     } catch (err) {
       pending.remove(); $('plannerMessages').lastElementChild?.remove();
       error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
@@ -326,7 +333,8 @@
         expected_revision: expectedRevision});
       if (activePlan?.id !== planId) return;
       plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
-      renderSavedPlans(); showPlan(result.plan, true);
+      const editing = !!document.querySelector('#plannerTree .planner-edit-tools');
+      renderSavedPlans(); showPlan(result.plan, true, editing);
     } catch (err) {
       error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
     } finally { busy = false; $('plannerSend').disabled = false; }
