@@ -12,7 +12,7 @@
   const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson'];
   let user, children = [], child, catalog = [], library = [], plans = [], subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
   let plannerStage = 'subjects';
-  let activePlan = null, planAudioSerial = 0;
+  let activePlan = null, introVoice = null, planAudioSerial = 0;
   const planAudioUrls = new Map();
   let voiceEnabled = true, audioSerial = 0, playingKey = '';
   let lessonDiagram, teacherTurns = [];
@@ -64,12 +64,13 @@
     const detail = document.createElement('small'); detail.textContent = detailText;
     button.append(icon, title, detail); button.addEventListener('click', action); return button;
   }
-  function plannerBubble(role, message, index = -1) {
+  function plannerBubble(role, message, index = -1, intro = null) {
     const bubble = document.createElement('div'); bubble.className = `planner-bubble ${role}`;
     const words = document.createElement('span'); words.textContent = message; bubble.append(words);
-    if (role === 'guide' && index >= 0) {
+    if (role === 'guide' && (index >= 0 || intro)) {
       const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'plan-listen';
-      listen.textContent = '▶ Listen'; listen.addEventListener('click', () => playPlanVoice(index)); bubble.append(listen);
+      listen.textContent = '▶ Listen';
+      listen.addEventListener('click', () => intro ? playPlanIntro(intro) : playPlanVoice(index)); bubble.append(listen);
     }
     $('plannerMessages').append(bubble);
     $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
@@ -108,6 +109,31 @@
         ? 'Tap ▶ Listen to hear the guide.' : 'Voice is unavailable. You can continue reading.';
     }
   }
+  async function playPlanIntro(context, automatic = false) {
+    if (automatic && !voiceEnabled) return;
+    if (!voiceEnabled) {
+      voiceEnabled = true; try { localStorage.setItem(voiceKey, 'on'); } catch {}
+      updatePlannerVoice(); updateVoiceToggle();
+    }
+    const token = ++planAudioSerial, kidId = child.id;
+    $('plannerAudio').pause(); $('plannerVoiceStatus').textContent = 'Preparing the guide’s voice…';
+    $('plannerVoiceStatus').hidden = false;
+    try {
+      const key = `${kidId}:${context.stage}:${context.subject || ''}`;
+      let cached = planAudioUrls.get(key);
+      if (!cached || cached.expiresAt < Date.now()) {
+        const result = await api('plan/intro-audio', {kid_id: kidId, ...context}, 120000);
+        cached = {url: result.url, expiresAt: Date.now() + 9 * 60 * 1000}; planAudioUrls.set(key, cached);
+      }
+      if (token !== planAudioSerial || child.id !== kidId || activePlan || !voiceEnabled) return;
+      $('plannerAudio').src = cached.url; await $('plannerAudio').play();
+      if (token === planAudioSerial) $('plannerVoiceStatus').hidden = true;
+    } catch (err) {
+      if (token !== planAudioSerial) return;
+      $('plannerVoiceStatus').textContent = err.name === 'NotAllowedError'
+        ? 'Tap ▶ Listen to hear the guide.' : 'Voice is unavailable. You can continue reading.';
+    }
+  }
   $('plannerVoiceToggle').addEventListener('click', () => {
     voiceEnabled = !voiceEnabled; try { localStorage.setItem(voiceKey, voiceEnabled ? 'on' : 'off'); } catch {}
     updatePlannerVoice(); updateVoiceToggle();
@@ -116,7 +142,7 @@
       const turns = activePlan.dialogue || [];
       const index = turns.findLastIndex(turn => turn.role === 'assistant');
       if (index >= 0) playPlanVoice(index);
-    }
+    } else if (introVoice) playPlanIntro(introVoice);
   });
   $('plannerAudio').addEventListener('error', () => {
     $('plannerVoiceStatus').textContent = 'Voice could not load. Tap ▶ Listen to try again.';
@@ -168,22 +194,26 @@
   }
   function renderPath() {
     stopPlanVoice(); if (recognition) recognition.stop(); activePlan = null;
+    introVoice = {stage: 'welcome'};
     show('path'); $('plannerGrade').textContent = `${child.child_name} · Grade ${child.age}`;
     $('plannerMessages').replaceChildren(); $('plannerTree').replaceChildren();
     $('plannerSubtitle').textContent = 'Choose a subject to begin. Your plan will appear here.';
     renderSavedPlans(); plannerStage = 'subjects'; subject = null;
     $('plannerInput').placeholder = 'For example: I want to understand dividing fractions';
-    plannerBubble('guide', `Hi ${child.child_name}! What would you like to learn today? Choose a Grade ${child.age} subject, or write your own idea below.`);
+    plannerBubble('guide', `Hi ${child.child_name}! What would you like to learn today? Choose a Grade ${child.age} subject, or write your own idea below.`, -1, introVoice);
     plannerOptions(library.map(item => plannerButton(item.title, item.icon, () => chooseSubject(item))));
+    playPlanIntro(introVoice, true);
   }
   function chooseSubject(item) {
     if (busy) return;
+    stopPlanVoice(); introVoice = {stage: 'subject', subject: item.title};
     subject = item; plannerStage = 'topics';
     plannerBubble('learner', item.title);
-    plannerBubble('guide', `Great. Which ${item.title} topic would you like to explore? You can also describe one in your own words.`);
+    plannerBubble('guide', `Great. Which ${item.title} topic would you like to explore? You can also describe one in your own words.`, -1, introVoice);
     const buttons = item.topics.map(topic => plannerButton(topic, '✦', () => createPlan(item.title, topic, '')));
     buttons.push(plannerButton('← Change subject', '↩', renderPath)); plannerOptions(buttons);
     $('plannerInput').placeholder = `Or write a ${item.title} topic…`;
+    playPlanIntro(introVoice, true);
   }
   function planActions(options = []) {
     const suggestions = options.length ? options : ['I know some of this already', 'Add more practice questions', 'Change the plan'];
@@ -192,7 +222,7 @@
   }
   function showPlan(plan, autoVoice = false) {
     const content = plan.content; if (!content?.units) return;
-    stopPlanVoice(); if (recognition) recognition.stop(); activePlan = plan; plannerStage = 'plan'; subject = null;
+    stopPlanVoice(); if (recognition) recognition.stop(); activePlan = plan; introVoice = null; plannerStage = 'plan'; subject = null;
     const tree = $('plannerTree'); tree.replaceChildren();
     const title = document.createElement('h2'); title.textContent = content.title; tree.append(title);
     const meta = document.createElement('p'); meta.textContent = `${content.subject} · ${content.topic} · Grade ${child.age}`; tree.append(meta);

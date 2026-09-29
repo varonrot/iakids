@@ -8,6 +8,7 @@ import os
 import hashlib
 import json
 from datetime import datetime, timezone
+from typing import Literal
 from uuid import UUID
 
 from fastapi import Header, HTTPException
@@ -93,6 +94,12 @@ class PlanVoiceRequest(LimitedRequest):
     kid_id: str
     plan_id: UUID
     turn_index: int = Field(ge=0)
+
+
+class PlanIntroVoiceRequest(LimitedRequest):
+    kid_id: str
+    stage: Literal["welcome", "subject"]
+    subject: str = Field(default="", max_length=80)
 
 
 class PlannerResponse(BaseModel):
@@ -397,6 +404,33 @@ async def learning_plan_audio(body: PlanVoiceRequest, authorization: str = Heade
             if not await run_in_threadpool(_cached_narration, path):
                 print("ENG CURRICULUM AUDIO ERROR:", type(exc).__name__)
                 raise HTTPException(status_code=503, detail="Voice is unavailable. You can still read the plan.")
+    return {"url": await run_in_threadpool(signed_url_cached, AUDIO_BUCKET, path, 600)}
+
+
+@app.post("/api/eng/learning/plan/intro-audio")
+async def learning_plan_intro_audio(body: PlanIntroVoiceRequest, authorization: str = Header(None)):
+    user_id, child, grade = await run_in_threadpool(_child, authorization, body.kid_id)
+    if body.stage == "welcome":
+        text = (f"Hi {child['child_name']}! What would you like to learn today? "
+                f"Choose a Grade {grade} subject, or write your own idea below.")
+    else:
+        subject = body.subject.strip()
+        if subject not in GRADE_TOPICS.get(grade, {}):
+            raise HTTPException(status_code=422, detail="Choose a subject for this grade.")
+        text = (f"Great. Which {subject} topic would you like to explore? "
+                "You can also describe one in your own words.")
+    digest = hashlib.sha256(f"{VOICE_MODEL}|{VOICE_NAME}|{text}".encode()).hexdigest()[:24]
+    path = f"learning-plans/intro/{body.kid_id}/{body.stage}-{digest}.wav"
+    if not await run_in_threadpool(_cached_narration, path):
+        await run_in_threadpool(spend_daily_budget, user_id, "tts")
+        try:
+            wav = await run_in_threadpool(_generate_narration, text, grade)
+            await run_in_threadpool(lambda: sb.storage.from_(AUDIO_BUCKET).upload(
+                path, wav, {"content-type": "audio/wav", "upsert": "false"}))
+        except Exception as exc:
+            if not await run_in_threadpool(_cached_narration, path):
+                print("ENG CURRICULUM INTRO AUDIO ERROR:", type(exc).__name__)
+                raise HTTPException(status_code=503, detail="Voice is unavailable. You can still read the message.")
     return {"url": await run_in_threadpool(signed_url_cached, AUDIO_BUCKET, path, 600)}
 
 

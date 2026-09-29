@@ -202,6 +202,33 @@ class LearningTests(unittest.TestCase):
                 kid_id='child-id', plan_id=plan_id, turn_index=1), 'Bearer token'))
         self.assertEqual(child_audio.exception.status_code, 422)
 
+    def test_intro_voice_covers_welcome_and_selected_subject(self):
+        route, table = load_route()
+        saved = {}
+        class Storage:
+            def from_(self, bucket):
+                return self
+            def upload(self, path, wav, options):
+                saved[path] = wav
+        route.sb = types.SimpleNamespace(table=lambda name: table, storage=Storage())
+        route._cached_narration = lambda path: path in saved
+        route._generate_narration = lambda text, grade: b'voice'
+        route.signed_url_cached = lambda bucket, path, expiry: path
+        first = asyncio.run(route.learning_plan_intro_audio(route.PlanIntroVoiceRequest(
+            kid_id='child-id', stage='welcome'), 'Bearer token'))
+        second = asyncio.run(route.learning_plan_intro_audio(route.PlanIntroVoiceRequest(
+            kid_id='child-id', stage='welcome'), 'Bearer token'))
+        subject = asyncio.run(route.learning_plan_intro_audio(route.PlanIntroVoiceRequest(
+            kid_id='child-id', stage='subject', subject='Math'), 'Bearer token'))
+        self.assertEqual(first, second)
+        self.assertIn('learning-plans/intro/child-id/welcome-', first['url'])
+        self.assertIn('subject-', subject['url'])
+        self.assertEqual(len(saved), 2)
+        with self.assertRaises(route.HTTPException) as invalid:
+            asyncio.run(route.learning_plan_intro_audio(route.PlanIntroVoiceRequest(
+                kid_id='child-id', stage='subject', subject='Astronomy'), 'Bearer token'))
+        self.assertEqual(invalid.exception.status_code, 422)
+
     def test_start_reply_resume_isolated_to_parent_and_child(self):
         route, table = load_route()
 
