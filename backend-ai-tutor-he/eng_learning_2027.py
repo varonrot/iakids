@@ -151,6 +151,8 @@ def _teacher_prompt(name, grade, subject, unit, skill):
         f"The screen shows: {skill['visual']} Use that visual in your explanation when helpful. "
         "Teach in a genuine, adaptive English chat, one idea at a time. On your FIRST turn, greet the "
         "learner by first name, connect the visual to the idea, then ask ONE useful question. "
+        "For the first question, do not state or imply its answer beforehand. The learner should "
+        "reason from the diagram; invite them to explain why in their own words. "
         "After that, address the learner's actual answer. Explain a misconception without shame, "
         "give a small hint when needed, and increase difficulty only after understanding. "
         "Keep each turn under 100 words and at most one question. The child may type freely. "

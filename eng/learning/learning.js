@@ -120,7 +120,7 @@
     const target = $('diagram'); target.replaceChildren();
     let caption = '';
     if (kind === 'equivalent') { target.append(bar('1/3', 3, 1), bar('3/9', 9, 3)); caption = 'The shaded amount stays the same when each third is divided into three equal parts.'; }
-    else if (kind === 'compare') { target.append(bar('5/8', 8, 5), bar('3/4', 8, 6)); caption = 'The bars use equal-sized eighths: 3/4 is 6/8.'; }
+    else if (kind === 'compare') { target.append(bar('5/8', 8, 5), bar('3/4', 8, 6)); caption = 'Both bars show the same whole. Count the shaded parts and explain what you notice.'; }
     else if (kind === 'percent' || kind === 'percent-convert') {
       const grid = document.createElement('div'); grid.className = 'hundred'; const count = kind === 'percent' ? 25 : 75;
       for (let i = 0; i < 100; i++) { const cell = document.createElement('i'); if (i < count) cell.className = 'filled'; grid.append(cell); }
