@@ -190,11 +190,11 @@
       const row = document.createElement('div'); row.className = 'saved-plan-row';
       const open = document.createElement('button'); open.type = 'button'; open.className = 'saved-plan-open';
       open.textContent = `${plan.subject} · ${plan.topic}${plan.ready_at ? ' · Ready ✓' : ''} →`;
-      open.addEventListener('click', () => showPlan(plan));
+      open.addEventListener('click', () => showPlan(plan, true));
       const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'saved-plan-edit';
       edit.textContent = 'Edit'; edit.setAttribute('aria-label', `Edit ${plan.subject} · ${plan.topic} plan`);
       edit.addEventListener('click', () => {
-        showPlan(plan, false, true); $('plannerInput').focus();
+        showPlan(plan, true, true); $('plannerInput').focus();
       });
       row.append(open, edit); target.append(row);
     }
