@@ -64,15 +64,41 @@
     const detail = document.createElement('small'); detail.textContent = detailText;
     button.append(icon, title, detail); button.addEventListener('click', action); return button;
   }
-  function plannerBubble(role, message, index = -1, intro = null) {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function plannerBubble(role, message, index = -1, intro = null, animate = false) {
     const bubble = document.createElement('div'); bubble.className = `planner-bubble ${role}`;
-    const words = document.createElement('span'); words.textContent = message; bubble.append(words);
+    const words = document.createElement('span');
+    if (animate && role === 'guide' && !reducedMotion.matches) {
+      // Keep the full message available to assistive technology while it appears visually.
+      bubble.setAttribute('aria-label', message); words.setAttribute('aria-hidden', 'true');
+      const characters = Array.from(message);
+      const step = Math.max(1, Math.ceil(characters.length / 75));
+      let position = 0;
+      const typeNext = () => {
+        if (!bubble.isConnected) return;
+        position = Math.min(position + step, characters.length);
+        words.textContent = characters.slice(0, position).join('');
+        $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
+        if (position < characters.length) setTimeout(typeNext, 28);
+      };
+      requestAnimationFrame(typeNext);
+    } else words.textContent = message;
+    bubble.append(words);
     if (role === 'guide' && (index >= 0 || intro)) {
       const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'plan-listen';
       listen.textContent = '▶ Listen';
       listen.addEventListener('click', () => intro ? playPlanIntro(intro) : playPlanVoice(index)); bubble.append(listen);
     }
     $('plannerMessages').append(bubble);
+    $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
+    return bubble;
+  }
+  function plannerPending(message) {
+    const bubble = document.createElement('div'); bubble.className = 'planner-bubble guide planner-pending';
+    bubble.setAttribute('role', 'status'); bubble.setAttribute('aria-label', `${message}…`);
+    const words = document.createElement('span'); words.textContent = message; words.setAttribute('aria-hidden', 'true');
+    const dots = document.createElement('span'); dots.className = 'planner-dots'; dots.textContent = '...'; dots.setAttribute('aria-hidden', 'true');
+    bubble.append(words, dots); $('plannerMessages').append(bubble);
     $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
     return bubble;
   }
@@ -220,7 +246,7 @@
     $('plannerSubtitle').textContent = 'Choose a subject to begin. Your plan will appear here.';
     renderSavedPlans(); plannerStage = 'subjects'; subject = null;
     $('plannerInput').placeholder = 'For example: I want to understand dividing fractions';
-    plannerBubble('guide', `Hi ${child.child_name}! What would you like to learn today? Choose a Grade ${child.age} subject, or write your own idea below.`, -1, introVoice);
+    plannerBubble('guide', `Hi ${child.child_name}! What would you like to learn today? Choose a Grade ${child.age} subject, or write your own idea below.`, -1, introVoice, true);
     plannerOptions(library.map(item => plannerButton(item.title, item.icon, () => chooseSubject(item))));
     playPlanIntro(introVoice, true);
   }
@@ -229,7 +255,7 @@
     stopPlanVoice(); introVoice = {stage: 'subject', subject: item.title};
     subject = item; plannerStage = 'topics';
     if (!fresh) plannerBubble('learner', item.title);
-    plannerBubble('guide', `Great. Which ${item.title} topic would you like to explore? You can also describe one in your own words.`, -1, introVoice);
+    plannerBubble('guide', `Great. Which ${item.title} topic would you like to explore? You can also describe one in your own words.`, -1, introVoice, true);
     const buttons = item.topics.map(topic => {
       const saved = plans.find(plan => plan.subject === item.title && plan.topic.toLowerCase() === topic.toLowerCase());
       return plannerButton(saved ? `${topic} · Open saved plan` : topic, saved ? '↗' : '✦',
@@ -260,7 +286,7 @@
     return [...actions, ...suggestions.map(label => plannerButton(label, '✦', () => replyToPlan(label))),
       plannerButton('Create another plan', '＋', startAnotherPlan)];
   }
-  function showPlan(plan, autoVoice = false, editMode = false) {
+  function showPlan(plan, autoVoice = false, editMode = false, animateLatest = false) {
     const content = plan.content; if (!content?.units) return;
     stopPlanVoice(); if (recognition) recognition.stop(); activePlan = plan; introVoice = null; plannerStage = 'plan'; subject = null;
     const tree = $('plannerTree'); tree.replaceChildren();
@@ -299,7 +325,8 @@
     const dialogue = plan.dialogue?.length ? plan.dialogue : [{role: 'assistant',
       text: 'Your plan is ready. Tell me what you already know, ask for more practice questions, or tell me what you would like to change.'}];
     dialogue.forEach((turn, index) => plannerBubble(turn.role === 'user' ? 'learner' : 'guide', turn.text,
-      turn.role === 'assistant' && plan.dialogue?.length ? index : -1));
+      turn.role === 'assistant' && plan.dialogue?.length ? index : -1, null,
+      animateLatest && index === dialogue.length - 1));
     plannerOptions(planActions(dialogue.at(-1)?.options || []));
     $('plannerInput').placeholder = editMode
       ? 'Tell the guide what to change in this plan…'
@@ -310,11 +337,11 @@
     if (busy) return;
     busy = true; $('plannerSend').disabled = true;
     plannerBubble('learner', topic || requestText);
-    plannerOptions([]); const pending = plannerBubble('guide', 'I’m building your learning plan…');
+    plannerOptions([]); const pending = plannerPending('I’m building your learning plan');
     try {
       const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText}, 90000);
       plans = [result.plan, ...plans.filter(item => item.id !== result.plan.id)].slice(0, 12);
-      renderSavedPlans(); showPlan(result.plan, true); $('plannerInput').value = '';
+      renderSavedPlans(); showPlan(result.plan, true, false, true); $('plannerInput').value = '';
     } catch (err) {
       pending.textContent = 'The plan could not be created. Please try again.';
       error(err.message); plannerOptions([plannerButton('Try again', '↻', () => createPlan(chosenSubject, topic, requestText)),
@@ -326,14 +353,14 @@
     const planId = activePlan.id, expectedRevision = activePlan.revision;
     busy = true; $('plannerSend').disabled = true; plannerOptions([]);
     plannerBubble('learner', message);
-    const pending = plannerBubble('guide', 'Thinking about your plan…');
+    const pending = plannerPending('Thinking about your plan');
     try {
       const result = await api('plan/reply', {kid_id: child.id, plan_id: planId,
         message, expected_revision: expectedRevision}, 90000);
       if (activePlan?.id !== planId) return;
       plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
       const editing = !!document.querySelector('#plannerTree .planner-edit-tools');
-      renderSavedPlans(); showPlan(result.plan, true, editing); $('plannerInput').value = '';
+      renderSavedPlans(); showPlan(result.plan, true, editing, true); $('plannerInput').value = '';
     } catch (err) {
       pending.remove(); $('plannerMessages').lastElementChild?.remove();
       error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
