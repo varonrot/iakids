@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#eaf8f5">
+  <title>Practice | IA KIDS ENG</title>
+  <link rel="icon" type="image/png" href="../assets/brand/iakids-eng-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./practice.css?v=20260929-01">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="IA KIDS ENG dashboard"><img src="../assets/brand/iakids-eng-mark.png" alt=""><span>IA KIDS <b>ENG</b></span></a>
+    <nav aria-label="Breadcrumb"><a href="../">Dashboard</a><span aria-hidden="true">›</span><strong>Practice</strong></nav>
+    <span class="learner-chip" id="learnerChip" hidden></span>
+  </header>
+  <main class="shell">
+    <div class="intro"><a class="back" href="../">← Back to dashboard</a><span class="eyebrow">A LITTLE PRACTICE, EVERY DAY</span><h1>Practice makes progress.</h1><p>Choose a short set, answer one question at a time, and see why each answer works.</p></div>
+    <div class="layout">
+      <aside class="side-card"><div class="art" aria-hidden="true"></div><h2>Small steps. Strong skills.</h2><p>Three questions per set. Take your time and try again whenever you like.</p><div class="side-footer"><span aria-hidden="true">✦</span> One step at a time</div></aside>
+      <section class="work-card" aria-live="polite">
+        <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span><p>Getting practice ready…</p></div>
+        <div id="signin" hidden><span class="work-icon">✦</span><h2>Ready when you are.</h2><p>Ask a parent to sign in and choose your learning profile on the dashboard.</p><a class="primary link-button" href="../">Go to dashboard →</a></div>
+        <div id="chooseChild" hidden><span class="work-icon">◉</span><h2>Who’s practicing today?</h2><p>Choose a learner to see practice for their grade.</p><div id="childChoices" class="choices"></div></div>
+        <div id="choosePack" hidden><div class="section-heading"><div><span class="eyebrow">PICK YOUR PRACTICE</span><h2 id="packTitle">Choose a set</h2><p id="packDescription"></p></div><button class="quiet" id="changeChild" type="button">Change learner</button></div><div id="packChoices" class="pack-grid"></div></div>
+        <div id="quiz" hidden><div class="quiz-top"><span class="eyebrow" id="quizSubject">MATH PRACTICE</span><button class="quiet" id="leaveQuiz" type="button">Choose another set</button></div><div class="progress"><span id="progressLabel"></span><div class="progress-track"><span id="progressFill"></span></div></div><h2 id="question"></h2><div id="answerChoices" class="choices" role="group" aria-label="Choose an answer"></div><p id="feedback" class="feedback" role="status" hidden></p><button class="primary" id="nextButton" type="button" disabled>Check answer →</button></div>
+        <div id="complete" hidden><span class="work-icon success">✓</span><span class="eyebrow">SET COMPLETE</span><h2>Nice work, <span id="completedName"></span>!</h2><p id="resultSummary"></p><div class="finish-actions"><button class="primary" id="againButton" type="button">Practice again →</button><button class="secondary" id="anotherButton" type="button">Choose another set</button></div></div>
+        <p id="error" class="error" role="alert" hidden></p>
+      </section>
+    </div>
+  </main>
+  <script src="../js/vendor/supabase-2.57.4.js" defer></script>
+  <script src="./practice.js?v=20260929-01" defer></script>
+</body>
+</html>

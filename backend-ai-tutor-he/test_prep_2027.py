@@ -119,3 +119,6 @@ import eng_lesson_admin_2027  # noqa: E402,F401
 
 # Prompt-led lessons for other saved English topics.
 import eng_topic_lesson_2027  # noqa: E402,F401
+
+# Standalone question/answer Practice, separate from Test Prep and Hebrew.
+import eng_practice_2027  # noqa: E402,F401
