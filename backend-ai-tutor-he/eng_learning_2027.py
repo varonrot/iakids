@@ -5,6 +5,7 @@ Grade 5 Math. Lesson conversations are private to a child; illustrations are
 reused by grade/skill while exact mathematical diagrams are drawn by the UI.
 """
 import os
+import hashlib
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -16,7 +17,8 @@ from main import (LimitedRequest, aclient, app, authenticate_user,
                   generate_lesson_hero_image_bytes, get_child_by_id,
                   guard_reply_payload, llm_model, sb, signed_url_cached,
                   spend_daily_budget)
-from eng_lesson_routes_2027 import BUCKET
+from eng_lesson_routes_2027 import (AUDIO_BUCKET, BUCKET, VOICE_MODEL, VOICE_NAME,
+                                    _cached_narration, _generate_narration)
 
 TABLE = "2027_eng_learning_sessions"
 PROMPT_VERSION = 1
@@ -94,6 +96,12 @@ class Resume(LimitedRequest):
 class Illustration(LimitedRequest):
     kid_id: str
     session_id: UUID
+
+
+class AudioRequest(LimitedRequest):
+    kid_id: str
+    session_id: UUID
+    turn_index: int = Field(ge=0, le=99)
 
 
 class TeacherMessage(BaseModel):
@@ -255,6 +263,36 @@ async def reply_learning(body: Reply, authorization: str = Header(None)):
     if not updated:
         raise HTTPException(status_code=409, detail="Another reply was saved. Reload the lesson to continue.")
     return {**answer, "turn_count": len(turns)}
+
+
+def _audio_turn(saved, turn_index):
+    turns = saved["turns"]
+    if turn_index >= len(turns) or turns[turn_index].get("role") != "assistant":
+        raise HTTPException(status_code=422, detail="Choose a teacher message to play.")
+    text = str(turns[turn_index].get("text") or "").strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="That teacher message has no audio.")
+    return text
+
+
+@app.post("/api/eng/learning/audio")
+async def learning_audio(body: AudioRequest, authorization: str = Header(None)):
+    user_id, _, grade = await run_in_threadpool(_child, authorization, body.kid_id)
+    saved = await run_in_threadpool(_session, user_id, body.kid_id, body.session_id)
+    text = _audio_turn(saved, body.turn_index)
+    digest = hashlib.sha256(f"{VOICE_MODEL}|{VOICE_NAME}|{text}".encode()).hexdigest()[:24]
+    path = f"learning/v1/{saved['id']}/{body.turn_index}-{digest}.wav"
+    if not await run_in_threadpool(_cached_narration, path):
+        await run_in_threadpool(spend_daily_budget, user_id, "tts")
+        try:
+            wav = await run_in_threadpool(_generate_narration, text, grade)
+            await run_in_threadpool(lambda: sb.storage.from_(AUDIO_BUCKET).upload(
+                path, wav, {"content-type": "audio/wav", "upsert": "false"}))
+        except Exception as exc:
+            if not await run_in_threadpool(_cached_narration, path):
+                print("ENG LEARNING AUDIO ERROR:", type(exc).__name__)
+                raise HTTPException(status_code=503, detail="Voice is unavailable. You can still read the lesson.")
+    return {"url": await run_in_threadpool(signed_url_cached, AUDIO_BUCKET, path, 600)}
 
 
 def _cached_image(grade, skill_id):

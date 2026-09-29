@@ -67,6 +67,11 @@ def load_route(grade=5):
         setattr(fake_main, name, lambda *args: None)
     fake_routes = types.ModuleType('eng_lesson_routes_2027')
     fake_routes.BUCKET = '2027-eng-lesson-media'
+    fake_routes.AUDIO_BUCKET = '2027-eng-lesson-audio'
+    fake_routes.VOICE_MODEL = 'gemini-tts-test'
+    fake_routes.VOICE_NAME = 'Aoede'
+    fake_routes._cached_narration = lambda path: True
+    fake_routes._generate_narration = lambda text, grade: b'audio'
     fake_fastapi = types.ModuleType('fastapi')
     fake_fastapi.Header = lambda default=None: default
 
@@ -152,6 +157,48 @@ class LearningTests(unittest.TestCase):
         self.assertEqual(route._answer_options([' 5/8 ', '3/4', '5/8']), ['5/8', '3/4'])
         self.assertEqual(route._answer_options(['Only one']), [])
         self.assertEqual(route._answer_options(['A' * 81, 'B']), [])
+
+    def test_audio_is_only_for_owned_teacher_turns(self):
+        route, table = load_route()
+        session_id = str(uuid4())
+        table.rows.append({'id': session_id, 'user_id': 'parent-id', 'child_id': 'child-id',
+                           'turns': [{'role': 'assistant', 'text': 'Hello Alona.'},
+                                     {'role': 'user', 'text': 'My private answer'}]})
+        route.signed_url_cached = lambda bucket, path, expiry: f'{bucket}/{path}'
+        result = asyncio.run(route.learning_audio(route.AudioRequest(
+            kid_id='child-id', session_id=session_id, turn_index=0), 'Bearer token'))
+        self.assertIn('2027-eng-lesson-audio/learning/v1/', result['url'])
+        for kid_id, index, expected_status in [('child-id', 1, 422), ('another-child', 0, 404)]:
+            with self.assertRaises(route.HTTPException) as invalid:
+                asyncio.run(route.learning_audio(route.AudioRequest(
+                    kid_id=kid_id, session_id=session_id, turn_index=index), 'Bearer token'))
+            self.assertEqual(invalid.exception.status_code, expected_status)
+
+    def test_audio_is_generated_once_then_reused(self):
+        route, table = load_route()
+        session_id = str(uuid4())
+        table.rows.append({'id': session_id, 'user_id': 'parent-id', 'child_id': 'child-id',
+                           'turns': [{'role': 'assistant', 'text': 'Which bar is greater?'}]})
+        saved, calls = {}, []
+
+        class Storage:
+            def from_(self, bucket):
+                self.bucket = bucket
+                return self
+
+            def upload(self, path, data, options):
+                saved[path] = data
+
+        route.sb = types.SimpleNamespace(table=lambda name: table, storage=Storage())
+        route._cached_narration = lambda path: path in saved
+        route._generate_narration = lambda text, grade: calls.append((text, grade)) or b'wav'
+        route.signed_url_cached = lambda bucket, path, expiry: path
+        request = route.AudioRequest(kid_id='child-id', session_id=session_id, turn_index=0)
+        first = asyncio.run(route.learning_audio(request, 'Bearer token'))
+        second = asyncio.run(route.learning_audio(request, 'Bearer token'))
+        self.assertEqual(first, second)
+        self.assertEqual(len(saved), 1)
+        self.assertEqual(calls, [('Which bar is greater?', 5)])
 
 
 if __name__ == '__main__':

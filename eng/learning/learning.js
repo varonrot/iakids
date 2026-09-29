@@ -2,6 +2,7 @@
   'use strict';
   const API = 'https://iakids-ai-tutor-he.onrender.com';
   const childKey = 'iakids.eng.child';
+  const voiceKey = 'iakids.eng.learning.voice';
   const $ = id => document.getElementById(id);
   const auth = window.supabase?.createClient(
     'https://bxnfzuglfwytiyaguwjj.supabase.co',
@@ -10,17 +11,20 @@
   );
   const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson'];
   let user, children = [], child, catalog, subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
+  let voiceEnabled = true, audioSerial = 0, playingKey = '';
+  const audioUrls = new Map();
+  try { voiceEnabled = localStorage.getItem(voiceKey) !== 'off'; } catch {}
   // The key is public. Keep the exact same anon key as the English dashboard.
 
   function show(name) { views.forEach(id => { $(id).hidden = id !== name; }); $('error').hidden = true; }
   function error(message) { $('error').textContent = message; $('error').hidden = false; }
-  async function api(path, body) {
+  async function api(path, body, timeoutMs = 30000) {
     const {data: {session}, error: authError} = await auth.auth.getSession();
     if (authError || !session?.access_token) throw new Error('Your session expired. Return to the dashboard to sign in.');
     const response = await fetch(`${API}/api/eng/learning/${path}`, {
       method: body ? 'POST' : 'GET',
       headers: {Authorization: `Bearer ${session.access_token}`, ...(body ? {'Content-Type': 'application/json'} : {})},
-      ...(body ? {body: JSON.stringify(body)} : {}), signal: AbortSignal.timeout(30000)
+      ...(body ? {body: JSON.stringify(body)} : {}), signal: AbortSignal.timeout(timeoutMs)
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : 'Your lesson could not load. Please try again.');
@@ -106,9 +110,66 @@
   }
   function bubble(role, text, pending = false) {
     const item = document.createElement('div'); item.className = `bubble ${role}${pending ? ' pending' : ''}`;
-    item.textContent = text; $('messages').append(item); $('messages').scrollTop = $('messages').scrollHeight;
+    const words = document.createElement('span'); words.className = 'bubble-text'; words.textContent = text;
+    item.append(words); $('messages').append(item); $('messages').scrollTop = $('messages').scrollHeight;
     return item;
   }
+  function replayButton(item, index) {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'replay-voice';
+    button.textContent = '▶ Listen'; button.setAttribute('aria-label', `Play teacher message ${index + 1}`);
+    button.addEventListener('click', () => playTeacher(index)); item.append(button);
+  }
+  function voiceStatus(message) {
+    $('voiceStatus').textContent = message;
+    $('voiceStatus').hidden = !message;
+  }
+  function stopVoice() {
+    ++audioSerial;
+    $('teacherAudio').pause(); $('teacherAudio').removeAttribute('src'); $('teacherAudio').load();
+    playingKey = ''; voiceStatus('');
+  }
+  function updateVoiceToggle() {
+    $('voiceToggle').textContent = voiceEnabled ? '🔊 Voice on' : '🔇 Voice off';
+    $('voiceToggle').setAttribute('aria-pressed', String(voiceEnabled));
+  }
+  async function playTeacher(index, automatic = false) {
+    if (!current || (automatic && !voiceEnabled)) return;
+    if (!voiceEnabled) {
+      voiceEnabled = true; updateVoiceToggle();
+      try { localStorage.setItem(voiceKey, 'on'); } catch {}
+    }
+    const request = ++audioSerial, version = generation, sessionId = current;
+    const key = `${sessionId}:${index}`;
+    $('teacherAudio').pause(); voiceStatus('Preparing the teacher’s voice…');
+    try {
+      let cached = audioUrls.get(key);
+      if (!cached || cached.expiresAt < Date.now()) {
+        const result = await api('audio', {kid_id: child.id, session_id: sessionId, turn_index: index}, 120000);
+        cached = {url: result.url, expiresAt: Date.now() + 9 * 60 * 1000};
+        audioUrls.set(key, cached);
+      }
+      if (request !== audioSerial || version !== generation || sessionId !== current || !voiceEnabled) return;
+      playingKey = key; $('teacherAudio').src = cached.url;
+      await $('teacherAudio').play();
+      if (request === audioSerial) voiceStatus('');
+    } catch (err) {
+      if (request !== audioSerial) return;
+      voiceStatus(err.name === 'NotAllowedError'
+        ? 'Tap ▶ Listen to hear the teacher.' : 'Voice is unavailable. You can continue reading.');
+    }
+  }
+  $('voiceToggle').addEventListener('click', () => {
+    voiceEnabled = !voiceEnabled; updateVoiceToggle();
+    try { localStorage.setItem(voiceKey, voiceEnabled ? 'on' : 'off'); } catch {}
+    if (!voiceEnabled) stopVoice();
+    else if (current) playTeacher(count - 1);
+  });
+  $('teacherAudio').addEventListener('error', () => {
+    if (!playingKey) return;
+    audioUrls.delete(playingKey);
+    voiceStatus('Voice could not load. Tap ▶ Listen to try again.');
+  });
+  updateVoiceToggle();
   function renderChoices(options) {
     activeOptions = Array.isArray(options) ? options : [];
     const target = $('answerChoices'); target.replaceChildren();
@@ -148,14 +209,19 @@
     $('diagramCaption').textContent = caption; target.setAttribute('aria-label', caption);
   }
   function openLesson(result) {
+    stopVoice();
     current = result.session_id; count = result.turn_count; ++generation;
     $('gradeLabel').textContent = child.age; $('skillTitle').textContent = result.skill.title;
     diagram(result.skill.diagram); $('messages').replaceChildren();
-    result.turns.forEach(turn => bubble(turn.role, turn.text));
+    result.turns.forEach((turn, index) => {
+      const item = bubble(turn.role, turn.text);
+      if (turn.role === 'assistant') replayButton(item, index);
+    });
     const latest = result.turns.at(-1);
     renderChoices(latest?.role === 'assistant' ? latest.options : []);
     $('generatedImage').hidden = true; $('imageStatus').hidden = false; $('imageStatus').textContent = 'Preparing an illustration…';
     $('messageInput').value = ''; show('lesson');
+    if (result.turns.at(-1)?.role === 'assistant') playTeacher(result.turns.length - 1, true);
     recent = {id: current, unit_id: unit.id};
     const version = generation;
     api('illustration', {kid_id: child.id, session_id: current}).then(image => {
@@ -167,14 +233,17 @@
   async function sendMessage(value) {
     if (busy || !current) return;
     const text = value.trim(); if (!text) return;
+    stopVoice();
     busy = true; $('sendButton').disabled = true; $('messageInput').disabled = true;
     const previousOptions = activeOptions;
     renderChoices([]);
     const mine = bubble('user', text); const waiting = bubble('assistant', 'Your teacher is thinking…', true);
     try {
       const result = await api('reply', {kid_id: child.id, session_id: current, message: text, expected_turn_count: count});
-      count = result.turn_count; waiting.textContent = result.text; waiting.classList.remove('pending'); $('messageInput').value = '';
+      count = result.turn_count; waiting.querySelector('.bubble-text').textContent = result.text;
+      waiting.classList.remove('pending'); replayButton(waiting, count - 1); $('messageInput').value = '';
       renderChoices(result.options);
+      playTeacher(count - 1, true);
     } catch (err) { mine.remove(); waiting.remove(); renderChoices(previousOptions); error(err.message); }
     finally { busy = false; $('sendButton').disabled = false; $('messageInput').disabled = false; $('messageInput').focus(); }
   }
@@ -184,8 +253,8 @@
   $('messageInput').addEventListener('keydown', event => {
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); $('messageForm').requestSubmit(); }
   });
-  $('backToPath').addEventListener('click', () => { ++generation; renderPath(); });
-  $('learnerChip').addEventListener('click', () => { ++generation; childPicker(); });
+  $('backToPath').addEventListener('click', () => { stopVoice(); ++generation; renderPath(); });
+  $('learnerChip').addEventListener('click', () => { stopVoice(); ++generation; childPicker(); });
   async function initialize() {
     if (!auth) { show('signin'); return; }
     try {

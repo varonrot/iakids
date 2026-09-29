@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./learning.css?v=20260929-02">
+  <link rel="stylesheet" href="./learning.css?v=20260929-03">
 </head>
 <body>
   <header class="topbar">
@@ -29,12 +29,12 @@
       <div class="lesson-heading"><div><button id="backToPath" class="back-button" type="button">← Learning path</button><span class="eyebrow">MATH · GRADE <span id="gradeLabel"></span></span><h1 id="skillTitle"></h1></div><span class="lesson-label">Learn · Ask · Try</span></div>
       <div class="lesson-grid">
         <div class="visual-panel"><div class="visual-art"><img id="generatedImage" alt="" hidden><span id="imageStatus">Preparing an illustration…</span></div><div class="math-visual"><span class="eyebrow">LOOK AT THE IDEA</span><div id="diagram" role="img"></div><p id="diagramCaption"></p></div></div>
-        <div class="chat-panel"><div class="chat-head"><span class="teacher-avatar" aria-hidden="true">✦</span><div><strong>Your math teacher</strong><small>Here with you, one step at a time</small></div></div><div id="messages" class="messages" role="log" aria-live="polite" aria-label="Lesson conversation"></div><div id="answerChoices" class="answer-choices" aria-label="Suggested answers" hidden></div><form id="messageForm" class="composer"><label for="messageInput" class="sr-only">Write to your teacher</label><textarea id="messageInput" placeholder="Or write your own answer or question…" maxlength="1000" rows="2" required></textarea><button id="sendButton" type="submit">Send ↑</button></form></div>
+        <div class="chat-panel"><div class="chat-head"><span class="teacher-avatar" aria-hidden="true">✦</span><div><strong>Your math teacher</strong><small>Here with you, one step at a time</small></div><button id="voiceToggle" class="voice-toggle" type="button" aria-pressed="true">🔊 Voice on</button></div><div id="messages" class="messages" role="log" aria-live="polite" aria-label="Lesson conversation"></div><div id="voiceStatus" class="voice-status" role="status" hidden></div><div id="answerChoices" class="answer-choices" aria-label="Suggested answers" hidden></div><form id="messageForm" class="composer"><label for="messageInput" class="sr-only">Write to your teacher</label><textarea id="messageInput" placeholder="Or write your own answer or question…" maxlength="1000" rows="2" required></textarea><button id="sendButton" type="submit">Send ↑</button></form><audio id="teacherAudio" preload="none"></audio></div>
       </div>
     </section>
     <p id="error" class="error" role="alert" hidden></p>
   </main>
   <script src="../js/vendor/supabase-2.57.4.js" defer></script>
-  <script src="./learning.js?v=20260929-03" defer></script>
+  <script src="./learning.js?v=20260929-04" defer></script>
 </body>
 </html>
