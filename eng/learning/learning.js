@@ -195,7 +195,9 @@
     if (['equivalent', 'compare', 'add', 'unlike'].includes(kind)) {
       const unique = fractions.filter((fraction, index) => fractions.findIndex(other =>
         other.numerator === fraction.numerator && other.denominator === fraction.denominator) === index);
-      return unique.length >= 2 ? unique.slice(0, 2) : null;
+      // A turn can first discuss the previous answer, then ask a new question.
+      // The final pair belongs to the question the child is answering now.
+      return unique.length >= 2 ? unique.slice(-2) : null;
     }
     if (kind === 'line') {
       const mixed = text.match(/\b(\d)\s+(\d{1,2})\s*\/\s*(\d{1,2})\b/);
