@@ -202,6 +202,52 @@ class LearningTests(unittest.TestCase):
                 kid_id='child-id', plan_id=plan_id, turn_index=1), 'Bearer token'))
         self.assertEqual(child_audio.exception.status_code, 422)
 
+    def test_ready_approval_is_saved_and_a_plan_revision_clears_it(self):
+        route, table = load_route()
+        plan_id = str(uuid4())
+        content = {'title': 'Decimals', 'subject': 'Math', 'topic': 'Decimals', 'units': [
+            {'title': 'Place value', 'lessons': [{'title': 'Tenths and hundredths',
+              'goal': 'Compare decimal place values.', 'practice_questions': []}]}]}
+        table.rows.append({'id': plan_id, 'user_id': 'parent-id', 'child_id': 'child-id',
+                           'grade': 5, 'subject': 'Math', 'topic': 'Decimals', 'content': content,
+                           'dialogue': [{'role': 'assistant', 'text': 'Your plan is ready.'}],
+                           'revision': 0, 'plan_history': [], 'ready_at': None})
+        request = route.PlanReadyRequest(kid_id='child-id', plan_id=plan_id, expected_revision=0)
+        approved = asyncio.run(route.approve_learning_plan(request, 'Bearer token'))['plan']
+        self.assertTrue(approved['ready_at'])
+        self.assertEqual(approved['revision'], 1)
+        self.assertIn('approved', approved['dialogue'][-1]['text'])
+        again = asyncio.run(route.approve_learning_plan(
+            route.PlanReadyRequest(kid_id='child-id', plan_id=plan_id, expected_revision=1),
+            'Bearer token'))['plan']
+        self.assertEqual(len(again['dialogue']), 2)
+        with self.assertRaises(route.HTTPException) as stale:
+            asyncio.run(route.approve_learning_plan(request, 'Bearer token'))
+        self.assertEqual(stale.exception.status_code, 409)
+        with self.assertRaises(route.HTTPException) as wrong_child:
+            asyncio.run(route.approve_learning_plan(route.PlanReadyRequest(
+                kid_id='another-child', plan_id=plan_id, expected_revision=1), 'Bearer token'))
+        self.assertEqual(wrong_child.exception.status_code, 404)
+
+        class Completions:
+            async def parse(self, **kwargs):
+                revised = route.CurriculumPlan(title='Decimals with practice', subject='Math',
+                    topic='Decimals', units=[route.CurriculumUnit(title='Place value', lessons=[
+                        route.CurriculumLesson(title='Tenths and hundredths',
+                            goal='Compare decimal place values with examples.')])])
+                answer = route.PlannerResponse(text='I added more practice to the plan.',
+                                               revised_plan=revised)
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(
+                    message=types.SimpleNamespace(parsed=answer))])
+        route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
+            completions=Completions())))
+        route.guard_reply_payload = lambda text, *_: text
+        revised = asyncio.run(route.reply_to_learning_plan(route.PlanReplyRequest(
+            kid_id='child-id', plan_id=plan_id, message='Add practice.', expected_revision=1),
+            'Bearer token'))['plan']
+        self.assertIsNone(revised['ready_at'])
+        self.assertEqual(revised['revision'], 2)
+
     def test_intro_voice_covers_welcome_and_selected_subject(self):
         route, table = load_route()
         saved = {}

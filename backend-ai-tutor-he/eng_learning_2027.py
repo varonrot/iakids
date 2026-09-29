@@ -90,6 +90,12 @@ class PlanReplyRequest(LimitedRequest):
     expected_revision: int = Field(ge=0)
 
 
+class PlanReadyRequest(LimitedRequest):
+    kid_id: str
+    plan_id: UUID
+    expected_revision: int = Field(ge=0)
+
+
 class PlanVoiceRequest(LimitedRequest):
     kid_id: str
     plan_id: UUID
@@ -239,7 +245,7 @@ def _public_catalog(grade):
 @app.get("/api/eng/learning/library")
 async def learning_library(kid_id: str, authorization: str = Header(None)):
     user_id, child, grade = await run_in_threadpool(_child, authorization, kid_id)
-    rows = (sb.table(PLAN_TABLE).select("id,subject,topic,content,dialogue,revision,created_at")
+    rows = (sb.table(PLAN_TABLE).select("id,subject,topic,content,dialogue,revision,ready_at,created_at")
             .eq("user_id", user_id).eq("child_id", kid_id)
             .order("created_at", desc=True).limit(12).execute().data or [])
     subjects = [{"title": title, "icon": SUBJECT_ICONS[title], "topics": topics}
@@ -259,7 +265,7 @@ async def create_learning_plan(body: PlanRequest, authorization: str = Header(No
         raise HTTPException(status_code=422, detail="A learning library is not yet available for this grade.")
     key = hashlib.sha256(json.dumps([grade, subject.casefold(), topic.casefold(),
                                      request_text.casefold()], ensure_ascii=False).encode()).hexdigest()
-    query = lambda: (sb.table(PLAN_TABLE).select("id,subject,topic,content,dialogue,revision,created_at")
+    query = lambda: (sb.table(PLAN_TABLE).select("id,subject,topic,content,dialogue,revision,ready_at,created_at")
                      .eq("user_id", user_id).eq("child_id", body.kid_id)
                      .eq("request_key", key).limit(1).execute().data or [])
     existing = await run_in_threadpool(query)
@@ -315,12 +321,34 @@ async def create_learning_plan(body: PlanRequest, authorization: str = Header(No
 
 
 def _owned_plan(user_id, kid_id, plan_id):
-    rows = (sb.table(PLAN_TABLE).select("id,user_id,child_id,grade,subject,topic,content,dialogue,revision,plan_history")
+    rows = (sb.table(PLAN_TABLE).select("id,user_id,child_id,grade,subject,topic,content,dialogue,revision,plan_history,ready_at")
             .eq("id", str(plan_id)).eq("user_id", user_id).eq("child_id", kid_id)
             .limit(1).execute().data or [])
     if not rows:
         raise HTTPException(status_code=404, detail="This learning plan is not available.")
     return rows[0]
+
+
+@app.post("/api/eng/learning/plan/ready")
+async def approve_learning_plan(body: PlanReadyRequest, authorization: str = Header(None)):
+    user_id, child, _ = await run_in_threadpool(_child, authorization, body.kid_id)
+    saved = await run_in_threadpool(_owned_plan, user_id, body.kid_id, body.plan_id)
+    if saved["revision"] != body.expected_revision:
+        raise HTTPException(status_code=409, detail="Open the saved plan again to approve its latest version.")
+    if saved.get("ready_at"):
+        return {"plan": saved}
+    confirmation = (f"You're ready, {child['child_name']}! Your learning plan is approved. "
+                    "We'll use it to build your lessons next.")
+    dialogue = saved["dialogue"] + [{"role": "assistant", "text": confirmation}]
+    rows = (sb.table(PLAN_TABLE).update({"ready_at": datetime.now(timezone.utc).isoformat(),
+                "dialogue": dialogue, "revision": saved["revision"] + 1,
+                "updated_at": datetime.now(timezone.utc).isoformat()})
+            .eq("id", str(body.plan_id)).eq("user_id", user_id)
+            .eq("child_id", body.kid_id).eq("revision", body.expected_revision)
+            .select("id,subject,topic,content,dialogue,revision,ready_at,created_at").execute().data or [])
+    if not rows:
+        raise HTTPException(status_code=409, detail="Open the saved plan again to approve its latest version.")
+    return {"plan": rows[0]}
 
 
 @app.post("/api/eng/learning/plan/reply")
@@ -370,13 +398,16 @@ async def reply_to_learning_plan(body: PlanReplyRequest, authorization: str = He
             {"role": "assistant", "text": answer, "options": options}]
         history = saved["plan_history"] + ([{"revision": saved["revision"],
                                                "content": saved["content"]}] if parsed.revised_plan else [])
-        rows = (sb.table(PLAN_TABLE).update({"content": content, "subject": content["subject"],
+        changes = {"content": content, "subject": content["subject"],
                     "topic": content["topic"], "dialogue": dialogue,
                     "revision": saved["revision"] + 1, "plan_history": history,
-                    "updated_at": datetime.now(timezone.utc).isoformat()})
+                    "updated_at": datetime.now(timezone.utc).isoformat()}
+        if parsed.revised_plan:
+            changes["ready_at"] = None
+        rows = (sb.table(PLAN_TABLE).update(changes)
                 .eq("id", str(body.plan_id)).eq("user_id", user_id)
                 .eq("child_id", body.kid_id).eq("revision", body.expected_revision)
-                .select("id,subject,topic,content,dialogue,revision,created_at").execute().data or [])
+                .select("id,subject,topic,content,dialogue,revision,ready_at,created_at").execute().data or [])
         if not rows:
             raise HTTPException(status_code=409, detail="Open the saved plan again to see its latest changes.")
         return {"plan": rows[0], "changed": bool(parsed.revised_plan)}

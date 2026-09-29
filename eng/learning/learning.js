@@ -188,7 +188,7 @@
     const heading = document.createElement('h2'); heading.textContent = 'Your saved plans'; target.append(heading);
     for (const plan of plans) {
       const button = document.createElement('button'); button.type = 'button';
-      button.textContent = `${plan.subject} · ${plan.topic} →`;
+      button.textContent = `${plan.subject} · ${plan.topic}${plan.ready_at ? ' · Ready ✓' : ''} →`;
       button.addEventListener('click', () => showPlan(plan)); target.append(button);
     }
   }
@@ -217,7 +217,12 @@
   }
   function planActions(options = []) {
     const suggestions = options.length ? options : ['I know some of this already', 'Add more practice questions', 'Change the plan'];
-    return [...suggestions.map(label => plannerButton(label, '✦', () => replyToPlan(label))),
+    const actions = [];
+    if (activePlan && !activePlan.ready_at) {
+      const ready = plannerButton('I’m ready — approve this plan', '✓', approvePlan);
+      ready.classList.add('planner-ready'); actions.push(ready);
+    }
+    return [...actions, ...suggestions.map(label => plannerButton(label, '✦', () => replyToPlan(label))),
       plannerButton('Create another plan', '＋', renderPath)];
   }
   function showPlan(plan, autoVoice = false) {
@@ -244,7 +249,9 @@
       }
       details.append(summary, list); tree.append(details);
     });
-    $('plannerSubtitle').textContent = 'Your plan is saved. Open each part to see its lessons, or ask the guide to adjust it.';
+    $('plannerSubtitle').textContent = plan.ready_at
+      ? 'Plan approved ✓ · Your lessons will be built from this plan next. You can still ask for changes.'
+      : 'Your plan is saved. Open each part to see its lessons, or ask the guide to adjust it.';
     $('plannerMessages').replaceChildren();
     const dialogue = plan.dialogue?.length ? plan.dialogue : [{role: 'assistant',
       text: 'Your plan is ready. Tell me what you already know, ask for more practice questions, or tell me what you would like to change.'}];
@@ -283,7 +290,21 @@
       renderSavedPlans(); showPlan(result.plan, true); $('plannerInput').value = '';
     } catch (err) {
       pending.remove(); $('plannerMessages').lastElementChild?.remove();
-      error(err.message); plannerOptions(planActions());
+      error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
+    } finally { busy = false; $('plannerSend').disabled = false; }
+  }
+  async function approvePlan() {
+    if (busy || !activePlan || activePlan.ready_at) return;
+    const planId = activePlan.id, expectedRevision = activePlan.revision;
+    busy = true; $('plannerSend').disabled = true; plannerOptions([]);
+    try {
+      const result = await api('plan/ready', {kid_id: child.id, plan_id: planId,
+        expected_revision: expectedRevision});
+      if (activePlan?.id !== planId) return;
+      plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
+      renderSavedPlans(); showPlan(result.plan, true);
+    } catch (err) {
+      error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
   $('plannerForm').addEventListener('submit', event => {
