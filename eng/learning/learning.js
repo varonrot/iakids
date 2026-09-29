@@ -172,7 +172,14 @@
   });
   updateVoiceToggle();
   function renderChoices(options) {
-    activeOptions = Array.isArray(options) ? options : [];
+    activeOptions = Array.isArray(options) ? [...options] : [];
+    const fractionChoices = activeOptions.map(option => /^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(option));
+    if (fractionChoices.length === 2 && fractionChoices.every(Boolean) &&
+        Number(fractionChoices[0][2]) > 0 && Number(fractionChoices[1][2]) > 0 &&
+        Number(fractionChoices[0][1]) * Number(fractionChoices[1][2]) ===
+        Number(fractionChoices[1][1]) * Number(fractionChoices[0][2])) {
+      activeOptions.push('They are equal');
+    }
     const target = $('answerChoices'); target.replaceChildren();
     for (const option of activeOptions) {
       const button = document.createElement('button'); button.type = 'button';
