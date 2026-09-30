@@ -457,10 +457,49 @@
   let teachingLesson = null, teachingAudioSerial = 0, teachingSection = -1, teachingVisualSerial = 0;
   let teachingSeen = new Set();
   const teachingAudioUrls = new Map(), teachingVisuals = new Map(), teachingPending = new Map();
+  let teachingTypingTimer = null;
+  function lessonWaiting(waiting) {
+    $('curriculumLoading').hidden = !waiting;
+    $('curriculumLesson').classList.toggle('waiting-for-voice', waiting);
+    $('curriculumNarration').setAttribute('aria-busy', String(waiting));
+  }
+  function revealTeachingText() {
+    document.querySelectorAll('#curriculumNarration [data-spoken]').forEach(node => { node.textContent=node.dataset.spoken; });
+  }
+  function prepareTeachingTyping(index) {
+    const content=teachingLesson.content, box=$('curriculumNarration');
+    box.replaceChildren();
+    let blocks=[];
+    if(index===-1) blocks=[content.unit_intro, 'In this lesson: '+content.objectives.join('; ')];
+    else if(index===content.sections.length) blocks=[content.checkpoint.question, ...content.checkpoint.options.map((option,i)=>`Option ${i+1}: ${option}`)];
+    else {
+      const section=content.sections[index];
+      blocks=[(section.paragraph_index===0 || section.paragraph_index==null ? section.title+'. ' : '')+section.explanation, section.worked_example];
+      if(index===content.sections.length-1)blocks.push(content.summary);
+    }
+    blocks.filter(Boolean).forEach(text=>{
+      const node=document.createElement('p');node.dataset.spoken=text;box.append(node);
+    });
+    box.scrollTop=0;
+  }
+  function syncTeachingTyping(audio) {
+    if(!Number.isFinite(audio.duration) || audio.duration<=0)return;
+    const nodes=[...document.querySelectorAll('#curriculumNarration [data-spoken]')];
+    const total=nodes.reduce((sum,node)=>sum+node.dataset.spoken.length,0);
+    // The TTS service returns no word timestamps. Follow the real media clock,
+    // distributing the text over its duration; pauses and buffering cannot run ahead.
+    let remaining=Math.floor(total*Math.min(1,audio.currentTime/audio.duration));
+    nodes.forEach(node=>{
+      const text=node.dataset.spoken, count=Math.min(text.length,Math.max(0,remaining));
+      node.textContent=text.slice(0,count);remaining-=text.length;
+    });
+  }
   function stopCurriculumVoice() {
     ++teachingAudioSerial;
+    clearInterval(teachingTypingTimer); teachingTypingTimer=null;
+    lessonWaiting(false);
     const audio = $('curriculumAudio');
-    if (audio) { audio.pause(); audio.onended = null; audio.removeAttribute('src'); }
+    if (audio) { audio.pause(); audio.onended = null; audio.ontimeupdate=null; audio.onplaying=null; audio.onwaiting=null; audio.removeAttribute('src'); }
   }
   function openCurriculumLesson(lesson) {
     stopVoice(); stopPlanVoice(); stopCurriculumVoice(); teachingLesson = lesson; teachingSection = -1;
@@ -648,6 +687,7 @@
   async function playCurriculumSection(index) {
     if(!teachingLesson || $('curriculumLesson').hidden) return;
     stopCurriculumVoice(); const serial=teachingAudioSerial, lessonId=teachingLesson.id;
+    prepareTeachingTyping(index);lessonWaiting(true);
     const audio=$('curriculumAudio'); $('curriculumVoiceStatus').textContent='Preparing your teacher’s voice…';
     try {
       $('curriculumVoiceStatus').textContent='Preparing this paragraph’s picture and voice…';
@@ -655,20 +695,29 @@
         index>=0 && index<teachingLesson.content.sections.length ? loadTeachingMedia('visual',index) : Promise.resolve(null)]);
       if(serial!==teachingAudioSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden) return;
       audio.src=result.url;
+      audio.ontimeupdate=()=>{if(serial===teachingAudioSerial)syncTeachingTyping(audio);};
+      audio.onwaiting=()=>{if(serial===teachingAudioSerial)lessonWaiting(true);};
+      audio.onplaying=()=>{if(serial===teachingAudioSerial)lessonWaiting(false);};
       audio.onended=()=> {
         if(serial!==teachingAudioSerial) return;
+        revealTeachingText();
+        clearInterval(teachingTypingTimer);teachingTypingTimer=null;
         if(index<teachingLesson.content.sections.length)selectTeachingSlide(index+1,voiceEnabled);
         else $('curriculumVoiceStatus').textContent='Choose an answer when you’re ready.';
       };
       await audio.play();
       if(serial!==teachingAudioSerial) return;
+      lessonWaiting(false);
+      teachingTypingTimer=setInterval(()=>{if(serial===teachingAudioSerial)syncTeachingTyping(audio);},60);
       $('curriculumVoiceStatus').textContent='Playing your teacher’s explanation.';
       const next=index+1;
       // Preparing the next segment while this one plays avoids a generation gap between slides.
       warmTeachingParagraphs(Math.max(0,next));
       if(next===teachingLesson.content.sections.length)loadTeachingMedia('audio',next).catch(()=>{});
     } catch(err) {
-      if(serial===teachingAudioSerial)$('curriculumVoiceStatus').textContent=err.name==='NotAllowedError'
+      if(serial!==teachingAudioSerial)return;
+      lessonWaiting(false);revealTeachingText();
+      $('curriculumVoiceStatus').textContent=err.name==='NotAllowedError'
         ? 'Your browser paused automatic audio. Press Replay to hear your teacher.' : err.message;
     }
   }
@@ -690,12 +739,12 @@
     else moveCurriculumLesson(1);
   };
   $('curriculumListen').onclick=()=>playCurriculumSection(teachingSection);
-  $('curriculumPause').onclick=()=> { stopCurriculumVoice();$('curriculumVoiceStatus').textContent='Voice paused. Press Replay to hear this part again.'; };
+  $('curriculumPause').onclick=()=> { stopCurriculumVoice();revealTeachingText();$('curriculumVoiceStatus').textContent='Voice paused. Press Replay to hear this part again.'; };
   $('curriculumVoiceToggle').onclick=()=> {
     voiceEnabled=!voiceEnabled;try{localStorage.setItem(voiceKey,voiceEnabled?'on':'off');}catch{}
     $('curriculumVoiceToggle').textContent=voiceEnabled?'🔊 Voice on':'🔇 Voice off';
     $('curriculumVoiceToggle').setAttribute('aria-pressed',String(voiceEnabled));
-    if(voiceEnabled)playCurriculumSection(teachingSection);else {stopCurriculumVoice();$('curriculumVoiceStatus').textContent='Voice off. Use Next to continue.';}
+    if(voiceEnabled)playCurriculumSection(teachingSection);else {stopCurriculumVoice();revealTeachingText();$('curriculumVoiceStatus').textContent='Voice off. Use Next to continue.';}
   };
   $('curriculumOverview').onclick=()=>selectTeachingSlide(-1,voiceEnabled);
   $('curriculumExplain').onclick=()=>selectTeachingSlide(0,voiceEnabled);
