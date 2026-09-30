@@ -399,51 +399,31 @@
       }
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
-  let teachingLesson = null, teachingAudioSerial = 0, teachingSection = 0;
-  const teachingAudioUrls = new Map();
+  let teachingLesson = null, teachingAudioSerial = 0, teachingSection = -1, teachingVisualSerial = 0;
+  let teachingSeen = new Set();
+  const teachingAudioUrls = new Map(), teachingVisuals = new Map(), teachingPending = new Map();
   function stopCurriculumVoice() {
     ++teachingAudioSerial;
     const audio = $('curriculumAudio');
     if (audio) { audio.pause(); audio.onended = null; audio.removeAttribute('src'); }
   }
   function openCurriculumLesson(lesson) {
-    stopVoice(); stopPlanVoice(); stopCurriculumVoice(); teachingLesson = lesson; teachingSection = 0;
-    const content = lesson.content;
-    $('curriculumTitle').textContent = content.title;
+    stopVoice(); stopPlanVoice(); stopCurriculumVoice(); teachingLesson = lesson; teachingSection = -1;
+    teachingSeen = new Set();
+    $('curriculumTitle').textContent = lesson.content.title;
     $('curriculumMeta').textContent = `${activePlan.subject} · Grade ${child.age} · Unit 1 · Lesson 1`;
-    $('curriculumIntro').textContent = content.unit_intro;
-    $('curriculumObjectives').replaceChildren(...content.objectives.map(text => {
-      const li = document.createElement('li'); li.textContent = text; return li;
-    }));
-    $('curriculumSections').replaceChildren(...content.sections.map((part, index) => {
-      const section = document.createElement('section'); section.className = 'teaching-section';
-      section.id = `teachingSection${index}`;
-      const title = document.createElement('h2'); title.textContent = part.title;
-      const text = document.createElement('p'); text.textContent = part.explanation;
-      section.append(title, text);
-      if (part.worked_example) {
-        const example = document.createElement('div'); example.className = 'teaching-example';
-        const label = document.createElement('strong'); label.textContent = 'Worked example';
-        const words = document.createElement('p'); words.textContent = part.worked_example;
-        example.append(label, words); section.append(example);
-      }
-      const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'back-button';
-      listen.textContent = '▶ Listen from here'; listen.onclick = () => playCurriculumSection(index);
-      section.append(listen); return section;
-    }));
-    $('curriculumSummary').textContent = content.summary;
-    $('curriculumQuestion').textContent = content.checkpoint.question;
-    $('curriculumFeedback').textContent = lesson.completed ? 'You have completed this lesson. You can review it again.' : '';
-    $('curriculumAnswers').replaceChildren(...content.checkpoint.options.map((text, optionIndex) => {
+    $('curriculumFeedback').textContent = lesson.completed ? 'You have completed this lesson. Review it whenever you like.' : '';
+    $('curriculumQuestion').textContent = lesson.content.checkpoint.question;
+    $('curriculumAnswers').replaceChildren(...lesson.content.checkpoint.options.map((text, optionIndex) => {
       const button = document.createElement('button'); button.type = 'button'; button.className = 'choice';
       button.textContent = text;
       button.onclick = async () => {
         if (busy) return;
         stopCurriculumVoice(); busy = true;
-        const lessonId = teachingLesson.id;
+        const lessonId = teachingLesson.id, learnerId = child.id;
         const buttons = [...$('curriculumAnswers').children]; buttons.forEach(b => b.disabled = true);
         try {
-          const result = await api('plan/lesson/answer', {kid_id: child.id, lesson_id: lessonId, option_index: optionIndex});
+          const result = await api('plan/lesson/answer', {kid_id: learnerId, lesson_id: lessonId, option_index: optionIndex});
           if (teachingLesson?.id !== lessonId || $('curriculumLesson').hidden) return;
           $('curriculumFeedback').textContent = result.correct
             ? `Well done — lesson complete. ${result.feedback}` : `Try again. ${result.feedback}`;
@@ -453,43 +433,183 @@
       };
       return button;
     }));
-    show('curriculumLesson'); $('curriculumReading').scrollTop = 0;
-    $('curriculumVoiceStatus').textContent = voiceEnabled ? 'Preparing your teacher’s voice…' : 'Read at your own pace, or press Listen.';
-    if (voiceEnabled) playCurriculumSection(0);
+    show('curriculumLesson');
+    $('curriculumVoiceToggle').textContent = voiceEnabled ? '🔊 Voice on' : '🔇 Voice off';
+    $('curriculumVoiceToggle').setAttribute('aria-pressed', String(voiceEnabled));
+    // Warm the first visual while the unit introduction is playing.
+    loadTeachingMedia('visual', 0).catch(() => {});
+    selectTeachingSlide(-1, voiceEnabled);
   }
-  async function playCurriculumSection(index) {
-    if (!teachingLesson || $('curriculumLesson').hidden) return;
-    stopCurriculumVoice(); const serial = teachingAudioSerial;
-    const lessonId = teachingLesson.id, learnerId = child.id;
-    teachingSection = index;
-    const audio = $('curriculumAudio'), key = `${lessonId}:${index}`;
-    $('curriculumVoiceStatus').textContent = 'Preparing your teacher’s voice…';
-    try {
-      let cached = teachingAudioUrls.get(key);
-      if (!cached || cached.expires < Date.now()) {
-        const result = await api('plan/lesson/audio', {kid_id: learnerId, lesson_id: lessonId, section_index: index}, 120000);
-        cached = {url: result.url, expires: Date.now() + 480000}; teachingAudioUrls.set(key, cached);
+  function loadTeachingMedia(kind, index) {
+    const lessonId = teachingLesson.id, learnerId = child.id, key = `${lessonId}:${index}`;
+    const cache = kind === 'audio' ? teachingAudioUrls : teachingVisuals;
+    const cached = cache.get(key);
+    if (cached && cached.expires > Date.now()) return Promise.resolve(cached.result);
+    const pendingKey = `${kind}:${key}`;
+    if (teachingPending.has(pendingKey)) return teachingPending.get(pendingKey);
+    const pending = api(`plan/lesson/${kind}`, {kid_id: learnerId, lesson_id: lessonId, section_index: index}, 120000)
+      .then(result => { cache.set(key, {result, expires: Date.now() + 480000}); return result; })
+      .finally(() => teachingPending.delete(pendingKey));
+    teachingPending.set(pendingKey, pending); return pending;
+  }
+  function svgNode(tag, attributes = {}, text = '') {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.entries(attributes).forEach(([name, value]) => node.setAttribute(name, String(value)));
+    if (text) node.textContent = text;
+    return node;
+  }
+  function drawTeachingVisual(spec) {
+    const svg = svgNode('svg', {viewBox:'0 0 800 450', role:'img', 'aria-label':spec.caption});
+    svg.append(svgNode('rect', {x:0,y:0,width:800,height:450,rx:24,fill:'#f3fbf5'}));
+    const text = (x,y,value,size=24,color='#153b54') => svgNode('text', {x,y,'text-anchor':'middle','font-family':'Inter, Arial, sans-serif','font-size':size,fill:color}, String(value));
+    if (spec.kind === 'grid') {
+      const grid=spec.grid, size=Math.min(54,320/grid.rows,580/grid.columns);
+      const x=(800-size*grid.columns)/2, y=(380-size*grid.rows)/2;
+      for (let i=0;i<grid.rows*grid.columns;i++) svg.append(svgNode('rect', {x:x+(i%grid.columns)*size,y:y+Math.floor(i/grid.columns)*size,width:size,height:size,fill:i<grid.shaded?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
+      svg.append(text(400,420,`${grid.shaded} out of ${grid.rows*grid.columns}${grid.label ? ` · ${grid.label}` : ''}`,23));
+    } else if (spec.kind === 'number_line') {
+      const line=spec.number_line, plot=value=>80+(value-line.start)/(line.end-line.start)*640;
+      svg.append(svgNode('line',{x1:80,y1:275,x2:720,y2:275,stroke:'#153b54','stroke-width':5}));
+      for(let i=0;i<=line.divisions;i++) {
+        const value=line.start+(line.end-line.start)*i/line.divisions, x=plot(value);
+        svg.append(svgNode('line',{x1:x,y1:265,x2:x,y2:285,stroke:'#153b54','stroke-width':2}));
+        if(line.divisions<=10 || i%2===0 || i===line.divisions) svg.append(text(x,320,Number(value.toFixed(6)),18));
       }
-      if (serial !== teachingAudioSerial || teachingLesson?.id !== lessonId || $('curriculumLesson').hidden) return;
-      audio.src = cached.url;
-      audio.onended = () => {
-        if (serial !== teachingAudioSerial) return;
-        if (index + 1 < teachingLesson.content.sections.length) playCurriculumSection(index + 1);
-        else { $('curriculumVoiceStatus').textContent = 'Explanation finished. Try the question below.';
-          $('curriculumCheck').scrollIntoView({behavior: 'smooth', block: 'nearest'}); }
-      };
-      await audio.play();
-      document.querySelectorAll('.teaching-section').forEach((node, i) => node.classList.toggle('speaking', i === index));
-      if (index > 0) $(`teachingSection${index}`).scrollIntoView({behavior: 'smooth', block: 'nearest'});
-      $('curriculumVoiceStatus').textContent = `Teacher speaking · Part ${index + 1} of ${teachingLesson.content.sections.length}`;
-    } catch (err) {
-      if (serial === teachingAudioSerial) $('curriculumVoiceStatus').textContent = err.name === 'NotAllowedError'
-        ? 'Your browser paused automatic audio. Press Listen to hear your teacher.' : err.message;
+      line.points.forEach((point,i)=> {
+        const x=plot(point.value), y=85+(i%4)*38;
+        svg.append(svgNode('line',{x1:x,y1:y+10,x2:x,y2:258,stroke:'#09a6a6','stroke-width':2,'stroke-dasharray':'6 5'}),svgNode('circle',{cx:x,cy:275,r:12,fill:'#0cb2ae',stroke:'#fff','stroke-width':3}),text(x,y,point.label||point.value,23));
+      });
+    } else if(spec.kind === 'place_value') {
+      const number=spec.place_value.number, digits=Array.from(number.replace('-','')), point=digits.indexOf('.');
+      const units=point<0?digits.length:point, width=Math.min(100,700/digits.length), start=(800-width*digits.length)/2;
+      const whole=['Units','Tens','Hundreds','Thousands','Ten thousands'], fractions=['Tenths','Hundredths','Thousandths','Ten-thousandths'];
+      digits.forEach((digit,i)=> {
+        const x=start+i*width, label=digit==='.'?'Decimal point':i<units?whole[units-i-1]:fractions[i-units-1];
+        svg.append(svgNode('rect',{x:x+2,y:165,width:width-4,height:140,rx:12,fill:digit==='.'?'#fff':'#d4f2eb',stroke:'#81c5ba','stroke-width':2}),text(x+width/2,125,label,Math.min(18,width/6)),text(x+width/2,252,digit,48));
+      });
+      svg.append(text(400,380,number,36));
+    } else if(spec.kind === 'fraction_bars') {
+      spec.fraction_bars.forEach((bar,row)=> {
+        const y=60+row*(300/spec.fraction_bars.length), width=520/bar.parts;
+        svg.append(text(100,y+35,bar.label||`${bar.filled}/${bar.parts}`,22));
+        for(let i=0;i<bar.parts;i++) svg.append(svgNode('rect',{x:220+i*width,y,width,height:58,fill:i<bar.filled?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
+      });
+    }
+    return svg;
+  }
+  async function displayTeachingVisual(index) {
+    const serial=++teachingVisualSerial, lessonId=teachingLesson.id;
+    const art=$('curriculumArt'); art.replaceChildren(); art.setAttribute('aria-busy','true');
+    const waiting=document.createElement('div'); waiting.className='teaching-art-pending';
+    const spinner=document.createElement('span'); spinner.className='spinner'; spinner.setAttribute('aria-hidden','true');
+    const message=document.createElement('p'); message.textContent='Preparing this illustration…';
+    waiting.append(spinner,message); art.append(waiting); $('curriculumCaption').textContent='';
+    try {
+      const result=await loadTeachingMedia('visual',index);
+      if(serial!==teachingVisualSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden || teachingSection!==index) return;
+      if(result.visual.kind==='illustration') {
+        const picture=document.createElement('img'); picture.src=result.url; picture.alt=result.visual.caption;
+        picture.onerror=()=> { if(serial===teachingVisualSerial) visualError('This picture could not load. Retry illustration.'); };
+        art.replaceChildren(picture);
+      } else art.replaceChildren(drawTeachingVisual(result.visual));
+      $('curriculumCaption').textContent=result.visual.caption;
+    } catch(err) {
+      if(serial===teachingVisualSerial && teachingLesson?.id===lessonId && teachingSection===index && !$('curriculumLesson').hidden) visualError(err.message);
+    } finally { if(serial===teachingVisualSerial) art.setAttribute('aria-busy','false'); }
+    function visualError(message) {
+      art.replaceChildren(); const label=document.createElement('p'); label.textContent=message;
+      const retry=document.createElement('button'); retry.type='button';retry.className='primary';retry.textContent='Retry illustration';
+      retry.onclick=()=> { teachingVisuals.delete(`${lessonId}:${index}`);displayTeachingVisual(index); };
+      const wrapper=document.createElement('div'); wrapper.className='teaching-art-pending'; wrapper.append(label,retry);art.append(wrapper);
     }
   }
-  $('curriculumBack').onclick = () => { stopCurriculumVoice(); show('path'); showPlan(activePlan); };
-  $('curriculumListen').onclick = () => playCurriculumSection(teachingSection);
-  $('curriculumPause').onclick = () => { stopCurriculumVoice(); $('curriculumVoiceStatus').textContent = 'Voice paused. Press Listen to continue this part.'; };
+  function selectTeachingSlide(index, narrate = false) {
+    if(!teachingLesson) return;
+    stopCurriculumVoice(); ++teachingVisualSerial; teachingSection=index;
+    const content=teachingLesson.content, total=content.sections.length, intro=index===-1, check=index===total;
+    if(!intro && !check) teachingSeen.add(index);
+    $('curriculumCheck').hidden=!check; $('curriculumArt').hidden=check;
+    $('curriculumCaption').hidden=intro||check;
+    $('curriculumArt').setAttribute('aria-busy','false');
+    $('curriculumCounter').textContent=intro?'Before we begin':check?'Your turn':`Slide ${index+1} of ${total}`;
+    $('curriculumEyebrow').textContent=intro?'WHAT WE WILL LEARN':check?'CHECK YOUR UNDERSTANDING':'SEE THE IDEA';
+    $('curriculumSceneTitle').textContent=intro?'Let’s see where we’re going':check?'Try what you’ve learned':content.sections[index].title;
+    $('curriculumNarration').replaceChildren();
+    const paragraph=document.createElement('p');
+    if(intro) {
+      $('curriculumArt').replaceChildren();const goals=document.createElement('div');goals.className='teaching-goals';
+      content.objectives.forEach((goal,i)=> {
+        const card=document.createElement('div'),icon=document.createElement('span'),words=document.createElement('strong');
+        icon.textContent=['◎','▥','✦','✓'][i];words.textContent=goal;card.append(icon,words);goals.append(card);
+      }); $('curriculumArt').append(goals);paragraph.textContent=content.unit_intro;
+    } else if(check) { paragraph.textContent=`${content.summary}\n\nTake your time and choose an answer.`;
+    } else { paragraph.textContent=content.sections[index].explanation; }
+    $('curriculumNarration').append(paragraph);
+    if(!intro && !check && content.sections[index].worked_example) {
+      const example=document.createElement('div');example.className='teaching-example';
+      const label=document.createElement('strong');label.textContent='Worked example';
+      const words=document.createElement('p');words.textContent=content.sections[index].worked_example;example.append(label,words);$('curriculumNarration').append(example);
+    }
+    if(index===total-1) {
+      const summary=document.createElement('p');summary.className='teaching-summary';summary.textContent=content.summary;$('curriculumNarration').append(summary);
+    }
+    $('curriculumNarration').scrollTop=0;
+    [$('curriculumOverview'),$('curriculumExplain'),$('curriculumCheckJump')].forEach((button,i)=> {
+      const current=(i===0&&intro)||(i===1&&!intro&&!check)||(i===2&&check);
+      button.classList.toggle('is-current',current);if(current)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
+    });
+    $('curriculumCheckJump').disabled=!teachingLesson.completed&&teachingSeen.size<total;
+    $('curriculumProgressLabel').textContent=`${teachingSeen.size} of ${total} explanation slides visited`;
+    $('curriculumProgress').replaceChildren(...content.sections.map((section,i)=> {
+      const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',`Slide ${i+1}: ${section.title}`);
+      button.className=i===index?'is-current':teachingSeen.has(i)?'is-seen':'';button.onclick=()=>selectTeachingSlide(i,voiceEnabled);return button;
+    }));
+    $('curriculumPrevious').disabled=intro; $('curriculumNext').hidden=check;
+    $('curriculumNext').textContent=intro?'Start explanation →':index===total-1?'Check understanding →':'Next →';
+    $('curriculumVoiceStatus').textContent=voiceEnabled?'Preparing your teacher’s voice…':'Voice off. Use Next to move through the explanation.';
+    $('curriculumGuideNote').textContent=check?'Choose an answer when you’re ready.':'The explanation moves forward automatically with the voice. You can pause or replay.';
+    if(!intro&&!check)displayTeachingVisual(index);
+    if(narrate)playCurriculumSection(index);
+  }
+  async function playCurriculumSection(index) {
+    if(!teachingLesson || $('curriculumLesson').hidden) return;
+    stopCurriculumVoice(); const serial=teachingAudioSerial, lessonId=teachingLesson.id;
+    const audio=$('curriculumAudio'); $('curriculumVoiceStatus').textContent='Preparing your teacher’s voice…';
+    try {
+      const result=await loadTeachingMedia('audio',index);
+      if(serial!==teachingAudioSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden) return;
+      audio.src=result.url;
+      audio.onended=()=> {
+        if(serial!==teachingAudioSerial) return;
+        if(index<teachingLesson.content.sections.length)selectTeachingSlide(index+1,voiceEnabled);
+        else $('curriculumVoiceStatus').textContent='Choose an answer when you’re ready.';
+      };
+      await audio.play();
+      if(serial!==teachingAudioSerial) return;
+      $('curriculumVoiceStatus').textContent='Playing your teacher’s explanation.';
+      const next=index+1;
+      // Preparing the next segment while this one plays avoids a generation gap between slides.
+      if(next<=teachingLesson.content.sections.length)loadTeachingMedia('audio',next).catch(()=>{});
+      if(next>=0&&next<teachingLesson.content.sections.length)loadTeachingMedia('visual',next).catch(()=>{});
+    } catch(err) {
+      if(serial===teachingAudioSerial)$('curriculumVoiceStatus').textContent=err.name==='NotAllowedError'
+        ? 'Your browser paused automatic audio. Press Replay to hear your teacher.' : err.message;
+    }
+  }
+  $('curriculumBack').onclick=()=> { stopCurriculumVoice();++teachingVisualSerial;show('path');showPlan(activePlan); };
+  $('curriculumListen').onclick=()=>playCurriculumSection(teachingSection);
+  $('curriculumPause').onclick=()=> { stopCurriculumVoice();$('curriculumVoiceStatus').textContent='Voice paused. Press Replay to hear this part again.'; };
+  $('curriculumVoiceToggle').onclick=()=> {
+    voiceEnabled=!voiceEnabled;try{localStorage.setItem(voiceKey,voiceEnabled?'on':'off');}catch{}
+    $('curriculumVoiceToggle').textContent=voiceEnabled?'🔊 Voice on':'🔇 Voice off';
+    $('curriculumVoiceToggle').setAttribute('aria-pressed',String(voiceEnabled));
+    if(voiceEnabled)playCurriculumSection(teachingSection);else {stopCurriculumVoice();$('curriculumVoiceStatus').textContent='Voice off. Use Next to continue.';}
+  };
+  $('curriculumOverview').onclick=()=>selectTeachingSlide(-1,voiceEnabled);
+  $('curriculumExplain').onclick=()=>selectTeachingSlide(0,voiceEnabled);
+  $('curriculumCheckJump').onclick=()=>selectTeachingSlide(teachingLesson.content.sections.length,voiceEnabled);
+  $('curriculumPrevious').onclick=()=>selectTeachingSlide(teachingSection-1,voiceEnabled);
+  $('curriculumNext').onclick=()=>selectTeachingSlide(teachingSection+1,voiceEnabled);
   $('plannerForm').addEventListener('submit', event => {
     event.preventDefault(); const value = $('plannerInput').value.trim();
     if (!value) return;
@@ -709,4 +829,5 @@
   }
   initialize();
 })();
+
 

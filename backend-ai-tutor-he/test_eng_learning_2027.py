@@ -547,7 +547,10 @@ class CurriculumTeachingTests(unittest.TestCase):
         self.route.sb.storage = types.SimpleNamespace(from_=lambda bucket: types.SimpleNamespace(upload=lambda *args: None))
         asyncio.run(self.route.curriculum_lesson_audio(self.route.TeachingAudioRequest(
             kid_id='child-id', lesson_id=lesson['id'], section_index=0)))
-        self.assertIn('In this unit', captured[0]); self.assertIn('Three tenths', captured[0])
+        self.assertNotIn('In this unit', captured[0]); self.assertIn('Three tenths', captured[0])
+        asyncio.run(self.route.curriculum_lesson_audio(self.route.TeachingAudioRequest(
+            kid_id='child-id', lesson_id=lesson['id'], section_index=-1)))
+        self.assertIn('In this unit', captured[1]); self.assertNotIn('Three tenths', captured[1])
         with self.assertRaises(self.route.HTTPException):
             asyncio.run(self.route.curriculum_lesson_audio(self.route.TeachingAudioRequest(
                 kid_id='child-id', lesson_id=lesson['id'], section_index=6)))
@@ -558,5 +561,54 @@ class CurriculumTeachingTests(unittest.TestCase):
             self.route.LessonCheckpoint(question='Choose the right decimal.', options=['A', 'B'], correct_index=3,
                 explanation='A detailed explanation.', hint='A helpful hint.')
 
+class TeachingVisualTests(unittest.TestCase):
+    setup_route = CurriculumTeachingTests.setup_route
+    draft = CurriculumTeachingTests.draft
+    model = CurriculumTeachingTests.model
+    def test_exact_diagram_validation(self):
+        self.setup_route()
+        grid = self.route.GridVisual(rows=1, columns=10, shaded=4, label='0.4')
+        self.assertEqual(grid.shaded, 4)
+        with self.assertRaises(ValueError):
+            self.route.GridVisual(rows=1, columns=10, shaded=11, label='Invalid')
+        with self.assertRaises(ValueError):
+            self.route.FractionBarVisual(parts=4, filled=5, label='Invalid')
+        with self.assertRaises(ValueError):
+            self.route.NumberLineVisual(start=0, end=1, divisions=10,
+                points=[self.route.NumberLinePoint(value=2, label='Outside')])
+        with self.assertRaises(ValueError):
+            self.route.TeachingVisual(kind='grid', caption='Four out of ten parts.', number_line=None,
+                grid=None, place_value=None, fraction_bars=None, image_prompt='')
+        with self.assertRaises(ValueError):
+            self.route.PlaceValueVisual(number='<script>')
+
+    def test_visual_uses_saved_section_reuses_and_checks_owner(self):
+        body=self.setup_route(); self.model()
+        lesson=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        owner=self
+        class VisualCompletions:
+            calls=0
+            async def parse(self, **kwargs):
+                self.calls+=1;owner.visual_input=kwargs
+                parsed=owner.route.TeachingVisual(kind='grid', caption='Three out of ten equal parts.',
+                    grid=owner.route.GridVisual(rows=1,columns=10,shaded=3,label='0.3'))
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
+        parser=VisualCompletions()
+        self.route.aclient=types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(completions=parser)))
+        request=self.route.TeachingVisualRequest(kid_id='child-id',lesson_id=lesson['id'],section_index=0)
+        first=asyncio.run(self.route.curriculum_lesson_visual(request))
+        second=asyncio.run(self.route.curriculum_lesson_visual(request))
+        self.assertEqual(first,second);self.assertEqual(parser.calls,1)
+        self.assertEqual(first['visual']['grid']['shaded'],3)
+        self.assertIn('Three tenths',self.visual_input['messages'][1]['content'])
+        with self.assertRaises(self.route.HTTPException):
+            asyncio.run(self.route.curriculum_lesson_visual(self.route.TeachingVisualRequest(
+                kid_id='another-child',lesson_id=lesson['id'],section_index=0)))
+        with self.assertRaises(self.route.HTTPException):
+            asyncio.run(self.route.curriculum_lesson_visual(self.route.TeachingVisualRequest(
+                kid_id='child-id',lesson_id=lesson['id'],section_index=6)))
+
+
 if __name__ == '__main__':
     unittest.main()
+
