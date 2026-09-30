@@ -459,6 +459,7 @@ class CurriculumTeachingLesson(BaseModel):
 class TeachingReview(BaseModel):
     approved: bool
     blocking_issues: list[str] = Field(max_length=8)
+    corrected_lesson: CurriculumTeachingLesson | None = None
 
 
 class PlanLessonRequest(PlanReadyRequest):
@@ -646,14 +647,18 @@ def _prior_teaching_context(plan, user_id, kid_id, unit_index, lesson_index):
 async def _reviewed_teaching_content(user_id, prompt, context, title):
     messages = [{"role": "system", "content": prompt},
                 {"role": "user", "content": json.dumps(context, ensure_ascii=False)}]
+    repaired = None
     for attempt in range(2):
-        await run_in_threadpool(spend_daily_budget, user_id, "model")
-        response = await aclient.beta.chat.completions.parse(model=MODEL, messages=messages,
-            response_format=CurriculumTeachingLesson, max_completion_tokens=8000)
-        draft = response.choices[0].message.parsed
-        if not draft:
-            raise ValueError("Empty lesson")
-        candidate = draft.model_dump()
+        if repaired is None:
+            await run_in_threadpool(spend_daily_budget, user_id, "model")
+            response = await aclient.beta.chat.completions.parse(model=MODEL, messages=messages,
+                response_format=CurriculumTeachingLesson, max_completion_tokens=8000)
+            draft = response.choices[0].message.parsed
+            if not draft:
+                raise ValueError("Empty lesson")
+            candidate = draft.model_dump()
+        else:
+            candidate = repaired.model_dump()
         candidate["title"] = title
         await run_in_threadpool(spend_daily_budget, user_id, "model")
         response = await aclient.beta.chat.completions.parse(model=MODEL,
@@ -668,15 +673,30 @@ async def _reviewed_teaching_content(user_id, prompt, context, title):
                 "Check that the correct answer is unique and matches the explanation, distractors are "
                 "actually wrong, and illustrations described use the same quantities as the text. "
                 "Approve only if there are no blocking issues. Otherwise list concrete corrections, "
-                "including quoted inaccurate claims, duplication and scope errors."},
+                "including quoted inaccurate claims, duplication and scope errors. "
+                "Review the SELECTED lesson only: deferred_topics in OTHER lessons are not "
+                "restrictions on this selected lesson. A unit overview may name future topics "
+                "without teaching them. Using a prerequisite in a new problem is not duplicate teaching. "
+                "Block factual errors, incorrect answers and substantial scope violations, not "
+                "stylistic preferences or optional enrichment. If blocking issues exist, return "
+                "corrected_lesson containing the COMPLETE lesson with those issues repaired, "
+                "preserving all unaffected explanations. That corrected version will be reviewed "
+                "again before publication. If the submitted draft is already correct, approve it "
+                "with an empty blocking_issues list and corrected_lesson=null."},
                 {"role": "user", "content": json.dumps({"context": context, "draft": candidate}, ensure_ascii=False)}],
-            response_format=TeachingReview, max_completion_tokens=1800)
+            response_format=TeachingReview, max_completion_tokens=10000)
         review = response.choices[0].message.parsed
         if review and review.approved and not review.blocking_issues:
             candidate["quality_version"] = LESSON_QUALITY_VERSION
             return candidate
         if not review:
             raise ValueError("Missing lesson review")
+        print("ENG LESSON REVIEW REJECTED", json.dumps({
+            "attempt": attempt + 1, "unit_index": context.get("unit_index"),
+            "lesson_index": context.get("lesson_index"),
+            "issues": review.blocking_issues, "repair_available": review.corrected_lesson is not None
+        }, ensure_ascii=False), flush=True)
+        repaired = review.corrected_lesson
         messages.extend([{"role": "assistant", "content": json.dumps(candidate, ensure_ascii=False)},
             {"role": "user", "content": "Revise the entire lesson to resolve these review findings: " +
                 json.dumps(review.blocking_issues or ["The reviewer did not approve this draft."], ensure_ascii=False)}])

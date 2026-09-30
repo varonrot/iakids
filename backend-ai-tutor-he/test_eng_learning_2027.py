@@ -639,6 +639,25 @@ class CurriculumTeachingTests(unittest.TestCase):
         asyncio.run(self.route.create_curriculum_lesson(body))
         self.assertEqual(len(calls),4)
 
+    def test_reviewer_repairs_are_reviewed_before_saving_without_regenerating(self):
+        body=self.setup_route();owner=self;calls=[]
+        class Completions:
+            async def parse(self, **kwargs):
+                calls.append(kwargs)
+                if kwargs['response_format'] is owner.route.TeachingReview:
+                    accepted=len(calls)==3
+                    parsed=owner.route.TeachingReview(approved=accepted,
+                        blocking_issues=[] if accepted else ['Fix the definition.'],
+                        corrected_lesson=None if accepted else owner.draft())
+                else:
+                    parsed=owner.draft()
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
+        self.route.aclient=types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(completions=Completions())))
+        result=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        self.assertEqual(len(calls),3)
+        self.assertIs(calls[-1]['response_format'],self.route.TeachingReview)
+        self.assertEqual(result['content']['quality_version'],2)
+
     def test_unapproved_content_is_not_saved_or_cached(self):
         body=self.setup_route();owner=self
         class Completions:
