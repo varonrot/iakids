@@ -105,6 +105,54 @@ def load_route(grade=5):
 
 
 class LearningTests(unittest.TestCase):
+    def test_curriculum_limits_and_numbered_titles(self):
+        route, _ = load_route()
+        lesson = route.CurriculumLesson(title='Lesson 6: A worked example', goal='Solve a two-step problem.')
+        unit = route.CurriculumUnit(title='Unit 4: Applying ideas', overview='Plan and solve a problem.', lessons=[lesson])
+        plan = route.CurriculumPlan(title='Word problems', subject='Math', topic='Word Problems', units=[unit])
+        content = route._normalize_plan(plan)
+        self.assertEqual(content['units'][0]['title'], 'Applying ideas')
+        self.assertEqual(content['units'][0]['lessons'][0]['title'], 'A worked example')
+        self.assertEqual(content['units'][0]['overview'], 'Plan and solve a problem.')
+        with self.assertRaises(ValueError):
+            route.CurriculumUnit(title='Too many lessons', lessons=[lesson] * 9)
+        with self.assertRaises(ValueError):
+            route.CurriculumPlan(title='Too many units', subject='Math', topic='Math', units=[unit] * 11)
+        large = route.CurriculumUnit(title='Eight lessons', lessons=[lesson] * 8)
+        with self.assertRaises(ValueError):
+            route.CurriculumPlan(title='Too many total lessons', subject='Math', topic='Math', units=[large] * 6)
+
+    def test_vague_knowledge_and_readiness_do_not_rewrite_curriculum(self):
+        for message, needs_clarification in [('I already know', False),
+                ('I know some of this already', False),
+                ("okay I'm I'm ready I want to start the plan", False),
+                ('Can you clarify this?', True)]:
+            with self.subTest(message=message):
+                route, table = load_route()
+                plan_id = str(uuid4())
+                old = {'title': 'Word problems', 'subject': 'Math', 'topic': 'Word Problems', 'units': [
+                    {'title': 'Understand the problem', 'lessons': [{'title': 'Read the information',
+                    'goal': 'Identify what is given.', 'practice_questions': []}]}]}
+                table.rows.append({'id': plan_id, 'user_id': 'parent-id', 'child_id': 'child-id',
+                    'grade': 5, 'subject': 'Math', 'topic': 'Word Problems', 'content': old,
+                    'dialogue': [], 'revision': 0, 'plan_history': [], 'ready_at': 'approved'})
+                class Completions:
+                    async def parse(self, **kwargs):
+                        changed = route.CurriculumPlan(title='Unexpected rewrite', subject='Math', topic='Word Problems',
+                            units=[route.CurriculumUnit(title='Skip to applications', lessons=[
+                                route.CurriculumLesson(title='New lesson', goal='Jump to new material.')])])
+                        answer = route.PlannerResponse(text='Which parts do you already know?',
+                            revised_plan=changed, needs_clarification=needs_clarification)
+                        return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=answer))])
+                route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(completions=Completions())))
+                route.guard_reply_payload = lambda text, *_: text
+                result = asyncio.run(route.reply_to_learning_plan(route.PlanReplyRequest(kid_id='child-id',
+                    plan_id=plan_id, message=message, expected_revision=0), 'Bearer token'))
+                self.assertFalse(result['changed'])
+                self.assertEqual(result['plan']['content'], old)
+                self.assertEqual(result['plan']['ready_at'], 'approved')
+                self.assertEqual(result['plan']['plan_history'], [])
+
     def test_ordered_catalog_and_grade_scope(self):
         route, _ = load_route()
         result = asyncio.run(route.learning_catalog('child-id', 'Bearer token'))

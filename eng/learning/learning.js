@@ -291,7 +291,8 @@
     stopPlanVoice(); if (recognition) recognition.stop(); activePlan = plan; introVoice = null; plannerStage = 'plan'; subject = null;
     const tree = $('plannerTree'); tree.replaceChildren();
     const title = document.createElement('h2'); title.textContent = content.title; tree.append(title);
-    const meta = document.createElement('p'); meta.textContent = `${content.subject} · ${content.topic} · Grade ${child.age}`; tree.append(meta);
+    const lessonCount = content.units.reduce((total, part) => total + part.lessons.length, 0);
+    const meta = document.createElement('p'); meta.textContent = `${content.subject} · ${content.topic} · Grade ${child.age} · ${content.units.length} units · ${lessonCount} lessons`; tree.append(meta);
     if (editMode) {
       const tools = document.createElement('div'); tools.className = 'planner-edit-tools';
       const hint = document.createElement('p'); hint.textContent = 'Tell the guide what you would like to change in this plan.';
@@ -300,13 +301,20 @@
       remove.addEventListener('click', () => deletePlan(activePlan));
       tools.append(hint, remove); tree.append(tools);
     }
+    const cleanTitle = (title, kind) => title.replace(new RegExp(`^(?:\\d+[.)]\\s*)?(?:${kind}\\s+\\d+\\s*[:.)\\-]\\s*)+`, 'i'), '').trim();
+    let lessonNumber = 0;
     content.units.forEach((part, index) => {
       const details = document.createElement('details'); details.open = index === 0;
-      const summary = document.createElement('summary'); summary.textContent = `${index + 1}. ${part.title}`;
+      const summary = document.createElement('summary'); summary.textContent = `Unit ${index + 1}: ${cleanTitle(part.title, 'Unit')}`;
+      if (part.overview) {
+        const overview = document.createElement('p'); overview.className = 'unit-overview';
+        overview.style.cssText = 'margin:0;padding:0 15px 12px;color:#537488;font-size:13px;line-height:1.5';
+        overview.textContent = `In this unit: ${part.overview}`; details.append(summary, overview);
+      } else details.append(summary);
       const list = document.createElement('ol');
       for (const lesson of part.lessons) {
         const row = document.createElement('li'), name = document.createElement('strong'), goal = document.createElement('small');
-        name.textContent = lesson.title; goal.textContent = lesson.goal; row.append(name, goal);
+        name.textContent = `Lesson ${++lessonNumber}: ${cleanTitle(lesson.title, 'Lesson')}`; goal.textContent = lesson.goal; row.append(name, goal);
         if (lesson.practice_questions?.length) {
           const questions = document.createElement('ul'); questions.className = 'plan-questions';
           lesson.practice_questions.forEach(question => {
@@ -316,7 +324,8 @@
         }
         list.append(row);
       }
-      details.append(summary, list); tree.append(details);
+      list.style.listStyle = 'none'; list.style.paddingLeft = '18px';
+      details.append(list); tree.append(details);
     });
     $('plannerSubtitle').textContent = plan.ready_at
       ? 'Plan approved ✓ · Your lessons will be built from this plan next. You can still ask for changes.'
