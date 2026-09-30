@@ -447,5 +447,116 @@ class LearningTests(unittest.TestCase):
         self.assertEqual(calls, [('Which bar is greater?', 5)])
 
 
+
+class CurriculumTeachingTests(unittest.TestCase):
+    def setup_route(self, ready=True):
+        route, table = load_route()
+        self.route, self.table = route, table
+        self.plan_id = str(uuid4())
+        self.plan = {'id': self.plan_id, 'user_id': 'parent-id', 'child_id': 'child-id',
+            'grade': 5, 'subject': 'Math', 'topic': 'Decimals', 'revision': 1,
+            'ready_at': 'approved' if ready else None, 'dialogue': [], 'plan_history': [],
+            'content': {'title': 'Decimals', 'subject': 'Math', 'topic': 'Decimals', 'units': [
+                {'title': 'Understanding decimals', 'overview': 'Learn place value.', 'lessons': [
+                    {'title': 'Tenths', 'goal': 'Explain tenths.'},
+                    {'title': 'Hundredths', 'goal': 'Explain hundredths.'}]}]}}
+        table.rows.append(self.plan)
+        return route.PlanLessonRequest(kid_id='child-id', plan_id=self.plan_id, expected_revision=1)
+
+    def draft(self):
+        return self.route.CurriculumTeachingLesson(title='Tenths', unit_intro='In this unit we will learn decimal place value.',
+            objectives=['Understand tenths.'], sections=[self.route.LessonSection(title='A whole and ten equal parts',
+                explanation='A tenth is one of ten equal parts of a whole. ' * 6,
+                worked_example='Three tenths is written 0.3.', visual_brief='A measurement strip.') for _ in range(3)],
+            summary='Ten tenths combine to make one whole.', checkpoint=self.route.LessonCheckpoint(
+                question='Which decimal represents three tenths?', options=['0.3', '0.03'], correct_index=0,
+                explanation='The digit 3 in the tenths place means three tenths.', hint='Look at the first place after the decimal point.'))
+
+    def model(self, mutate=None):
+        owner = self
+        class Completions:
+            calls = 0
+            async def parse(self, **kwargs):
+                self.calls += 1
+                owner.model_input = kwargs
+                if mutate:
+                    mutate()
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=owner.draft()))])
+        parser = Completions()
+        self.route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(completions=parser)))
+        return parser
+
+    def test_first_lesson_saved_reused_and_answers_not_exposed(self):
+        body = self.setup_route(); parser = self.model()
+        first = asyncio.run(self.route.create_curriculum_lesson(body))
+        second = asyncio.run(self.route.create_curriculum_lesson(body))
+        self.assertEqual(parser.calls, 1)
+        self.assertFalse(first['reused']); self.assertTrue(second['reused'])
+        self.assertEqual(first['lesson']['id'], second['lesson']['id'])
+        self.assertNotIn('correct_index', first['lesson']['content']['checkpoint'])
+        self.assertNotIn('hint', first['lesson']['content']['checkpoint'])
+        import json
+        payload = json.loads(self.model_input['messages'][1]['content'])
+        self.assertEqual(payload['selected_lesson']['title'], 'Tenths')
+        self.assertEqual(payload['curriculum']['units'][0]['lessons'][1]['title'], 'Hundredths')
+        self.assertIn('at the END', self.model_input['messages'][0]['content'])
+        wrong = asyncio.run(self.route.curriculum_lesson_answer(self.route.TeachingAnswerRequest(
+            kid_id='child-id', lesson_id=first['lesson']['id'], option_index=1)))
+        self.assertFalse(wrong['correct'])
+        row = next(row for row in self.table.rows if row['id'] == first['lesson']['id'])
+        self.assertFalse(row.get('completed_at'))
+        right = asyncio.run(self.route.curriculum_lesson_answer(self.route.TeachingAnswerRequest(
+            kid_id='child-id', lesson_id=first['lesson']['id'], option_index=0)))
+        self.assertTrue(right['correct']); self.assertTrue(row['completed_at'])
+        with self.assertRaises(self.route.HTTPException):
+            asyncio.run(self.route.curriculum_lesson_answer(self.route.TeachingAnswerRequest(
+                kid_id='another-child', lesson_id=first['lesson']['id'], option_index=0)))
+
+    def test_unapproved_and_stale_plans_rejected(self):
+        body = self.setup_route(False); parser = self.model()
+        with self.assertRaises(self.route.HTTPException) as error:
+            asyncio.run(self.route.create_curriculum_lesson(body))
+        self.assertEqual(error.exception.status_code, 409); self.assertEqual(parser.calls, 0)
+        self.plan['ready_at'] = 'approved'; body.expected_revision = 0
+        with self.assertRaises(self.route.HTTPException):
+            asyncio.run(self.route.create_curriculum_lesson(body))
+
+    def test_edit_during_generation_does_not_save_old_lesson(self):
+        body = self.setup_route()
+        self.model(lambda: self.plan['content'].update(title='Changed plan'))
+        with self.assertRaises(self.route.HTTPException) as error:
+            asyncio.run(self.route.create_curriculum_lesson(body))
+        self.assertEqual(error.exception.status_code, 409)
+        self.assertEqual(len(self.table.rows), 1)
+
+    def test_changed_plan_invalidates_cached_lesson_access(self):
+        body = self.setup_route(); self.model()
+        lesson = asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        self.plan['content']['title'] = 'New syllabus'
+        with self.assertRaises(self.route.HTTPException) as error:
+            self.route._owned_teaching_lesson('parent-id', 'child-id', lesson['id'])
+        self.assertEqual(error.exception.status_code, 409)
+
+    def test_voice_reads_full_section_without_plan_text_truncation(self):
+        body = self.setup_route(); self.model()
+        lesson = asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        captured = []
+        self.route._cached_narration = lambda path: False
+        self.route._generate_narration = lambda text, grade: captured.append(text) or b'audio'
+        self.route.signed_url_cached = lambda *args: 'https://example.test/audio.wav'
+        self.route.sb.storage = types.SimpleNamespace(from_=lambda bucket: types.SimpleNamespace(upload=lambda *args: None))
+        asyncio.run(self.route.curriculum_lesson_audio(self.route.TeachingAudioRequest(
+            kid_id='child-id', lesson_id=lesson['id'], section_index=0)))
+        self.assertIn('In this unit', captured[0]); self.assertIn('Three tenths', captured[0])
+        with self.assertRaises(self.route.HTTPException):
+            asyncio.run(self.route.curriculum_lesson_audio(self.route.TeachingAudioRequest(
+                kid_id='child-id', lesson_id=lesson['id'], section_index=6)))
+
+    def test_invalid_checkpoint_rejected(self):
+        self.setup_route()
+        with self.assertRaises(ValueError):
+            self.route.LessonCheckpoint(question='Choose the right decimal.', options=['A', 'B'], correct_index=3,
+                explanation='A detailed explanation.', hint='A helpful hint.')
+
 if __name__ == '__main__':
     unittest.main()

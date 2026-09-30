@@ -9,7 +9,7 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4bmZ6dWdsZnd5dGl5YWd1d2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjk0NjUsImV4cCI6MjA4NDgwNTQ2NX0.IcmVvbboKLkJLkE31_udEtvhPl66-kmZAvmPCT_lk5o',
     {auth: {flowType: 'pkce', storageKey: 'iakids-eng-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false}}
   );
-  const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson'];
+  const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson', 'curriculumLesson'];
   let user, children = [], child, catalog = [], library = [], plans = [], subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
   let plannerStage = 'subjects';
   let activePlan = null, introVoice = null, planAudioSerial = 0;
@@ -20,7 +20,7 @@
   try { voiceEnabled = localStorage.getItem(voiceKey) !== 'off'; } catch {}
   // The key is public. Keep the exact same anon key as the English dashboard.
 
-  function show(name) { views.forEach(id => { $(id).hidden = id !== name; }); $('error').hidden = true; }
+  function show(name) { if (name !== 'curriculumLesson') stopCurriculumVoice(); views.forEach(id => { $(id).hidden = id !== name; }); $('error').hidden = true; }
   function error(message) { $('error').textContent = message; $('error').hidden = false; }
   async function api(path, body, timeoutMs = 30000) {
     const {data: {session}, error: authError} = await auth.auth.getSession();
@@ -279,11 +279,11 @@
   function planActions(options = []) {
     const suggestions = options.length ? options : ['I know some of this already', 'Add more practice questions', 'Change the plan'];
     const actions = [];
-    if (activePlan && !activePlan.ready_at) {
-      const ready = plannerButton('I’m ready — approve this plan', '✓', approvePlan);
+    if (activePlan) {
+      const ready = plannerButton(activePlan.ready_at ? 'Open first lesson' : 'I’m ready — start learning', '▶', approvePlan);
       ready.classList.add('planner-ready'); actions.push(ready);
     }
-    return [...actions, ...suggestions.map(label => plannerButton(label, '✦', () => replyToPlan(label))),
+    return [...actions, ...suggestions.map(label => plannerButton(label, '✦', /^(begin|start|let.s start)/i.test(label) ? approvePlan : () => replyToPlan(label))),
       plannerButton('Create another plan', '＋', startAnotherPlan)];
   }
   function showPlan(plan, autoVoice = false, editMode = false, animateLatest = false) {
@@ -328,7 +328,7 @@
       details.append(list); tree.append(details);
     });
     $('plannerSubtitle').textContent = plan.ready_at
-      ? 'Plan approved ✓ · Your lessons will be built from this plan next. You can still ask for changes.'
+      ? 'Plan approved ✓ · Open your first lesson when you’re ready. You can still ask for changes.'
       : 'Your plan is saved. Open each part to see its lessons, or ask the guide to adjust it.';
     $('plannerMessages').replaceChildren();
     const dialogue = plan.dialogue?.length ? plan.dialogue : [{role: 'assistant',
@@ -376,20 +376,120 @@
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
   async function approvePlan() {
-    if (busy || !activePlan || activePlan.ready_at) return;
-    const planId = activePlan.id, expectedRevision = activePlan.revision;
-    busy = true; $('plannerSend').disabled = true; plannerOptions([]);
+    if (busy || !activePlan) return;
+    const planId = activePlan.id, learnerId = child.id, serial = generation;
+    busy = true; $('plannerSend').disabled = true; plannerOptions([]); stopPlanVoice();
+    const pending = plannerPending('Preparing your first lesson');
     try {
-      const result = await api('plan/ready', {kid_id: child.id, plan_id: planId,
-        expected_revision: expectedRevision});
-      if (activePlan?.id !== planId) return;
-      plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
-      const editing = !!document.querySelector('#plannerTree .planner-edit-tools');
-      renderSavedPlans(); showPlan(result.plan, true, editing);
+      if (!activePlan.ready_at) {
+        const result = await api('plan/ready', {kid_id: learnerId, plan_id: planId,
+          expected_revision: activePlan.revision});
+        if (activePlan?.id !== planId || generation !== serial) return;
+        activePlan = result.plan;
+        plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
+        renderSavedPlans();
+      }
+      const result = await api('plan/lesson', {kid_id: learnerId, plan_id: planId,
+        expected_revision: activePlan.revision}, 120000);
+      if (generation !== serial || activePlan?.id !== planId) return;
+      openCurriculumLesson(result.lesson);
     } catch (err) {
-      error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
+      if (generation === serial) {
+        pending.remove(); showPlan(activePlan); error(err.message);
+      }
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
+  let teachingLesson = null, teachingAudioSerial = 0, teachingSection = 0;
+  const teachingAudioUrls = new Map();
+  function stopCurriculumVoice() {
+    ++teachingAudioSerial;
+    const audio = $('curriculumAudio');
+    if (audio) { audio.pause(); audio.onended = null; audio.removeAttribute('src'); }
+  }
+  function openCurriculumLesson(lesson) {
+    stopVoice(); stopPlanVoice(); stopCurriculumVoice(); teachingLesson = lesson; teachingSection = 0;
+    const content = lesson.content;
+    $('curriculumTitle').textContent = content.title;
+    $('curriculumMeta').textContent = `${activePlan.subject} · Grade ${child.age} · Unit 1 · Lesson 1`;
+    $('curriculumIntro').textContent = content.unit_intro;
+    $('curriculumObjectives').replaceChildren(...content.objectives.map(text => {
+      const li = document.createElement('li'); li.textContent = text; return li;
+    }));
+    $('curriculumSections').replaceChildren(...content.sections.map((part, index) => {
+      const section = document.createElement('section'); section.className = 'teaching-section';
+      section.id = `teachingSection${index}`;
+      const title = document.createElement('h2'); title.textContent = part.title;
+      const text = document.createElement('p'); text.textContent = part.explanation;
+      section.append(title, text);
+      if (part.worked_example) {
+        const example = document.createElement('div'); example.className = 'teaching-example';
+        const label = document.createElement('strong'); label.textContent = 'Worked example';
+        const words = document.createElement('p'); words.textContent = part.worked_example;
+        example.append(label, words); section.append(example);
+      }
+      const listen = document.createElement('button'); listen.type = 'button'; listen.className = 'back-button';
+      listen.textContent = '▶ Listen from here'; listen.onclick = () => playCurriculumSection(index);
+      section.append(listen); return section;
+    }));
+    $('curriculumSummary').textContent = content.summary;
+    $('curriculumQuestion').textContent = content.checkpoint.question;
+    $('curriculumFeedback').textContent = lesson.completed ? 'You have completed this lesson. You can review it again.' : '';
+    $('curriculumAnswers').replaceChildren(...content.checkpoint.options.map((text, optionIndex) => {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'choice';
+      button.textContent = text;
+      button.onclick = async () => {
+        if (busy) return;
+        stopCurriculumVoice(); busy = true;
+        const lessonId = teachingLesson.id;
+        const buttons = [...$('curriculumAnswers').children]; buttons.forEach(b => b.disabled = true);
+        try {
+          const result = await api('plan/lesson/answer', {kid_id: child.id, lesson_id: lessonId, option_index: optionIndex});
+          if (teachingLesson?.id !== lessonId || $('curriculumLesson').hidden) return;
+          $('curriculumFeedback').textContent = result.correct
+            ? `Well done — lesson complete. ${result.feedback}` : `Try again. ${result.feedback}`;
+          if (result.correct) teachingLesson.completed = true;
+        } catch (err) { error(err.message); }
+        finally { busy = false; buttons.forEach(b => b.disabled = false); }
+      };
+      return button;
+    }));
+    show('curriculumLesson'); $('curriculumReading').scrollTop = 0;
+    $('curriculumVoiceStatus').textContent = voiceEnabled ? 'Preparing your teacher’s voice…' : 'Read at your own pace, or press Listen.';
+    if (voiceEnabled) playCurriculumSection(0);
+  }
+  async function playCurriculumSection(index) {
+    if (!teachingLesson || $('curriculumLesson').hidden) return;
+    stopCurriculumVoice(); const serial = teachingAudioSerial;
+    const lessonId = teachingLesson.id, learnerId = child.id;
+    teachingSection = index;
+    const audio = $('curriculumAudio'), key = `${lessonId}:${index}`;
+    $('curriculumVoiceStatus').textContent = 'Preparing your teacher’s voice…';
+    try {
+      let cached = teachingAudioUrls.get(key);
+      if (!cached || cached.expires < Date.now()) {
+        const result = await api('plan/lesson/audio', {kid_id: learnerId, lesson_id: lessonId, section_index: index}, 120000);
+        cached = {url: result.url, expires: Date.now() + 480000}; teachingAudioUrls.set(key, cached);
+      }
+      if (serial !== teachingAudioSerial || teachingLesson?.id !== lessonId || $('curriculumLesson').hidden) return;
+      audio.src = cached.url;
+      audio.onended = () => {
+        if (serial !== teachingAudioSerial) return;
+        if (index + 1 < teachingLesson.content.sections.length) playCurriculumSection(index + 1);
+        else { $('curriculumVoiceStatus').textContent = 'Explanation finished. Try the question below.';
+          $('curriculumCheck').scrollIntoView({behavior: 'smooth', block: 'nearest'}); }
+      };
+      await audio.play();
+      document.querySelectorAll('.teaching-section').forEach((node, i) => node.classList.toggle('speaking', i === index));
+      if (index > 0) $(`teachingSection${index}`).scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      $('curriculumVoiceStatus').textContent = `Teacher speaking · Part ${index + 1} of ${teachingLesson.content.sections.length}`;
+    } catch (err) {
+      if (serial === teachingAudioSerial) $('curriculumVoiceStatus').textContent = err.name === 'NotAllowedError'
+        ? 'Your browser paused automatic audio. Press Listen to hear your teacher.' : err.message;
+    }
+  }
+  $('curriculumBack').onclick = () => { stopCurriculumVoice(); show('path'); showPlan(activePlan); };
+  $('curriculumListen').onclick = () => playCurriculumSection(teachingSection);
+  $('curriculumPause').onclick = () => { stopCurriculumVoice(); $('curriculumVoiceStatus').textContent = 'Voice paused. Press Listen to continue this part.'; };
   $('plannerForm').addEventListener('submit', event => {
     event.preventDefault(); const value = $('plannerInput').value.trim();
     if (!value) return;
@@ -609,3 +709,4 @@
   }
   initialize();
 })();
+
