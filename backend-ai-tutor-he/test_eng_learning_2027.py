@@ -561,6 +561,75 @@ class CurriculumTeachingTests(unittest.TestCase):
             self.route.LessonCheckpoint(question='Choose the right decimal.', options=['A', 'B'], correct_index=3,
                 explanation='A detailed explanation.', hint='A helpful hint.')
 
+    def test_course_resume_selection_and_cross_unit_reuse(self):
+        import json
+        body=self.setup_route(); parser=self.model()
+        self.plan['content']['units'].append({'title':'Comparing decimals','overview':'Compare values.',
+            'lessons':[{'title':'Ordering decimals','goal':'Order three decimals.'}]})
+        first=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        asyncio.run(self.route.curriculum_lesson_answer(self.route.TeachingAnswerRequest(
+            kid_id='child-id',lesson_id=first['id'],expected_content_version=1,option_index=0)))
+        second=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        self.assertEqual((second['unit_index'],second['lesson_index']),(0,1))
+        self.assertEqual(second['content']['title'],'Hundredths')
+        payload=json.loads(self.model_input['messages'][1]['content'])
+        self.assertEqual(payload['selected_lesson']['goal'],'Explain hundredths.')
+        self.assertNotEqual(self.route._recipe_key(self.plan,0,0),self.route._recipe_key(self.plan,0,1))
+        selected=self.route.PlanLessonRequest(kid_id='child-id',plan_id=self.plan_id,
+            expected_revision=1,unit_index=1,lesson_index=0)
+        third=asyncio.run(self.route.create_curriculum_lesson(selected))['lesson']
+        self.assertEqual((third['unit_index'],third['lesson_index']),(1,0))
+        payload=json.loads(self.model_input['messages'][1]['content'])
+        self.assertEqual(payload['selected_unit']['title'],'Comparing decimals')
+        self.assertEqual(third['content']['title'],'Ordering decimals')
+        self.assertEqual(parser.calls,3)
+        selected.unit_index=0;selected.lesson_index=0
+        review=asyncio.run(self.route.create_curriculum_lesson(selected))['lesson']
+        self.assertEqual(review['id'],first['id']);self.assertTrue(review['completed'])
+        self.assertEqual(parser.calls,3)
+        progress=asyncio.run(self.route.curriculum_plan_progress(body))
+        self.assertEqual(len(progress['lessons']),3);self.assertEqual(progress['completed_count'],1)
+        self.assertEqual(progress['resume']['lesson_index'],1)
+        asyncio.run(self.route.curriculum_lesson_answer(self.route.TeachingAnswerRequest(
+            kid_id='child-id',lesson_id=second['id'],expected_content_version=1,option_index=0)))
+        resumed=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        self.assertEqual(resumed['id'],third['id']);self.assertEqual(parser.calls,3)
+        asyncio.run(self.route.curriculum_lesson_answer(self.route.TeachingAnswerRequest(
+            kid_id='child-id',lesson_id=third['id'],expected_content_version=1,option_index=0)))
+        progress=asyncio.run(self.route.curriculum_plan_progress(body))
+        self.assertIsNone(progress['resume']);self.assertEqual(progress['completed_count'],3)
+        self.assertEqual(asyncio.run(self.route.create_curriculum_lesson(body))['lesson']['id'],first['id'])
+
+    def test_position_validation_and_stale_progress(self):
+        body=self.setup_route();parser=self.model()
+        for unit_index,lesson_index in [(1,0),(0,2)]:
+            request=self.route.PlanLessonRequest(kid_id='child-id',plan_id=self.plan_id,
+                expected_revision=1,unit_index=unit_index,lesson_index=lesson_index)
+            with self.assertRaises(self.route.HTTPException) as error:
+                asyncio.run(self.route.create_curriculum_lesson(request))
+            self.assertEqual(error.exception.status_code,422)
+        self.assertEqual(parser.calls,0)
+        with self.assertRaises(ValueError):
+            self.route.PlanLessonRequest(kid_id='child-id',plan_id=self.plan_id,expected_revision=1,unit_index=0)
+        body.expected_revision=0
+        with self.assertRaises(self.route.HTTPException) as error:
+            asyncio.run(self.route.curriculum_plan_progress(body))
+        self.assertEqual(error.exception.status_code,409)
+
+    def test_course_progress_is_private_and_ignores_old_plan_content(self):
+        body=self.setup_route();self.model()
+        first=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        owned=next(row for row in self.table.rows if row['id']==first['id'])
+        owned['completed_at']='done'
+        self.table.rows.extend([{**owned,'id':str(uuid4()),'child_id':'other-child','lesson_index':1},
+            {**owned,'id':str(uuid4()),'content_key':'old-plan','lesson_index':1}])
+        progress=asyncio.run(self.route.curriculum_plan_progress(body))
+        self.assertEqual(progress['completed_count'],1)
+        self.assertFalse(progress['lessons'][1]['available'])
+        self.assertFalse(progress['lessons'][1]['completed'])
+        self.plan['content']['title']='Changed syllabus'
+        self.assertEqual(asyncio.run(self.route.curriculum_plan_progress(body))['completed_count'],0)
+
 class TeachingVisualTests(unittest.TestCase):
     setup_route = CurriculumTeachingTests.setup_route
     draft = CurriculumTeachingTests.draft
@@ -682,6 +751,7 @@ class ParagraphTests(unittest.TestCase):
 
     def test_existing_lesson_upgrades_without_changing_checkpoint_or_completion(self):
         body=self.setup_route();content=self.draft().model_dump()
+        body.unit_index=0;body.lesson_index=0
         old={'id':str(uuid4()),'plan_id':self.plan_id,'user_id':'parent-id','child_id':'child-id',
             'grade':5,'content':content,'completed_at':'done','unit_index':0,'lesson_index':0,
             'prompt_version':1,'content_key':self.route._plan_digest(self.plan['content'])}

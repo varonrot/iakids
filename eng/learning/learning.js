@@ -13,6 +13,9 @@
   let user, children = [], child, catalog = [], library = [], plans = [], subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
   let plannerStage = 'subjects';
   let activePlan = null, introVoice = null, planAudioSerial = 0;
+  const curriculumProgress = new Map();
+  let curriculumProgressSerial = 0;
+  let curriculumOpenSerial = 0;
   const planAudioUrls = new Map();
   let voiceEnabled = true, audioSerial = 0, playingKey = '';
   let lessonDiagram, teacherTurns = [];
@@ -280,10 +283,10 @@
     const suggestions = options.length ? options : ['I know some of this already', 'Add more practice questions', 'Change the plan'];
     const actions = [];
     if (activePlan) {
-      const ready = plannerButton(activePlan.ready_at ? 'Open first lesson' : 'I’m ready — start learning', '▶', approvePlan);
+      const ready = plannerButton(activePlan.ready_at ? 'Continue learning' : 'I’m ready — start learning', '▶', () => approvePlan());
       ready.classList.add('planner-ready'); actions.push(ready);
     }
-    return [...actions, ...suggestions.map(label => plannerButton(label, '✦', /^(begin|start|let.s start)/i.test(label) ? approvePlan : () => replyToPlan(label))),
+    return [...actions, ...suggestions.map(label => plannerButton(label, '✦', /^(begin|start|let.s start)/i.test(label) ? () => approvePlan() : () => replyToPlan(label))),
       plannerButton('Create another plan', '＋', startAnotherPlan)];
   }
   function showPlan(plan, autoVoice = false, editMode = false, animateLatest = false) {
@@ -312,9 +315,13 @@
         overview.textContent = `In this unit: ${part.overview}`; details.append(summary, overview);
       } else details.append(summary);
       const list = document.createElement('ol');
-      for (const lesson of part.lessons) {
+      for (const [lessonIndex, lesson] of part.lessons.entries()) {
         const row = document.createElement('li'), name = document.createElement('strong'), goal = document.createElement('small');
         name.textContent = `Lesson ${++lessonNumber}: ${cleanTitle(lesson.title, 'Lesson')}`; goal.textContent = lesson.goal; row.append(name, goal);
+        const open = document.createElement('button'); open.type = 'button'; open.className = 'plan-lesson-open';
+        open.dataset.unit = index; open.dataset.lesson = lessonIndex;
+        open.textContent = 'Open lesson →';
+        open.onclick = () => approvePlan({unit_index:index,lesson_index:lessonIndex}); row.append(open);
         if (lesson.practice_questions?.length) {
           const questions = document.createElement('ul'); questions.className = 'plan-questions';
           lesson.practice_questions.forEach(question => {
@@ -328,7 +335,7 @@
       details.append(list); tree.append(details);
     });
     $('plannerSubtitle').textContent = plan.ready_at
-      ? 'Plan approved ✓ · Open your first lesson when you’re ready. You can still ask for changes.'
+      ? 'Plan approved ✓ · Continue where you left off, or choose any lesson below. You can still ask for changes.'
       : 'Your plan is saved. Open each part to see its lessons, or ask the guide to adjust it.';
     $('plannerMessages').replaceChildren();
     const dialogue = plan.dialogue?.length ? plan.dialogue : [{role: 'assistant',
@@ -341,6 +348,50 @@
       ? 'Tell the guide what to change in this plan…'
       : 'I already know the basics. Can we spend more time on…?';
     if (autoVoice && dialogue.at(-1)?.role === 'assistant') playPlanVoice(dialogue.length - 1, true);
+    refreshCurriculumProgress(plan);
+  }
+  function curriculumLessons() {
+    return (activePlan?.content.units || []).flatMap((part,unit_index) =>
+      part.lessons.map((lesson,lesson_index) => ({...lesson,unit_index,lesson_index})));
+  }
+  function progressFor(plan) {
+    const saved = curriculumProgress.get(plan.id);
+    return saved?.revision === plan.revision ? saved.lessons : [];
+  }
+  function updateCurriculumNavigation() {
+    if(!teachingLesson || !activePlan)return;
+    const lessons=curriculumLessons(), position=lessons.findIndex(item =>
+      item.unit_index===teachingLesson.unit_index && item.lesson_index===teachingLesson.lesson_index);
+    const select=$('curriculumLessonSelect'); select.replaceChildren();
+    activePlan.content.units.forEach((unit,unit_index)=>{
+      const group=document.createElement('optgroup');group.label=`Unit ${unit_index+1}: ${unit.title}`;
+      lessons.forEach((item,index)=>{
+        if(item.unit_index!==unit_index)return;
+        const option=document.createElement('option'),status=progressFor(activePlan).find(p=>p.unit_index===item.unit_index&&p.lesson_index===item.lesson_index);
+        option.value=String(index);option.textContent=`${status?.completed?'✓ ':''}Lesson ${index+1}: ${item.title}`;
+        option.selected=index===position;group.append(option);
+      });select.append(group);
+    });
+    $('curriculumPreviousLesson').disabled=busy||position<=0;
+    $('curriculumNextLesson').disabled=busy||position<0||position===lessons.length-1;
+    select.disabled=busy;
+    const completed=progressFor(activePlan).filter(item=>item.completed).length;
+    $('curriculumCourseProgress').textContent=`Lesson ${position+1} of ${lessons.length} · ${completed} completed`;
+    $('curriculumContinueLesson').hidden=!teachingLesson.completed;
+    $('curriculumContinueLesson').textContent=position===lessons.length-1?'Back to learning plan ✓':'Continue to next lesson →';
+  }
+  async function refreshCurriculumProgress(plan) {
+    const token=++curriculumProgressSerial,learnerId=child.id;
+    try {
+      const result=await api('plan/progress',{kid_id:learnerId,plan_id:plan.id,expected_revision:plan.revision});
+      if(token!==curriculumProgressSerial||child.id!==learnerId||activePlan?.id!==plan.id||activePlan.revision!==plan.revision)return;
+      curriculumProgress.set(plan.id,{revision:plan.revision,lessons:result.lessons});
+      document.querySelectorAll('.plan-lesson-open').forEach(button=>{
+        const item=result.lessons.find(p=>p.unit_index===Number(button.dataset.unit)&&p.lesson_index===Number(button.dataset.lesson));
+        button.textContent=item?.completed?'✓ Review lesson':item?.available?'Continue lesson →':'Open lesson →';
+      });
+      updateCurriculumNavigation();
+    } catch(err) { /* Lessons remain accessible if the status request fails. */ }
   }
   async function createPlan(chosenSubject, topic, requestText) {
     if (busy) return;
@@ -375,11 +426,14 @@
       error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
-  async function approvePlan() {
+  async function approvePlan(position = null) {
     if (busy || !activePlan) return;
     const planId = activePlan.id, learnerId = child.id, serial = generation;
+    const openSerial=++curriculumOpenSerial;
     busy = true; $('plannerSend').disabled = true; plannerOptions([]); stopPlanVoice();
-    const pending = plannerPending('Preparing your first lesson');
+    const inLesson=!$('curriculumLesson').hidden;
+    if(inLesson) {stopCurriculumVoice();++teachingVisualSerial;$('curriculumVoiceStatus').textContent='Preparing your lesson';$('curriculumVoiceStatus').classList.add('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','true');updateCurriculumNavigation();}
+    const pending = inLesson ? null : plannerPending('Preparing your lesson');
     try {
       if (!activePlan.ready_at) {
         const result = await api('plan/ready', {kid_id: learnerId, plan_id: planId,
@@ -390,14 +444,15 @@
         renderSavedPlans();
       }
       const result = await api('plan/lesson', {kid_id: learnerId, plan_id: planId,
-        expected_revision: activePlan.revision}, 120000);
-      if (generation !== serial || activePlan?.id !== planId) return;
+        expected_revision: activePlan.revision,...(position || {})}, 120000);
+      if (generation !== serial || activePlan?.id !== planId || openSerial!==curriculumOpenSerial) return;
       openCurriculumLesson(result.lesson);
+      refreshCurriculumProgress(activePlan);
     } catch (err) {
       if (generation === serial) {
-        pending.remove(); showPlan(activePlan); error(err.message);
+        pending?.remove(); if(!inLesson)showPlan(activePlan); error(err.message);
       }
-    } finally { busy = false; $('plannerSend').disabled = false; }
+    } finally { busy = false; $('plannerSend').disabled = false;$('curriculumVoiceStatus').classList.remove('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','false');updateCurriculumNavigation(); }
   }
   let teachingLesson = null, teachingAudioSerial = 0, teachingSection = -1, teachingVisualSerial = 0;
   let teachingSeen = new Set();
@@ -412,7 +467,10 @@
     teachingSeen = new Set();
     $('curriculumLesson').classList.toggle('paragraph-mode',!!lesson.content.paragraph_version);
     $('curriculumTitle').textContent = lesson.content.title;
-    $('curriculumMeta').textContent = `${activePlan.subject} · Grade ${child.age} · Unit 1 · Lesson 1`;
+    lesson.unit_index ??= 0; lesson.lesson_index ??= 0;
+    const number=curriculumLessons().findIndex(item=>item.unit_index===lesson.unit_index&&item.lesson_index===lesson.lesson_index)+1;
+    $('curriculumMeta').textContent = `${activePlan.subject} · Grade ${child.age} · Unit ${lesson.unit_index+1} · Lesson ${number}`;
+    updateCurriculumNavigation();
     $('curriculumFeedback').textContent = lesson.completed ? 'You have completed this lesson. Review it whenever you like.' : '';
     $('curriculumQuestion').textContent = lesson.content.checkpoint.question;
     $('curriculumAnswers').replaceChildren(...lesson.content.checkpoint.options.map((text, optionIndex) => {
@@ -428,9 +486,15 @@
           if (teachingLesson?.id !== lessonId || $('curriculumLesson').hidden) return;
           $('curriculumFeedback').textContent = result.correct
             ? `Well done — lesson complete. ${result.feedback}` : `Try again. ${result.feedback}`;
-          if (result.correct) teachingLesson.completed = true;
+          if (result.correct) {
+            teachingLesson.completed = true;
+            const entries=progressFor(activePlan);
+            const item=entries.find(p=>p.unit_index===teachingLesson.unit_index&&p.lesson_index===teachingLesson.lesson_index);
+            if(item)item.completed=true;
+            refreshCurriculumProgress(activePlan);updateCurriculumNavigation();
+          }
         } catch (err) { error(err.message); }
-        finally { busy = false; buttons.forEach(b => b.disabled = false); }
+        finally { busy = false; buttons.forEach(b => b.disabled = false);updateCurriculumNavigation(); }
       };
       return button;
     }));
@@ -608,7 +672,23 @@
         ? 'Your browser paused automatic audio. Press Replay to hear your teacher.' : err.message;
     }
   }
-  $('curriculumBack').onclick=()=> { stopCurriculumVoice();++teachingVisualSerial;show('path');showPlan(activePlan); };
+  $('curriculumBack').onclick=()=> { ++curriculumOpenSerial;stopCurriculumVoice();++teachingVisualSerial;show('path');showPlan(activePlan); };
+  function moveCurriculumLesson(offset) {
+    const lessons=curriculumLessons(),index=lessons.findIndex(item=>item.unit_index===teachingLesson.unit_index&&item.lesson_index===teachingLesson.lesson_index);
+    const target=lessons[index+offset];
+    if(target)approvePlan({unit_index:target.unit_index,lesson_index:target.lesson_index});
+  }
+  $('curriculumPreviousLesson').onclick=()=>moveCurriculumLesson(-1);
+  $('curriculumNextLesson').onclick=()=>moveCurriculumLesson(1);
+  $('curriculumLessonSelect').onchange=()=>{
+    const target=curriculumLessons()[Number($('curriculumLessonSelect').value)];
+    if(target)approvePlan({unit_index:target.unit_index,lesson_index:target.lesson_index});
+  };
+  $('curriculumContinueLesson').onclick=()=>{
+    const lessons=curriculumLessons(),last=lessons.at(-1);
+    if(teachingLesson.unit_index===last.unit_index&&teachingLesson.lesson_index===last.lesson_index)$('curriculumBack').click();
+    else moveCurriculumLesson(1);
+  };
   $('curriculumListen').onclick=()=>playCurriculumSection(teachingSection);
   $('curriculumPause').onclick=()=> { stopCurriculumVoice();$('curriculumVoiceStatus').textContent='Voice paused. Press Replay to hear this part again.'; };
   $('curriculumVoiceToggle').onclick=()=> {
@@ -841,6 +921,3 @@
   }
   initialize();
 })();
-
-
-
