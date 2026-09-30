@@ -1,0 +1,99 @@
+{
+  "unit_overview": "Understand decimal notation and read decimal numbers, then explain how digit positions represent ones, tenths and hundredths.",
+  "lessons": [
+    {
+      "scope": {
+        "title": "Understanding Decimals",
+        "goal": "Explain decimal notation as whole units and parts of a unit, and read and write simple decimal numbers.",
+        "new_learning": ["Connect tenths of a whole to decimal notation", "Distinguish the whole part from the fractional part", "Read and write simple decimals"],
+        "prior_knowledge": ["Whole numbers", "A whole divided into equal parts"],
+        "deferred_topics": ["Detailed digit values and expanded form: lesson 2", "Comparing and ordering decimals: unit 2", "Decimal arithmetic: later units"],
+        "practice_questions": ["Write four tenths as a decimal.", "Read 0.3 in words.", "In 2.6 metres, how many complete metres are there?"]
+      },
+      "content": {
+        "title": "Understanding Decimals",
+        "unit_intro": "In this unit, we will learn how decimals describe whole units and parts of a unit. This first lesson focuses on what the notation means and how to read it. In the next lesson, we will investigate the value of individual digits. For now, think about a measurement that does not stop exactly at a whole number.",
+        "objectives": ["Connect tenths to decimal notation.", "Recognize the whole part and fractional part.", "Read and write simple decimal numbers."],
+        "sections": [
+          {
+            "title": "A whole and equal parts",
+            "explanation": "A decimal is a way of writing a number using place value and a decimal point. It can represent a value smaller than one, equal to one, or greater than one. Imagine a measuring strip that is exactly one metre long. If it is divided into ten equal lengths, each length is one tenth of a metre. Four of those equal lengths make four tenths of a metre. We write this measurement as 0.4 metres. The zero tells us that there is no complete metre, while the part after the point describes a fraction of a metre. We have changed how the measurement is written, not its size. The fraction 4/10 and the decimal 0.4 describe the same amount. The equal divisions matter: four pieces of different sizes would not necessarily make four tenths.",
+            "worked_example": "A strip is divided into ten equal parts and three are shaded. The shaded amount is three tenths of the strip. As a fraction, write 3/10. As a decimal, write 0.3.",
+            "visual_brief": "Show one strip divided into ten equal parts with exactly three shaded, labelled 3/10 = 0.3."
+          },
+          {
+            "title": "Decimals can include whole units",
+            "explanation": "The decimal point separates the whole-number part from the fractional part. Decimals are useful even when a measurement is greater than one. If a length contains two complete metres and six tenths of another metre, its decimal notation is 2.6 metres. Read the two parts together: two whole metres and an extra part of a metre. Do not treat the point as decoration that can be removed. Writing 26 would mean twenty-six complete units, which is a different measurement. Decimal notation can also represent a whole number. For example, 2.0 means two whole units with no extra fractional amount, so it represents the same value as 2.",
+            "worked_example": "A length of 1.3 metres contains one complete metre and three tenths of the next metre. It is longer than one complete metre, even though it is written with a decimal point.",
+            "visual_brief": "Show one full metre strip and three tenths of a second identical strip, labelled 1.3 metres."
+          },
+          {
+            "title": "Reading and writing decimals",
+            "explanation": "One reliable way to read a decimal aloud is to say the whole-number part, then point, then each digit after the point separately. Read 2.45 as two point four five. Keep the digits in their written order. When a number has a single digit after the point, you can also describe that fractional amount in tenths. Read 0.7 as zero point seven or seven tenths. The wording changes, but the amount stays the same. When writing a number from words, place the decimal point between the whole part and the fractional part. For an amount with no complete units, write a zero before the point to make the notation easy to read. We will explore why different positions after the point have different values in the next lesson.",
+            "worked_example": "Write five tenths as 0.5. Read 3.8 as three point eight, or three and eight tenths. In both examples, the point separates complete units from the fractional amount.",
+            "visual_brief": "Show decimal 3.8 alongside three full units and eight tenths of one additional unit."
+          }
+        ],
+        "summary": "Decimal notation can describe whole units and parts of a unit. The point separates these two parts. Four tenths can be written as 0.4, and a decimal such as 2.6 can be greater than one. You can read the digits after the point individually.",
+        "checkpoint": {
+          "question": "Which decimal represents four tenths of one whole?",
+          "options": ["0.4", "4.0", "0.04"],
+          "correct_index": 0,
+          "explanation": "Four tenths means four of ten equal parts of one whole. It is written as 0.4. The number 4.0 represents four complete wholes, while 0.04 represents four hundredths, a different fractional amount.",
+          "hint": "There are no complete wholes, and four of the ten equal parts are selected."
+        },
+        "quality_version": 2
+      }
+    },
+    {
+      "scope": {
+        "title": "Place Value of Decimals",
+        "goal": "Explain digit values through hundredths, the role of zero, and expanded form without introducing decimal comparison or arithmetic procedures.",
+        "new_learning": ["Distinguish a digit from its value", "Explain ones, tenths and hundredths", "Use zero as a placeholder", "Write a decimal in expanded form"],
+        "prior_knowledge": ["The decimal point separates whole and fractional parts", "Reading simple decimals", "Tenths as equal parts of one whole"],
+        "deferred_topics": ["Comparing and ordering decimals: unit 2", "Thousandths are outside this lesson's scope", "Decimal arithmetic procedures: later units"],
+        "practice_questions": ["What is the value of the digit 4 in 3.46?", "Explain what the digit 4 represents in 0.4 and in 0.04.", "Write 7.34 in expanded form."]
+      },
+      "content": {
+        "title": "Place Value of Decimals",
+        "unit_intro": "This unit connects decimal notation to the amounts it represents. The first lesson introduced whole units, fractional parts and reading decimals. Here we will focus on individual digits: why their positions matter, what zero does, and how to show a number as the sum of its place values.",
+        "objectives": ["Identify ones, tenths and hundredths.", "Explain the value of a digit and the role of zero.", "Write a decimal in expanded form."],
+        "sections": [
+          {
+            "title": "A digit and its value",
+            "explanation": "Recall that the decimal point separates the whole part from the fractional part. Now look more closely at the positions around it. The position immediately to the left is the ones place. Immediately to the right is the tenths place, followed by the hundredths place. A digit tells us how many of that position's units we have. In 6.27, the 6 represents six ones, the 2 represents two tenths, and the 7 represents seven hundredths. The digit and its value are different ideas. The digit 2 is the symbol you see, but its value here is 0.2. Naming only the symbol does not tell us how much it represents.",
+            "worked_example": "In 3.46, the digit 4 is in the tenths place. It represents four tenths, so its value is 0.4. The digit 6 is in the hundredths place, so its value is 0.06.",
+            "visual_brief": "Use a place-value table for 3.46 with columns ones, tenths and hundredths. Highlight the 4 and label its value 0.4."
+          },
+          {
+            "title": "Why hundredths are a different unit",
+            "explanation": "Take one whole square and divide it into ten equal columns. One column represents one tenth. Divide each column into ten equal small squares. The whole now contains one hundred equal small squares, so each small square represents one hundredth. This shows why one tenth is the same amount as ten hundredths. It also explains why the same digit can represent different amounts. In 0.4, the 4 counts tenths. In 0.04, the 4 counts hundredths. The symbol is identical, but the unit it counts has changed. Always read a digit together with its position.",
+            "worked_example": "On a hundred-square grid, one complete column contains ten small squares. Shading that column shows one tenth, or ten hundredths. Shading just one small square shows one hundredth.",
+            "visual_brief": "Show a ten-by-ten grid with one column shaded, and a second identical grid with one small square shaded. Label one tenth and one hundredth."
+          },
+          {
+            "title": "Zero holds a position",
+            "explanation": "Zero can tell us that a particular position contains none of its units. In 2.05, there are two ones, zero tenths and five hundredths. The zero keeps the 5 in the hundredths position. If we remove that zero and write 2.5, the 5 now counts tenths, so we have changed the amount. A place-value table makes the difference visible: give every digit its own column, including zeros. Do not move the remaining digits together when one position has a value of zero.",
+            "worked_example": "The number 4.08 has four ones, zero tenths and eight hundredths. The value of the 8 is 0.08. In 4.8, the 8 occupies a different position and represents 0.8.",
+            "visual_brief": "Show a place-value table for 4.08, retaining the zero in the tenths column and highlighting eight hundredths."
+          },
+          {
+            "title": "Showing every part of a number",
+            "explanation": "Expanded form records the value of each occupied position separately. It explains the structure of a number. For 7.34, the whole part contributes 7, the tenths contribute 0.3, and the hundredths contribute 0.04. Write 7.34 = 7 + 0.3 + 0.04. Notice that the final term is 0.04, not 0.4: the 4 still represents hundredths. When a position contains zero, its contribution may be included as zero or left out of the expanded expression. The remaining contributions must keep their original values.",
+            "worked_example": "For 5.09, write 5 ones, 0 tenths and 9 hundredths. Its expanded form is 5 + 0.09. Leaving out the zero contribution does not move the 9 out of the hundredths place.",
+            "visual_brief": "Show 5.09 aligned above a place-value table, with arrows from 5 to 5 ones and from 9 to 0.09."
+          }
+        ],
+        "summary": "A digit's position determines the unit it counts. The first two places after the decimal point are tenths and hundredths. Zero can hold an empty position. Expanded form shows each digit's value separately, as in 7.34 = 7 + 0.3 + 0.04.",
+        "checkpoint": {
+          "question": "What is the value of the digit 6 in 2.06?",
+          "options": ["0.6", "0.06", "6"],
+          "correct_index": 1,
+          "explanation": "The zero occupies the tenths place, so the 6 is in the hundredths place. It represents six hundredths, written as 0.06.",
+          "hint": "Count the positions after the point: tenths first, hundredths second."
+        },
+        "quality_version": 2
+      }
+    }
+  ]
+}

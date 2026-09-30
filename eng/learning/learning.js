@@ -444,7 +444,7 @@
         renderSavedPlans();
       }
       const result = await api('plan/lesson', {kid_id: learnerId, plan_id: planId,
-        expected_revision: activePlan.revision,...(position || {})}, 120000);
+        expected_revision: activePlan.revision,...(position || {})}, 180000);
       if (generation !== serial || activePlan?.id !== planId || openSerial!==curriculumOpenSerial) return;
       openCurriculumLesson(result.lesson);
       refreshCurriculumProgress(activePlan);
@@ -482,7 +482,7 @@
         const lessonId = teachingLesson.id, learnerId = child.id;
         const buttons = [...$('curriculumAnswers').children]; buttons.forEach(b => b.disabled = true);
         try {
-          const result = await api('plan/lesson/answer', {kid_id: learnerId, lesson_id: lessonId, option_index: optionIndex, expected_content_version: teachingLesson.content.paragraph_version || 0});
+          const result = await api('plan/lesson/answer', {kid_id: learnerId, lesson_id: lessonId, option_index: optionIndex, expected_content_version: teachingLesson.content.paragraph_version || 0, expected_content_token: teachingLesson.content_token || ""});
           if (teachingLesson?.id !== lessonId || $('curriculumLesson').hidden) return;
           $('curriculumFeedback').textContent = result.correct
             ? `Well done — lesson complete. ${result.feedback}` : `Try again. ${result.feedback}`;
@@ -506,13 +506,13 @@
     selectTeachingSlide(-1, voiceEnabled);
   }
   function loadTeachingMedia(kind, index) {
-    const lessonId = teachingLesson.id, learnerId = child.id, key = `${lessonId}:${index}`;
+    const lessonId = teachingLesson.id, learnerId = child.id, key = `${lessonId}:${teachingLesson.content_token || "legacy"}:${index}`;
     const cache = kind === 'audio' ? teachingAudioUrls : teachingVisuals;
     const cached = cache.get(key);
     if (cached && cached.expires > Date.now()) return Promise.resolve(cached.result);
     const pendingKey = `${kind}:${key}`;
     if (teachingPending.has(pendingKey)) return teachingPending.get(pendingKey);
-    const pending = api(`plan/lesson/${kind}`, {kid_id: learnerId, lesson_id: lessonId, section_index: index, expected_content_version: teachingLesson.content.paragraph_version || 0}, 120000)
+    const pending = api(`plan/lesson/${kind}`, {kid_id: learnerId, lesson_id: lessonId, section_index: index, expected_content_version: teachingLesson.content.paragraph_version || 0, expected_content_token: teachingLesson.content_token || ""}, 120000)
       .then(result => { cache.set(key, {result, expires: Date.now() + 480000}); return result; })
       .finally(() => teachingPending.delete(pendingKey));
     teachingPending.set(pendingKey, pending); return pending;

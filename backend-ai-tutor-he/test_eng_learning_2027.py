@@ -477,6 +477,9 @@ class CurriculumTeachingTests(unittest.TestCase):
         class Completions:
             calls = 0
             async def parse(self, **kwargs):
+                if kwargs['response_format'] is owner.route.TeachingReview:
+                    return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(
+                        parsed=owner.route.TeachingReview(approved=True,blocking_issues=[])))])
                 self.calls += 1
                 owner.model_input = kwargs
                 if mutate:
@@ -614,6 +617,58 @@ class CurriculumTeachingTests(unittest.TestCase):
         body.expected_revision=0
         with self.assertRaises(self.route.HTTPException) as error:
             asyncio.run(self.route.curriculum_plan_progress(body))
+        self.assertEqual(error.exception.status_code,409)
+
+    def test_review_rejects_then_rewrites_before_saving(self):
+        body=self.setup_route(); owner=self; calls=[]
+        class Completions:
+            async def parse(self, **kwargs):
+                calls.append(kwargs)
+                if kwargs['response_format'] is owner.route.TeachingReview:
+                    accepted=len(calls)==4
+                    parsed=owner.route.TeachingReview(approved=accepted,
+                        blocking_issues=[] if accepted else ['Decimals are not restricted to values less than one.'])
+                else:
+                    parsed=owner.draft()
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
+        self.route.aclient=types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(completions=Completions())))
+        result=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        self.assertEqual(len(calls),4)
+        self.assertIn('not restricted',calls[2]['messages'][-1]['content'])
+        self.assertEqual(result['content']['quality_version'],2)
+        asyncio.run(self.route.create_curriculum_lesson(body))
+        self.assertEqual(len(calls),4)
+
+    def test_unapproved_content_is_not_saved_or_cached(self):
+        body=self.setup_route();owner=self
+        class Completions:
+            async def parse(self, **kwargs):
+                parsed=(owner.route.TeachingReview(approved=False,blocking_issues=['Repeats the previous lesson.'])
+                    if kwargs['response_format'] is owner.route.TeachingReview else owner.draft())
+                return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(parsed=parsed))])
+        self.route.aclient=types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(completions=Completions())))
+        with self.assertRaises(self.route.HTTPException) as error:
+            asyncio.run(self.route.create_curriculum_lesson(body))
+        self.assertEqual(error.exception.status_code,502)
+        self.assertEqual(len(self.table.rows),1)  # Only the original plan; no lesson/cache/media.
+
+    def test_next_lesson_receives_actual_prior_content_and_stale_media_is_rejected(self):
+        import json
+        body=self.setup_route();self.model()
+        first=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        body.unit_index=0;body.lesson_index=1
+        asyncio.run(self.route.create_curriculum_lesson(body))
+        context=json.loads(self.model_input['messages'][1]['content'])['prior_lesson_content']
+        self.assertEqual(len(context),1)
+        self.assertIn('A tenth is',context[0]['explanations'])
+        self.assertIn('Three tenths',context[0]['worked_examples'][0])
+        self.assertNotIn('parent-id',json.dumps(context));self.assertNotIn('child-id',json.dumps(context))
+        row=next(row for row in self.table.rows if row['id']==first['id'])
+        row['content']['summary']='An edited summary changes the content token.'
+        with self.assertRaises(self.route.HTTPException) as error:
+            asyncio.run(self.route.curriculum_lesson_answer(self.route.TeachingAnswerRequest(
+                kid_id='child-id',lesson_id=first['id'],expected_content_version=1,
+                expected_content_token=first['content_token'],option_index=0)))
         self.assertEqual(error.exception.status_code,409)
 
     def test_course_progress_is_private_and_ignores_old_plan_content(self):
