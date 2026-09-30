@@ -687,7 +687,9 @@ async def curriculum_lesson_audio(body: TeachingAudioRequest, authorization: str
             f"Option {index + 1}: {option}" for index, option in enumerate(checkpoint["options"]))
     else:
         section = content["sections"][body.section_index]
-        text = section["title"] + ". " + section["explanation"] + "\n" + section["worked_example"]
+        # A split paragraph continues its original section; announce its heading only once.
+        heading = section["title"] + ". " if section.get("paragraph_index", 0) == 0 else ""
+        text = heading + section["explanation"] + "\n" + section["worked_example"]
         if body.section_index == len(content["sections"]) - 1:
             text += "\n" + content["summary"]
     digest = hashlib.sha256(f"{VOICE_MODEL}|{VOICE_NAME}|{text}".encode()).hexdigest()[:24]
@@ -1206,6 +1208,5 @@ async def learning_illustration(body: Illustration, authorization: str = Header(
                 raise HTTPException(status_code=503, detail="The image is still being prepared.")
     return {"url": await run_in_threadpool(signed_url_cached, BUCKET, path, 600),
             "alt_text": f"Illustration for {skill['title']}"}
-
 
 

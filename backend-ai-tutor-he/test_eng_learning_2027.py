@@ -635,6 +635,24 @@ class ParagraphTests(unittest.TestCase):
         self.assertEqual(self.route._paragraph_content(prepared),prepared)
         self.assertTrue(all(p['paragraph_count']==len(prepared['sections']) for p in prepared['sections']))
 
+    def test_voice_announces_heading_only_on_first_paragraph_of_each_section(self):
+        body=self.setup_route(); self.model()
+        lesson=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
+        captured=[]
+        self.route._cached_narration=lambda path: False
+        self.route._generate_narration=lambda text,grade: captured.append(text) or b'audio'
+        self.route.signed_url_cached=lambda *args: 'https://example.test/audio.wav'
+        self.route.sb.storage=types.SimpleNamespace(from_=lambda bucket: types.SimpleNamespace(upload=lambda *args: None))
+        for index, section in enumerate(lesson['content']['sections']):
+            asyncio.run(self.route.curriculum_lesson_audio(self.route.TeachingAudioRequest(
+                expected_content_version=1, kid_id='child-id', lesson_id=lesson['id'], section_index=index)))
+            text=captured[-1]
+            if section['paragraph_index']==0:
+                self.assertTrue(text.startswith(section['title']+'. '))
+            else:
+                self.assertNotIn(section['title'],text)
+                self.assertTrue(text.startswith(section['explanation'] or '\n'+section['worked_example']))
+
     def test_next_child_reuses_content_voice_and_keeps_progress_private(self):
         import json
         body=self.setup_route(); parser=self.model()
@@ -679,5 +697,3 @@ class ParagraphTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-
