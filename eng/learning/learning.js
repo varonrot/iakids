@@ -335,7 +335,7 @@
       details.append(list); tree.append(details);
     });
     $('plannerSubtitle').textContent = plan.ready_at
-      ? 'Plan approved ✓ · Continue where you left off, or choose any lesson below. You can still ask for changes.'
+      ? 'Continue learning, review a completed lesson, or adjust your plan.'
       : 'Your plan is saved. Open each part to see its lessons, or ask the guide to adjust it.';
     $('plannerMessages').replaceChildren();
     const dialogue = plan.dialogue?.length ? plan.dialogue : [{role: 'assistant',
@@ -343,11 +343,21 @@
     dialogue.forEach((turn, index) => plannerBubble(turn.role === 'user' ? 'learner' : 'guide', turn.text,
       turn.role === 'assistant' && plan.dialogue?.length ? index : -1, null,
       animateLatest && index === dialogue.length - 1));
+    // Saved approval messages are history, not a fresh instruction to begin again.
+    if(plan.ready_at && !animateLatest) {
+      const messages=$('plannerMessages'),history=document.createElement('details');
+      history.className='planner-history';
+      const label=document.createElement('summary');label.textContent='Previous planning conversation';
+      history.append(label,...messages.childNodes);messages.append(history);
+      const status=document.createElement('p');status.id='plannerResumeStatus';
+      status.className='planner-resume-status';status.setAttribute('role','status');
+      status.textContent='Your learning plan is saved. Checking your progress…';messages.append(status);
+    }
     plannerOptions(planActions(dialogue.at(-1)?.options || []));
     $('plannerInput').placeholder = editMode
       ? 'Tell the guide what to change in this plan…'
       : 'I already know the basics. Can we spend more time on…?';
-    if (autoVoice && dialogue.at(-1)?.role === 'assistant') playPlanVoice(dialogue.length - 1, true);
+    if (autoVoice && (!plan.ready_at || animateLatest) && dialogue.at(-1)?.role === 'assistant') playPlanVoice(dialogue.length - 1, true);
     refreshCurriculumProgress(plan);
   }
   function curriculumLessons() {
@@ -390,8 +400,16 @@
         const item=result.lessons.find(p=>p.unit_index===Number(button.dataset.unit)&&p.lesson_index===Number(button.dataset.lesson));
         button.textContent=item?.completed?'✓ Review lesson':item?.available?'Continue lesson →':'Open lesson →';
       });
+      const resumeStatus=$('plannerResumeStatus');
+      if(resumeStatus) {
+        const completed=result.lessons.filter(item=>item.completed).length;
+        const next=result.lessons.find(item=>!item.completed);
+        resumeStatus.textContent=next
+          ? `${completed} of ${result.lessons.length} lessons completed. ${next.available ? 'Continue' : 'Up next'}: Lesson ${next.number} — ${next.title}. Choose Continue learning when you’re ready.`
+          : `You’ve completed all ${result.lessons.length} lessons in this plan. Choose any lesson to review.`;
+      }
       updateCurriculumNavigation();
-    } catch(err) { /* Lessons remain accessible if the status request fails. */ }
+    } catch(err) { if(!document || token!==curriculumProgressSerial || child.id!==learnerId || activePlan?.id!==plan.id)return;const status=$('plannerResumeStatus');if(status)status.textContent='Your learning plan is saved. Choose Continue learning or open a lesson.'; /* Lessons remain accessible if the status request fails. */ }
   }
   async function createPlan(chosenSubject, topic, requestText) {
     if (busy) return;
