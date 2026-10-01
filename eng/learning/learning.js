@@ -225,11 +225,11 @@
       edit.addEventListener('click', () => {
         showPlan(plan, true, true); $('plannerInput').focus();
       });
-      row.append(open, edit); target.append(row);
+      row.append(open); if (!plan.ready_at) row.append(edit); target.append(row);
     }
   }
   async function deletePlan(plan) {
-    if (busy || !child || !plans.some(item => item.id === plan.id)) return;
+    if (plan.ready_at || busy || !child || !plans.some(item => item.id === plan.id)) return;
     if (!window.confirm(`Delete your ${plan.subject} · ${plan.topic} plan? This also removes its conversation and cannot be undone.`)) return;
     busy = true;
     try {
@@ -243,6 +243,7 @@
   }
   function renderPath() {
     stopPlanVoice(); if (recognition) recognition.stop(); activePlan = null;
+    $('plannerForm').hidden = false;
     introVoice = {stage: 'welcome'};
     show('path'); $('plannerGrade').textContent = `${child.child_name} · Grade ${child.age}`;
     $('plannerMessages').replaceChildren(); $('plannerTree').replaceChildren();
@@ -270,6 +271,7 @@
   }
   function startAnotherPlan() {
     if (busy || !activePlan) return;
+    $('plannerForm').hidden = false;
     const previous = activePlan;
     const currentSubject = library.find(item => item.title.toLowerCase() === previous.subject.toLowerCase());
     if (!currentSubject) { renderPath(); return; }
@@ -283,14 +285,17 @@
     const suggestions = options.length ? options : ['I know some of this already', 'Add more practice questions', 'Change the plan'];
     const actions = [];
     if (activePlan) {
-      const ready = plannerButton(activePlan.ready_at ? 'Continue learning' : 'I’m ready — start learning', '▶', () => approvePlan());
+      const ready = plannerButton(activePlan.ready_at ? 'Continue learning' : 'Approve plan & start learning', '▶', () => approvePlan());
       ready.classList.add('planner-ready'); actions.push(ready);
     }
+    if (activePlan?.ready_at) return [...actions, plannerButton('Create another plan', '＋', startAnotherPlan)];
     return [...actions, ...suggestions.map(label => plannerButton(label, '✦', /^(begin|start|let.s start)/i.test(label) ? () => approvePlan() : () => replyToPlan(label))),
       plannerButton('Create another plan', '＋', startAnotherPlan)];
   }
   function showPlan(plan, autoVoice = false, editMode = false, animateLatest = false) {
     const content = plan.content; if (!content?.units) return;
+    editMode = editMode && !plan.ready_at;
+    $('plannerForm').hidden = !!plan.ready_at;
     stopPlanVoice(); if (recognition) recognition.stop(); activePlan = plan; introVoice = null; plannerStage = 'plan'; subject = null;
     const tree = $('plannerTree'); tree.replaceChildren();
     const title = document.createElement('h2'); title.textContent = content.title; tree.append(title);
@@ -335,8 +340,8 @@
       details.append(list); tree.append(details);
     });
     $('plannerSubtitle').textContent = plan.ready_at
-      ? 'Continue learning, review a completed lesson, or adjust your plan.'
-      : 'Your plan is saved. Open each part to see its lessons, or ask the guide to adjust it.';
+      ? 'Your approved plan is locked. Continue learning or review a completed lesson.'
+      : 'Review your plan before approving. Once approved, it cannot be edited. You can always create a separate plan.';
     $('plannerMessages').replaceChildren();
     const dialogue = plan.dialogue?.length ? plan.dialogue : [{role: 'assistant',
       text: 'Your plan is ready. Tell me what you already know, ask for more practice questions, or tell me what you would like to change.'}];
@@ -427,7 +432,7 @@
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
   async function replyToPlan(message) {
-    if (busy || !activePlan) return;
+    if (busy || !activePlan || activePlan.ready_at) return;
     const planId = activePlan.id, expectedRevision = activePlan.revision;
     busy = true; $('plannerSend').disabled = true; plannerOptions([]);
     plannerBubble('learner', message);
@@ -446,6 +451,7 @@
   }
   async function approvePlan(position = null) {
     if (busy || !activePlan) return;
+    if (!activePlan.ready_at && !window.confirm('Approve this learning plan? Once approved, it cannot be edited. Your lessons and progress will stay linked to this plan. You can always create a separate plan.')) return;
     const planId = activePlan.id, learnerId = child.id, serial = generation;
     const openSerial=++curriculumOpenSerial;
     busy = true; $('plannerSend').disabled = true; plannerOptions([]); stopPlanVoice();

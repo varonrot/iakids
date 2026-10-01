@@ -135,7 +135,7 @@ class LearningTests(unittest.TestCase):
                     'goal': 'Identify what is given.', 'practice_questions': []}]}]}
                 table.rows.append({'id': plan_id, 'user_id': 'parent-id', 'child_id': 'child-id',
                     'grade': 5, 'subject': 'Math', 'topic': 'Word Problems', 'content': old,
-                    'dialogue': [], 'revision': 0, 'plan_history': [], 'ready_at': 'approved'})
+                    'dialogue': [], 'revision': 0, 'plan_history': [], 'ready_at': None})
                 class Completions:
                     async def parse(self, **kwargs):
                         changed = route.CurriculumPlan(title='Unexpected rewrite', subject='Math', topic='Word Problems',
@@ -150,7 +150,7 @@ class LearningTests(unittest.TestCase):
                     plan_id=plan_id, message=message, expected_revision=0), 'Bearer token'))
                 self.assertFalse(result['changed'])
                 self.assertEqual(result['plan']['content'], old)
-                self.assertEqual(result['plan']['ready_at'], 'approved')
+                self.assertIsNone(result['plan']['ready_at'])
                 self.assertEqual(result['plan']['plan_history'], [])
 
     def test_ordered_catalog_and_grade_scope(self):
@@ -256,7 +256,7 @@ class LearningTests(unittest.TestCase):
                 kid_id='child-id', plan_id=plan_id, turn_index=1), 'Bearer token'))
         self.assertEqual(child_audio.exception.status_code, 422)
 
-    def test_ready_approval_is_saved_and_a_plan_revision_clears_it(self):
+    def test_ready_approval_is_saved_and_blocks_edit_and_delete(self):
         route, table = load_route()
         plan_id = str(uuid4())
         content = {'title': 'Decimals', 'subject': 'Math', 'topic': 'Decimals', 'units': [
@@ -283,24 +283,19 @@ class LearningTests(unittest.TestCase):
                 kid_id='another-child', plan_id=plan_id, expected_revision=1), 'Bearer token'))
         self.assertEqual(wrong_child.exception.status_code, 404)
 
-        class Completions:
-            async def parse(self, **kwargs):
-                revised = route.CurriculumPlan(title='Decimals with practice', subject='Math',
-                    topic='Decimals', units=[route.CurriculumUnit(title='Place value', lessons=[
-                        route.CurriculumLesson(title='Tenths and hundredths',
-                            goal='Compare decimal place values with examples.')])])
-                answer = route.PlannerResponse(text='I added more practice to the plan.',
-                                               revised_plan=revised)
-                return types.SimpleNamespace(choices=[types.SimpleNamespace(
-                    message=types.SimpleNamespace(parsed=answer))])
-        route.aclient = types.SimpleNamespace(beta=types.SimpleNamespace(chat=types.SimpleNamespace(
-            completions=Completions())))
-        route.guard_reply_payload = lambda text, *_: text
-        revised = asyncio.run(route.reply_to_learning_plan(route.PlanReplyRequest(
-            kid_id='child-id', plan_id=plan_id, message='Add practice.', expected_revision=1),
-            'Bearer token'))['plan']
-        self.assertIsNone(revised['ready_at'])
-        self.assertEqual(revised['revision'], 2)
+        for message in ['Add practice.', 'Change the plan', 'I already know']:
+            with self.assertRaises(route.HTTPException) as locked:
+                asyncio.run(route.reply_to_learning_plan(route.PlanReplyRequest(
+                    kid_id='child-id', plan_id=plan_id, message=message, expected_revision=1),
+                    'Bearer token'))
+            self.assertEqual(locked.exception.status_code, 409)
+        with self.assertRaises(route.HTTPException) as locked:
+            asyncio.run(route.delete_learning_plan(route.PlanDeleteRequest(
+                kid_id='child-id', plan_id=plan_id, expected_revision=1), 'Bearer token'))
+        self.assertEqual(locked.exception.status_code, 409)
+        self.assertEqual(table.rows[0]['content'], content)
+        self.assertEqual(table.rows[0]['revision'], 1)
+        self.assertTrue(table.rows[0]['ready_at'])
 
     def test_delete_plan_requires_owner_and_current_revision(self):
         route, table = load_route()

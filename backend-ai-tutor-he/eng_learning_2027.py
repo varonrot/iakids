@@ -360,7 +360,8 @@ async def create_learning_plan(body: PlanRequest, authorization: str = Header(No
         content = _normalize_plan(parsed)
         opening = (f"Your {content['topic']} plan is ready, {child['child_name']}. "
                    "Tell me what you already know, ask for more practice questions, "
-                   "or tell me what you would like to change.")
+                   "or tell me what you would like to change. Review it before approving: "
+                   "once approved, this plan cannot be edited. You can always create a separate plan.")
         saved = (sb.table(PLAN_TABLE).insert({"user_id": user_id, "child_id": body.kid_id,
                  "grade": grade, "subject": content["subject"], "topic": content["topic"],
                  "request_text": request_text, "request_key": key, "content": content,
@@ -393,6 +394,8 @@ def _owned_plan(user_id, kid_id, plan_id):
 async def delete_learning_plan(body: PlanDeleteRequest, authorization: str = Header(None)):
     user_id, _, _ = await run_in_threadpool(_child, authorization, body.kid_id)
     saved = await run_in_threadpool(_owned_plan, user_id, body.kid_id, body.plan_id)
+    if saved.get("ready_at"):
+        raise HTTPException(status_code=409, detail="This plan is approved and cannot be edited or deleted. You can create a separate plan.")
     if saved["revision"] != body.expected_revision:
         raise HTTPException(status_code=409, detail="Open the saved plan again before deleting it.")
     rows = (sb.table(PLAN_TABLE).delete()
@@ -413,7 +416,7 @@ async def approve_learning_plan(body: PlanReadyRequest, authorization: str = Hea
     if saved.get("ready_at"):
         return {"plan": saved}
     confirmation = (f"You're ready, {child['child_name']}! Your learning plan is approved. "
-                    "Let's prepare your first lesson from this plan.")
+                    "This plan is now locked and cannot be edited. Let's prepare your first lesson.")
     dialogue = saved["dialogue"] + [{"role": "assistant", "text": confirmation}]
     rows = (sb.table(PLAN_TABLE).update({"ready_at": datetime.now(timezone.utc).isoformat(),
                 "dialogue": dialogue, "revision": saved["revision"] + 1,
@@ -1043,6 +1046,8 @@ async def curriculum_lesson_answer(body: TeachingAnswerRequest, authorization: s
 async def reply_to_learning_plan(body: PlanReplyRequest, authorization: str = Header(None)):
     user_id, child, grade = await run_in_threadpool(_child, authorization, body.kid_id)
     saved = await run_in_threadpool(_owned_plan, user_id, body.kid_id, body.plan_id)
+    if saved.get("ready_at"):
+        raise HTTPException(status_code=409, detail="This plan is approved and cannot be edited or deleted. You can create a separate plan.")
     if saved["revision"] != body.expected_revision or len(saved["dialogue"]) >= 60:
         raise HTTPException(status_code=409, detail="Open the saved plan again to continue the conversation.")
     system = (
@@ -1103,8 +1108,6 @@ async def reply_to_learning_plan(body: PlanReplyRequest, authorization: str = He
                     "topic": content["topic"], "dialogue": dialogue,
                     "revision": saved["revision"] + 1, "plan_history": history,
                     "updated_at": datetime.now(timezone.utc).isoformat()}
-        if revised:
-            changes["ready_at"] = None
         rows = (sb.table(PLAN_TABLE).update(changes)
                 .eq("id", str(body.plan_id)).eq("user_id", user_id)
                 .eq("child_id", body.kid_id).eq("revision", body.expected_revision)
