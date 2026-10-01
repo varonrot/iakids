@@ -125,3 +125,6 @@ import eng_practice_2027  # noqa: E402,F401
 
 # Curriculum-led English learning path with adaptive tutor chat.
 import eng_learning_2027  # noqa: E402,F401
+
+# Conversational exercise drafts, material uploads and approved test practice.
+import eng_test_prep_planner_2027  # noqa: E402,F401
