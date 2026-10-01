@@ -33,7 +33,7 @@ LESSON_TABLE = "2027_eng_curriculum_lessons"
 LESSON_PROMPT_VERSION = 1
 LESSON_QUALITY_VERSION = 2
 LESSON_VISUAL_TABLE = "2027_eng_curriculum_paragraph_visuals"
-LESSON_VISUAL_VERSION = 2
+LESSON_VISUAL_VERSION = 3
 PARAGRAPH_CACHE_TABLE = "2027_eng_curriculum_paragraph_cache"
 PARAGRAPH_VERSION = 1
 MAX_TEACHING_PARAGRAPHS = 64
@@ -951,6 +951,26 @@ def _cached_teaching_image(directory):
     return None
 
 
+def _child_visual_style(grade):
+    if int(grade) <= 2:
+        detail = "Large simple shapes, very few objects, and friendly expressive characters."
+    elif int(grade) <= 5:
+        detail = "Playful storybook illustration with recognizable objects and clear, friendly characters."
+    else:
+        detail = "Modern illustrated educational style for older children, engaging without looking babyish."
+    return (
+        f"Create an age-appropriate educational illustration for a Grade {grade} child. {detail} "
+        "Use clean 2D drawing, soft rounded forms, bright balanced colors with teal accents, "
+        "and strong contrast. Keep one clear focal idea, a simple background and generous empty space. "
+        "Show a concrete scene relevant to the explanation; preserve subject accuracy. "
+        "No photorealism, stock photography, ornamental frames, advertising/poster design, "
+        "logos or watermarks. No decorative headings, captions, signs or written text in the image; "
+        "the learning interface supplies the caption. Do not invent quantities or equations. "
+        "Keep scenes reassuring and suitable for children, without frightening or graphic detail. "
+        "Landscape 16:9 composition."
+    )
+
+
 def _make_teaching_image(prompt, directory):
     data, mime = generate_lesson_hero_image_bytes(prompt)
     suffix = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}.get(mime)
@@ -990,8 +1010,9 @@ async def curriculum_lesson_visual(body: TeachingVisualRequest, authorization: s
             "unless there are 100 cells. All labels and captions must agree with your numeric data. "
             "Only choose illustration for a scene/concept that cannot be represented by these diagrams. "
             "Its image_prompt must describe a concrete educational illustration directly matching the "
-            "explanation, with a clear composition, elegant mint/teal/ivory/navy style, landscape 16:9, "
-            "no logos or watermarks. Do not use generated images for exact numbers, equations or "
+            "explanation. " + _child_visual_style(saved["grade"]) + " "
+            "Write a short child-facing caption (one simple sentence), not an image production brief. "
+            "Do not use generated images for exact numbers, equations or "
             "fraction counts; use a diagram instead. Set unused diagram fields to null and image_prompt "
             "to empty for diagrams. For science/language/history/geography prefer a specific scene, "
             "not a mathematical diagram unless genuinely relevant."
@@ -1026,7 +1047,9 @@ async def curriculum_lesson_visual(body: TeachingVisualRequest, authorization: s
         if not path:
             await run_in_threadpool(spend_daily_budget, user_id, "vision")
             try:
-                path = await run_in_threadpool(_make_teaching_image, row["content"]["image_prompt"], directory)
+                image_prompt = (_child_visual_style(saved["grade"]) + "\nScene to illustrate:\n"
+                                + row["content"]["image_prompt"])
+                path = await run_in_threadpool(_make_teaching_image, image_prompt, directory)
             except Exception as exc:
                 path = await run_in_threadpool(_cached_teaching_image, directory)
                 if not path:
