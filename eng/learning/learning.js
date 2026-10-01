@@ -393,6 +393,7 @@
     const completed=progressFor(activePlan).filter(item=>item.completed).length;
     $('curriculumCourseProgress').textContent=`Lesson ${position+1} of ${lessons.length} · ${completed} completed`;
     $('curriculumContinueLesson').hidden=!teachingLesson.completed;
+    $('curriculumContinueLesson').disabled=busy;
     $('curriculumContinueLesson').textContent=position===lessons.length-1?'Back to learning plan ✓':'Continue to next lesson →';
   }
   async function refreshCurriculumProgress(plan) {
@@ -456,7 +457,7 @@
     const openSerial=++curriculumOpenSerial;
     busy = true; $('plannerSend').disabled = true; plannerOptions([]); stopPlanVoice();
     const inLesson=!$('curriculumLesson').hidden;
-    if(inLesson) {stopCurriculumVoice();++teachingVisualSerial;$('curriculumVoiceStatus').textContent='Preparing your lesson';$('curriculumVoiceStatus').classList.add('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','true');updateCurriculumNavigation();}
+    if(inLesson) {stopCurriculumVoice();++teachingVisualSerial;teachingPlaybackStarted=false;lessonWaiting(true);$('curriculumVoiceStatus').textContent='Preparing your lesson';$('curriculumVoiceStatus').classList.add('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','true');updateCurriculumNavigation();}
     const pending = inLesson ? null : plannerPending('Preparing your lesson');
     try {
       if (!activePlan.ready_at) {
@@ -474,7 +475,13 @@
       refreshCurriculumProgress(activePlan);
     } catch (err) {
       if (generation === serial) {
-        pending?.remove(); if(!inLesson)showPlan(activePlan); error(err.message);
+        pending?.remove();
+        if(inLesson) {
+          lessonWaiting(false);
+          $('curriculumVoiceStatus').textContent='The next lesson could not open. Please try again.';
+          $('curriculumFeedback').textContent='Your progress is saved. The next lesson could not open. Press Continue to try again.';
+        } else showPlan(activePlan);
+        error(err.message);
       }
     } finally { busy = false; $('plannerSend').disabled = false;$('curriculumVoiceStatus').classList.remove('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','false');updateCurriculumNavigation(); }
   }
@@ -582,6 +589,7 @@
     $('curriculumVoiceToggle').setAttribute('aria-pressed', String(voiceEnabled));
     // Warm the first visual while the unit introduction is playing.
     warmTeachingParagraphs(0);
+    lessonWaiting(false);
     selectTeachingSlide(-1, voiceEnabled);
   }
   function loadTeachingMedia(kind, index) {
