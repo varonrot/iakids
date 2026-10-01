@@ -129,6 +129,22 @@ class PrepTests(unittest.TestCase):
         self.assertIsNone(result['approved_at'])
         self.assertEqual(len(result['pack']['questions']), 3)
 
+    def test_first_topic_starts_without_readiness_followup(self):
+        self.row['content'] = None
+        scope = self.m.Scope(message='Are you ready?', topics=['Fractions'], subject='Math', ready=False, revise=False, options=[])
+        with patch.object(self.m, '_parse', AsyncMock(return_value=scope)), patch.object(self.m, '_pack', AsyncMock(return_value=pack())) as build:
+            result = asyncio.run(self.m.reply(self.request(self.m.ReplyRequest, message='Fractions')))
+        build.assert_awaited_once()
+        self.assertIsNotNone(result['pack'])
+        self.assertNotIn('Are you ready?', result['dialogue'][-1]['text'])
+
+    def test_subject_is_not_mistaken_for_concrete_topic(self):
+        self.row['content'] = None
+        scope = self.m.Scope(message='Which topic?', topics=['Math'], subject='Math', ready=True, revise=True, options=['Fractions'])
+        with patch.object(self.m, '_parse', AsyncMock(return_value=scope)), patch.object(self.m, '_pack', AsyncMock()) as build:
+            asyncio.run(self.m.reply(self.request(self.m.ReplyRequest, message='Math')))
+        build.assert_not_called()
+
     def test_failed_generation_keeps_saved_draft(self):
         old = copy.deepcopy(self.row)
         scope = self.m.Scope(message='Ready', topics=['Addition'], subject='Math', ready=True, revise=True, options=[])

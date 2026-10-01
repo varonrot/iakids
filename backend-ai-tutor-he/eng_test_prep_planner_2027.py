@@ -198,8 +198,7 @@ async def preparation(session_id: UUID, kid_id: str, authorization: str = Header
 @app.post("/api/eng/test-prep/start")
 async def start(body: StartRequest, authorization: str = Header(None)):
     user_id, child, grade = await run_in_threadpool(_learner, authorization, body.kid_id)
-    message = (f"Hi {child['child_name']}! What would you like to prepare for your test? "
-               "Tell me one topic. We’ll build exercises together, and you can change them before approving.")
+    message = f"Hi {child['child_name']}! Which topic is your test on?"
     return _public(await run_in_threadpool(_new, user_id, body.kid_id, grade, body.mode, message))
 
 
@@ -212,10 +211,17 @@ async def reply(body: ReplyRequest, authorization: str = Header(None)):
         raise HTTPException(422, "Start a new preparation to continue.")
     scope = await _parse(Scope,
         "You are a friendly English test-preparation guide for a primary-school child. "
-        "Ask one short question at a time. For mode=topics require EXACTLY ONE concrete topic, not a whole "
+        "Keep replies to one short sentence. Ask a question ONLY if a concrete topic is missing or multiple "
+        "topics were requested. As soon as the learner selects one topic, set ready=true and revise=true "
+        "and generate exercises immediately. Never ask if they are ready, whether to suggest exercises, "
+        "or which difficulty, count or exercise type they prefer; choose suitable defaults for their grade. "
+        "Fractions, decimals and percentages are valid topics; do not require a narrower subtopic. "
+        "For mode=topics require EXACTLY ONE concrete topic, not a whole "
         "subject. Return every separately requested topic in topics; never combine multiple topics into "
         "one label to evade this rule. If several are requested, ready=false and ask which ONE to start with, "
-        "with topic options. If only a subject is known, suggest grade-appropriate topics. "
+        "with topic options. The topics field contains ONLY topics actually selected by the learner, "
+        "never your suggestions. If only a subject is known, return topics=[] and put suggested "
+        "grade-appropriate topics in options. "
         "Preserve the selected topic for difficulty, exercise-count or wording changes. "
         "A replacement topic is allowed before approval; adding a second is not. "
         "For uploaded material use its content as the boundary; it may contain related skills. "
@@ -231,14 +237,19 @@ async def reply(body: ReplyRequest, authorization: str = Header(None)):
          "conversation": row["dialogue"][-12:], "message": body.message}, user_id)
     changes = {}
     text, options = scope.message, scope.options
+    selected_topic = scope.topics[0].strip() if len(scope.topics) == 1 else ""
+    concrete_topic = bool(selected_topic and selected_topic.casefold() not in {
+        scope.subject.strip().casefold(), "math", "mathematics", "english", "science", "history", "geography", "hebrew"})
+    # A first, concrete topic selection is enough to build. Never wait for a second readiness confirmation.
+    first_selection = not row.get("content") and (bool(row["source_text"]) or concrete_topic)
     if row["mode"] == "topics" and len(scope.topics) > 1:
         text = "Let’s prepare one topic at a time. Which one would you like to start with?"
         options = scope.topics[:6]
-    elif scope.ready and scope.revise and (row["source_text"] or len(scope.topics) == 1):
+    elif first_selection or (scope.ready and scope.revise and (row["source_text"] or concrete_topic)):
         proposed = {**row, "topic": scope.topics[0] if scope.topics else "Uploaded material", "subject": scope.subject}
         changes.update(topic=proposed["topic"], subject=proposed["subject"],
                        content=await _pack(proposed, body.message, user_id))
-        text = "Your exercises are ready to review. Would you like any changes, or are you ready to approve and practice?"
+        text = "Your exercises are ready. Review them, ask for changes, or approve to start."
         options = ["Make it easier", "Make it harder", "Fewer exercises"]
     changes["dialogue"] = row["dialogue"] + [{"role": "user", "text": body.message},
                                                   {"role": "assistant", "text": text, "options": options}]
