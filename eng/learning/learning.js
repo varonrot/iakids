@@ -481,18 +481,33 @@
   let teachingLesson = null, teachingAudioSerial = 0, teachingSection = -1, teachingVisualSerial = 0;
   let teachingSeen = new Set();
   const teachingAudioUrls = new Map(), teachingVisuals = new Map(), teachingPending = new Map();
-  let teachingTypingTimer = null;
+  let teachingTypingTimer = null, teachingPlaybackStarted = false;
   function lessonWaiting(waiting) {
-    $('curriculumLoading').hidden = !waiting;
-    $('curriculumLesson').classList.toggle('waiting-for-voice', waiting);
+    const initialWait = waiting && !teachingPlaybackStarted;
+    $('curriculumLoading').hidden = !initialWait;
+    $('curriculumLesson').classList.toggle('waiting-for-voice', initialWait);
     $('curriculumNarration').setAttribute('aria-busy', String(waiting));
   }
+  function dissolveTeachingContent(container, nodes, previous = null) {
+    container.querySelectorAll('.lesson-dissolve-old').forEach(node => node.remove());
+    const oldNodes = previous || [...container.childNodes].map(node => node.cloneNode(true));
+    container.replaceChildren(...nodes);
+    if (!teachingPlaybackStarted || window.matchMedia('(prefers-reduced-motion: reduce)').matches || !oldNodes.length) return;
+    const overlay=document.createElement('div'); overlay.className='lesson-dissolve-old';
+    overlay.setAttribute('aria-hidden','true'); overlay.append(...oldNodes);
+    overlay.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+    container.append(overlay);
+    overlay.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-in-out'}).finished.catch(()=>{}).finally(()=>overlay.remove());
+    nodes.forEach(node=>{if(node.animate)node.animate([{opacity:0},{opacity:1}],{duration:320,easing:'ease-in-out'});});
+  }
+  let teachingPreviousNarration = null;
   function revealTeachingText() {
-    document.querySelectorAll('#curriculumNarration [data-spoken]').forEach(node => { node.textContent=node.dataset.spoken; });
+    document.querySelectorAll('#curriculumNarration > [data-spoken]').forEach(node => { node.textContent=node.dataset.spoken; });
   }
   function prepareTeachingTyping(index) {
     const content=teachingLesson.content, box=$('curriculumNarration');
-    box.replaceChildren();
+    const previous=teachingPreviousNarration; teachingPreviousNarration=null;
+    const nodes=[];
     let blocks=[];
     if(index===-1) blocks=[content.unit_intro, 'In this lesson: '+content.objectives.join('; ')];
     else if(index===content.sections.length) blocks=[content.checkpoint.question, ...content.checkpoint.options.map((option,i)=>`Option ${i+1}: ${option}`)];
@@ -502,13 +517,14 @@
       if(index===content.sections.length-1)blocks.push(content.summary);
     }
     blocks.filter(Boolean).forEach(text=>{
-      const node=document.createElement('p');node.dataset.spoken=text;box.append(node);
+      const node=document.createElement('p');node.dataset.spoken=text;nodes.push(node);
     });
+    dissolveTeachingContent(box,nodes,previous);
     box.scrollTop=0;
   }
   function syncTeachingTyping(audio) {
     if(!Number.isFinite(audio.duration) || audio.duration<=0)return;
-    const nodes=[...document.querySelectorAll('#curriculumNarration [data-spoken]')];
+    const nodes=[...document.querySelectorAll('#curriculumNarration > [data-spoken]')];
     const total=nodes.reduce((sum,node)=>sum+node.dataset.spoken.length,0);
     // The TTS service returns no word timestamps. Follow the real media clock,
     // distributing the text over its duration; pauses and buffering cannot run ahead.
@@ -526,7 +542,7 @@
     if (audio) { audio.pause(); audio.onended = null; audio.ontimeupdate=null; audio.onplaying=null; audio.onwaiting=null; audio.removeAttribute('src'); }
   }
   function openCurriculumLesson(lesson) {
-    stopVoice(); stopPlanVoice(); stopCurriculumVoice(); teachingLesson = lesson; teachingSection = -1;
+    stopVoice(); stopPlanVoice(); stopCurriculumVoice(); teachingLesson = lesson; teachingSection = -1; teachingPlaybackStarted = false; teachingPreviousNarration=null;
     teachingSeen = new Set();
     $('curriculumLesson').classList.toggle('paragraph-mode',!!lesson.content.paragraph_version);
     $('curriculumTitle').textContent = lesson.content.title;
@@ -636,19 +652,21 @@
   }
   async function displayTeachingVisual(index) {
     const serial=++teachingVisualSerial, lessonId=teachingLesson.id;
-    const art=$('curriculumArt'); art.replaceChildren(); art.setAttribute('aria-busy','true');
-    const waiting=document.createElement('div'); waiting.className='teaching-art-pending';
-    const spinner=document.createElement('span'); spinner.className='spinner'; spinner.setAttribute('aria-hidden','true');
-    const message=document.createElement('p'); message.textContent='Preparing this illustration…';
-    waiting.append(spinner,message); art.append(waiting); $('curriculumCaption').textContent='';
+    const art=$('curriculumArt'); art.setAttribute('aria-busy','true');
+    // Keep the current illustration visible until its replacement is ready.
     try {
       const result=await loadTeachingMedia('visual',index);
       if(serial!==teachingVisualSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden || teachingSection!==index) return;
       if(result.visual.kind==='illustration') {
         const picture=document.createElement('img'); picture.src=result.url; picture.alt=result.visual.caption;
         picture.onerror=()=> { if(serial===teachingVisualSerial) visualError('This picture could not load. Retry illustration.'); };
-        art.replaceChildren(picture);
-      } else art.replaceChildren(drawTeachingVisual(result.visual));
+        try { await picture.decode(); } catch {
+          if(serial===teachingVisualSerial) visualError('This picture could not load. Retry illustration.');
+          return;
+        }
+        if(serial!==teachingVisualSerial || teachingLesson?.id!==lessonId || teachingSection!==index) return;
+        dissolveTeachingContent(art,[picture]);
+      } else dissolveTeachingContent(art,[drawTeachingVisual(result.visual)]);
       $('curriculumCaption').textContent=result.visual.caption;
     } catch(err) {
       if(serial===teachingVisualSerial && teachingLesson?.id===lessonId && teachingSection===index && !$('curriculumLesson').hidden) visualError(err.message);
@@ -660,9 +678,19 @@
       const wrapper=document.createElement('div'); wrapper.className='teaching-art-pending'; wrapper.append(label,retry);art.append(wrapper);
     }
   }
-  function selectTeachingSlide(index, narrate = false) {
+  async function selectTeachingSlide(index, narrate = false) {
     if(!teachingLesson) return;
-    stopCurriculumVoice(); ++teachingVisualSerial; teachingSection=index;
+    stopCurriculumVoice(); ++teachingVisualSerial;
+    const serial=teachingAudioSerial, lessonId=teachingLesson.id;
+    if(teachingPlaybackStarted) {
+      // Keep the previous text and picture on screen during background preparation.
+      const requests=[];
+      if(narrate)requests.push(loadTeachingMedia('audio',index));
+      if(index>=0 && index<teachingLesson.content.sections.length)requests.push(loadTeachingMedia('visual',index));
+      await Promise.allSettled(requests);
+      if(serial!==teachingAudioSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden)return;
+    }
+    teachingSection=index;
     const content=teachingLesson.content, total=content.sections.length, intro=index===-1, check=index===total;
     if(!intro && !check) teachingSeen.add(index);
     $('curriculumCheck').hidden=!check; $('curriculumArt').hidden=check;
@@ -671,6 +699,7 @@
     $('curriculumCounter').textContent=intro?'Before we begin':check?'Your turn':content.paragraph_version ? `Part ${content.sections[index].source_index+1} · Paragraph ${content.sections[index].paragraph_index+1} of ${content.sections[index].paragraph_count}` : `Slide ${index+1} of ${total}`;
     $('curriculumEyebrow').textContent=intro?'WHAT WE WILL LEARN':check?'CHECK YOUR UNDERSTANDING':'SEE THE IDEA';
     $('curriculumSceneTitle').textContent=intro?'Let’s see where we’re going':check?'Try what you’ve learned':content.sections[index].title;
+    teachingPreviousNarration=[...$('curriculumNarration').childNodes].filter(node=>!node.classList?.contains('lesson-dissolve-old')).map(node=>node.cloneNode(true));
     $('curriculumNarration').replaceChildren();
     const paragraph=document.createElement('p');
     if(intro) {
@@ -707,21 +736,23 @@
     $('curriculumGuideNote').textContent=check?'Choose an answer when you’re ready.':'The explanation moves forward automatically with the voice. You can pause or replay.';
     if(!intro&&!check)displayTeachingVisual(index);
     if(narrate)playCurriculumSection(index);
+    else {dissolveTeachingContent($('curriculumNarration'),[...$('curriculumNarration').childNodes],teachingPreviousNarration);teachingPreviousNarration=null;}
   }
   async function playCurriculumSection(index) {
     if(!teachingLesson || $('curriculumLesson').hidden) return;
     stopCurriculumVoice(); const serial=teachingAudioSerial, lessonId=teachingLesson.id;
-    prepareTeachingTyping(index);lessonWaiting(true);
+    lessonWaiting(true);
     const audio=$('curriculumAudio'); $('curriculumVoiceStatus').textContent='Preparing your teacher’s voice…';
     try {
       $('curriculumVoiceStatus').textContent='Preparing this paragraph’s picture and voice…';
       const [result]=await Promise.all([loadTeachingMedia('audio',index),
         index>=0 && index<teachingLesson.content.sections.length ? loadTeachingMedia('visual',index) : Promise.resolve(null)]);
       if(serial!==teachingAudioSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden) return;
+      prepareTeachingTyping(index);
       audio.src=result.url;
       audio.ontimeupdate=()=>{if(serial===teachingAudioSerial)syncTeachingTyping(audio);};
       audio.onwaiting=()=>{if(serial===teachingAudioSerial)lessonWaiting(true);};
-      audio.onplaying=()=>{if(serial===teachingAudioSerial)lessonWaiting(false);};
+      audio.onplaying=()=>{if(serial===teachingAudioSerial){teachingPlaybackStarted=true;lessonWaiting(false);}};
       audio.onended=()=> {
         if(serial!==teachingAudioSerial) return;
         revealTeachingText();
@@ -731,7 +762,7 @@
       };
       await audio.play();
       if(serial!==teachingAudioSerial) return;
-      lessonWaiting(false);
+      teachingPlaybackStarted=true;lessonWaiting(false);
       teachingTypingTimer=setInterval(()=>{if(serial===teachingAudioSerial)syncTeachingTyping(audio);},60);
       $('curriculumVoiceStatus').textContent='Playing your teacher’s explanation.';
       const next=index+1;

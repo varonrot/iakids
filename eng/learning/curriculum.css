@@ -10,3 +10,9 @@
 .teaching-lesson{position:relative}.lesson-live-loading{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;padding:28px;background:rgba(244,252,249,.97);border:1px solid #cde6df;border-radius:22px;color:#153b54}.lesson-live-loading[hidden]{display:none}.lesson-live-loading strong{font-size:clamp(19px,2vw,27px)}.lesson-live-loading p{max-width:420px;line-height:1.7;color:#638094}.waiting-for-voice .teaching-sidebar,.waiting-for-voice .teaching-controls{position:relative;z-index:6}.waiting-for-voice .teaching-narration{visibility:hidden}
 
 .planner-history{color:#537488;font-size:13px}.planner-history summary{cursor:pointer;padding:12px;border:1px solid #d4e8e7;border-radius:12px;margin-bottom:12px}.planner-resume-status{background:#edf9f5;border:1px solid #cde6df;border-radius:18px;padding:20px;color:#153b54;line-height:1.65}
+
+/* Cross dissolve keeps the previous scene visible while the next appears. */
+.teaching-art,.teaching-narration{position:relative}
+.lesson-dissolve-old{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.teaching-art>.lesson-dissolve-old{display:flex;align-items:center;justify-content:center}
+.teaching-narration>.lesson-dissolve-old{padding:inherit;background:#eef8f5}
