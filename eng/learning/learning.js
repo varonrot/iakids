@@ -450,9 +450,22 @@
       error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
+  function confirmPlanApproval() {
+    const dialog=$('planApprovalDialog');
+    if(dialog.open)return Promise.resolve(false);
+    dialog.returnValue='cancel';
+    return new Promise(resolve=>{
+      dialog.addEventListener('close',()=>resolve(dialog.returnValue==='approve'),{once:true});
+      dialog.showModal();
+    });
+  }
   async function approvePlan(position = null) {
     if (busy || !activePlan) return;
-    if (!activePlan.ready_at && !window.confirm('Approve this learning plan? Once approved, it cannot be edited. Your lessons and progress will stay linked to this plan. You can always create a separate plan.')) return;
+    if (!activePlan.ready_at) {
+      const candidateId=activePlan.id, candidateRevision=activePlan.revision, candidateGeneration=generation;
+      if (!await confirmPlanApproval()) return;
+      if (busy || activePlan?.id!==candidateId || activePlan.revision!==candidateRevision || generation!==candidateGeneration) return;
+    }
     const planId = activePlan.id, learnerId = child.id, serial = generation;
     const openSerial=++curriculumOpenSerial;
     busy = true; $('plannerSend').disabled = true; plannerOptions([]); stopPlanVoice();

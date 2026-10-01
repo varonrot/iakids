@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./learning.css?v=20260929-17">
-  <link rel="stylesheet" href="./curriculum.css?v=20261001-dissolve">
+  <link rel="stylesheet" href="./curriculum.css?v=20261001-approval-dialog">
 </head>
 <body>
   <header class="topbar">
@@ -40,8 +40,20 @@
     </section>
     <p id="error" class="error" role="alert" hidden></p>
   </main>
+  <dialog id="planApprovalDialog" class="plan-approval-dialog" aria-labelledby="planApprovalTitle" aria-describedby="planApprovalDescription">
+    <form method="dialog">
+      <span class="eyebrow">YOUR LEARNING PLAN</span>
+      <h2 id="planApprovalTitle">Ready to start learning?</h2>
+      <p id="planApprovalDescription">Review your plan before you begin. Once you approve it, this plan will be locked and you won’t be able to edit it.</p>
+      <p class="plan-approval-note">Your progress will be saved. You can always create a new plan.</p>
+      <div class="plan-approval-actions">
+        <button value="cancel" class="plan-approval-back" autofocus>Go back &amp; review</button>
+        <button value="approve" class="plan-approval-confirm">Approve &amp; start learning →</button>
+      </div>
+    </form>
+  </dialog>
   <script src="../js/vendor/supabase-2.57.4.js" defer></script>
-  <script src="./learning.js?v=20261001-lesson-review" defer></script>
+  <script src="./learning.js?v=20261001-approval-dialog" defer></script>
 </body>
 </html>
 

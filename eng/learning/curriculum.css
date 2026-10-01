@@ -16,3 +16,15 @@
 .lesson-dissolve-old{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
 .teaching-art>.lesson-dissolve-old{display:flex;align-items:center;justify-content:center}
 .teaching-narration>.lesson-dissolve-old{padding:inherit;background:#eef8f5}
+
+.plan-approval-dialog{width:min(480px,calc(100vw - 32px));box-sizing:border-box;border:1px solid #cde6df;border-radius:24px;padding:30px;color:#153b54;background:#fff;box-shadow:0 24px 80px #153b5430}
+.plan-approval-dialog::backdrop{background:#153b5480;backdrop-filter:blur(3px)}
+.plan-approval-dialog h2{font-size:27px;line-height:1.2;margin:14px 0}
+.plan-approval-dialog p{font-size:15px;line-height:1.65;margin:0 0 16px}
+.plan-approval-dialog .plan-approval-note{padding:14px;border-radius:12px;background:#edf9f5;font-size:14px}
+.plan-approval-actions{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.plan-approval-actions button{border-radius:12px;padding:14px 16px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.plan-approval-confirm{background:#079ca4;color:#fff;border:1px solid #079ca4;order:-1}
+.plan-approval-back{background:#fff;color:#286170;border:1px solid #b8dcd6}
+.plan-approval-actions button:focus-visible{outline:3px solid #153b54;outline-offset:3px}
+@media(max-width:500px){.plan-approval-dialog{padding:24px}.plan-approval-dialog h2{font-size:24px}}
