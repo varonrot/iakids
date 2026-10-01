@@ -68,13 +68,17 @@
     if (!voice || !current || current.approved_at) return;
     const turn = current.dialogue.findLastIndex(t => t.role === 'assistant' && t.text === text);
     if (turn < 0) return;
+    const target = pendingSpeech?.text === text ? pendingSpeech.el : [...$('conversation').querySelectorAll('[data-speech-text]')].findLast(el => el.dataset.speechText === text);
     stopVoice(); const serial = voiceSerial, id = current.id;
+    // Replays and restored conversations use the same reveal path as a fresh reply.
+    if (target?.isConnected) pendingSpeech = {el: target, text, id};
     const item = pendingSpeech;
     if (item?.id === id && item.text === text) { item.el.replaceChildren(node('span', 'Preparing your guide’s voice…', 'voice-wait')); item.el.setAttribute('aria-busy', 'true'); }
     try {
       const result = await api('audio', {kid_id: child.id, session_id: id, turn_index: turn});
       if (serial !== voiceSerial || current?.id !== id || !voice) return;
       audio.src = result.url; await waitForAudio();
+      audio.currentTime = 0;
       if (serial !== voiceSerial || current?.id !== id || !voice) return;
       await audio.play();
       if (serial !== voiceSerial || current?.id !== id || !voice) return;
@@ -92,6 +96,7 @@
   function setVoice() { $('voice').textContent = voice ? '🔊 Listen on' : '🔈 Listen off'; $('voice').setAttribute('aria-pressed', String(voice)); }
   function bubble(role, text, fresh = false) {
     const el = node('div', null, `planner-bubble ${role === 'user' ? 'learner' : 'guide'}`);
+    if (role === 'assistant') el.dataset.speechText = text;
     $('conversation').append(el);
     if (fresh && role === 'assistant' && current) {
       pendingSpeech = {el, text, id:current.id};
@@ -135,7 +140,7 @@
   async function open(id) {
     stopVoice();
     current = await api(`preparation/${encodeURIComponent(id)}?kid_id=${encodeURIComponent(child.id)}`);
-    url(current.id); questionIndex = Object.keys(current.answers).length; choice = null; clearFile(); render();
+    url(current.id); questionIndex = Object.keys(current.answers).length; choice = null; clearFile(); render(true);
   }
   function clearFile() { selectedFile = null; $('material').value = ''; if (previewUrl) URL.revokeObjectURL(previewUrl); previewUrl = null; $('preview').removeAttribute('src'); $('preview').hidden = true; $('filename').textContent = ''; }
   function renderDraft() {
