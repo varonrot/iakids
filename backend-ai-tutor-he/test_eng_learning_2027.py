@@ -651,6 +651,11 @@ class CurriculumTeachingTests(unittest.TestCase):
         result=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
         self.assertEqual(len(calls),3)
         self.assertIs(calls[-1]['response_format'],self.route.TeachingReview)
+        self.assertEqual(calls[-1]['model'], self.route.REVIEW_MODEL)
+        import json
+        review_context=json.loads(calls[-1]['messages'][1]['content'])['context']
+        self.assertNotIn('curriculum', review_context)
+        self.assertIn('prior_lesson_content', review_context)
         self.assertEqual(result['content']['quality_version'],2)
 
     def test_second_repair_gets_reviewed_before_saving(self):
@@ -670,6 +675,11 @@ class CurriculumTeachingTests(unittest.TestCase):
         result=asyncio.run(self.route.create_curriculum_lesson(body))['lesson']
         self.assertEqual(len(calls),4)
         self.assertIs(calls[-1]['response_format'],self.route.TeachingReview)
+        self.assertEqual(calls[-1]['model'], self.route.REVIEW_MODEL)
+        import json
+        review_context=json.loads(calls[-1]['messages'][1]['content'])['context']
+        self.assertNotIn('curriculum', review_context)
+        self.assertIn('prior_lesson_content', review_context)
         self.assertEqual(result['content']['quality_version'],2)
 
     def test_unapproved_content_is_not_saved_or_cached(self):
