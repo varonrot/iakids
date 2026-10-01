@@ -480,7 +480,10 @@
           lessonWaiting(false);
           $('curriculumVoiceStatus').textContent='The next lesson could not open. Please try again.';
           $('curriculumFeedback').textContent='Your progress is saved. The next lesson could not open. Press Continue to try again.';
-        } else showPlan(activePlan);
+        } else {
+          showPlan(activePlan);
+          plannerBubble('guide', err.message || 'The lesson could not open. Please try again.');
+        }
         error(err.message);
       }
     } finally { busy = false; $('plannerSend').disabled = false;$('curriculumVoiceStatus').classList.remove('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','false');updateCurriculumNavigation(); }

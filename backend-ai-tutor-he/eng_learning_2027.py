@@ -651,7 +651,7 @@ async def _reviewed_teaching_content(user_id, prompt, context, title):
     messages = [{"role": "system", "content": prompt},
                 {"role": "user", "content": json.dumps(context, ensure_ascii=False)}]
     repaired = None
-    for attempt in range(2):
+    for attempt in range(3):
         if repaired is None:
             await run_in_threadpool(spend_daily_budget, user_id, "model")
             response = await aclient.beta.chat.completions.parse(model=MODEL, messages=messages,
@@ -681,7 +681,14 @@ async def _reviewed_teaching_content(user_id, prompt, context, title):
                 "restrictions on this selected lesson. A unit overview may name future topics "
                 "without teaching them. Using a prerequisite in a new problem is not duplicate teaching. "
                 "Block factual errors, incorrect answers and substantial scope violations, not "
-                "stylistic preferences or optional enrichment. If blocking issues exist, return "
+                "stylistic preferences or optional enrichment. Empty visual_brief is explicitly allowed; "
+                "missing optional illustrations are not blocking issues. The selected lesson goal "
+                "defines what is new: comparing decimals must use place value and may teach greater "
+                "than, less than and equal to even when prior lessons mentioned those concepts. "
+                "For a duplication rejection, quote a substantial repeated explanation or worked "
+                "example from BOTH draft and prior_lesson_content; shared vocabulary or objectives "
+                "alone are not evidence. Do not invent prior coverage. Review your own corrected "
+                "draft consistently under these same criteria. If blocking issues exist, return "
                 "corrected_lesson containing the COMPLETE lesson with those issues repaired, "
                 "preserving all unaffected explanations. That corrected version will be reviewed "
                 "again before publication. If the submitted draft is already correct, approve it "
