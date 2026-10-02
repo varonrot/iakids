@@ -97,13 +97,25 @@
     $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
     return bubble;
   }
-  function plannerPending(message) {
+  function plannerPending(message, updates = []) {
     const bubble = document.createElement('div'); bubble.className = 'planner-bubble guide planner-pending';
-    bubble.setAttribute('role', 'status'); bubble.setAttribute('aria-label', `${message}…`);
-    const words = document.createElement('span'); words.textContent = message; words.setAttribute('aria-hidden', 'true');
-    const dots = document.createElement('span'); dots.className = 'planner-dots'; dots.textContent = '...'; dots.setAttribute('aria-hidden', 'true');
-    bubble.append(words, dots); $('plannerMessages').append(bubble);
+    bubble.setAttribute('role', 'status'); bubble.setAttribute('aria-live', 'polite');
+    bubble.setAttribute('aria-atomic', 'true');
+    const words = document.createElement('span'); words.textContent = message + '…';
+    bubble.append(words); $('plannerMessages').append(bubble);
     $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
+    const messages = [message + '…', ...updates,
+      'Thanks for your patience — I’m still working on this.',
+      'You can stay here. The result will appear as soon as it’s ready.'];
+    let step = 0;
+    const timer = setInterval(() => {
+      if (!bubble.isConnected || !words.isConnected) { clearInterval(timer); return; }
+      // These are waiting messages, not reports of backend processing stages.
+      step += 1;
+      const index = step < messages.length ? step : messages.length - 2 + (step % 2);
+      words.textContent = messages[index];
+    }, 7000);
+    bubble.stopWaiting = () => clearInterval(timer);
     return bubble;
   }
   function stopPlanVoice() {
@@ -447,7 +459,13 @@
     if (busy) return;
     busy = true; $('plannerSend').disabled = true;
     plannerBubble('learner', topic || requestText);
-    plannerOptions([]); const pending = plannerPending('I’m building and checking your learning plan');
+    plannerOptions([]); const pending = plannerPending('I’m building and checking your learning plan', [
+      'Your plan will break this topic into manageable lessons.',
+      'Each lesson will have a clear goal and practice questions.',
+      'The plan gets a quality check before you see it.',
+      'When it’s ready, you can tell me what you already know or what you’d like to change.',
+      'A carefully prepared plan can take a little longer. I’m still here.'
+    ]);
     try {
       const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText, curriculum_topic_id: curriculumTopicId}, 180000);
       plans = [result.plan, ...plans.filter(item => item.id !== result.plan.id)].slice(0, 12);
@@ -456,14 +474,17 @@
       pending.textContent = 'The plan could not be created. Please try again.';
       error(err.message); plannerOptions([plannerButton('Try again', '↻', () => createPlan(chosenSubject, topic, requestText, curriculumTopicId)),
         plannerButton('Change subject', '↩', renderPath)]);
-    } finally { busy = false; $('plannerSend').disabled = false; }
+    } finally { pending.stopWaiting(); busy = false; $('plannerSend').disabled = false; }
   }
   async function replyToPlan(message) {
     if (busy || !activePlan || activePlan.ready_at) return;
     const planId = activePlan.id, expectedRevision = activePlan.revision;
     busy = true; $('plannerSend').disabled = true; plannerOptions([]);
     plannerBubble('learner', message);
-    const pending = plannerPending('Thinking about your plan');
+    const pending = plannerPending('Thinking about your plan', [
+      'I’m working on a response to your message.',
+      'If your plan changes, you’ll be able to review it before starting.'
+    ]);
     try {
       const result = await api('plan/reply', {kid_id: child.id, plan_id: planId,
         message, expected_revision: expectedRevision}, 180000);
@@ -474,7 +495,7 @@
     } catch (err) {
       pending.remove(); $('plannerMessages').lastElementChild?.remove();
       error(err.message); plannerOptions(planActions(activePlan?.dialogue?.at(-1)?.options || []));
-    } finally { busy = false; $('plannerSend').disabled = false; }
+    } finally { pending.stopWaiting(); busy = false; $('plannerSend').disabled = false; }
   }
   function confirmPlanApproval() {
     const dialog=$('planApprovalDialog');
@@ -497,7 +518,10 @@
     busy = true; $('plannerSend').disabled = true; plannerOptions([]); stopPlanVoice();
     const inLesson=!$('curriculumLesson').hidden;
     if(inLesson) {stopCurriculumVoice();++teachingVisualSerial;teachingPlaybackStarted=false;lessonWaiting(true);$('curriculumVoiceStatus').textContent='Preparing your lesson';$('curriculumVoiceStatus').classList.add('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','true');updateCurriculumNavigation();}
-    const pending = inLesson ? null : plannerPending('Preparing your lesson');
+    const pending = inLesson ? null : plannerPending('Preparing your lesson', [
+      'Your lesson will include explanations and practice.',
+      'You’ll be able to learn one step at a time.'
+    ]);
     try {
       if (!activePlan.ready_at) {
         const result = await api('plan/ready', {kid_id: learnerId, plan_id: planId,
@@ -525,7 +549,7 @@
         }
         error(err.message);
       }
-    } finally { busy = false; $('plannerSend').disabled = false;$('curriculumVoiceStatus').classList.remove('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','false');updateCurriculumNavigation(); }
+    } finally { pending?.stopWaiting(); busy = false; $('plannerSend').disabled = false;$('curriculumVoiceStatus').classList.remove('lesson-preparing');$('curriculumLesson').setAttribute('aria-busy','false');updateCurriculumNavigation(); }
   }
   let teachingLesson = null, teachingAudioSerial = 0, teachingSection = -1, teachingVisualSerial = 0;
   let teachingSeen = new Set();
