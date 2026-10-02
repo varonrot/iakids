@@ -101,21 +101,38 @@
     const bubble = document.createElement('div'); bubble.className = 'planner-bubble guide planner-pending';
     bubble.setAttribute('role', 'status'); bubble.setAttribute('aria-live', 'polite');
     bubble.setAttribute('aria-atomic', 'true');
-    const words = document.createElement('span'); words.textContent = message + '…';
+    const words = document.createElement('span'); words.setAttribute('aria-hidden', 'true');
     bubble.append(words); $('plannerMessages').append(bubble);
-    $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
     const messages = [message + '…', ...updates,
       'Thanks for your patience — I’m still working on this.',
       'You can stay here. The result will appear as soon as it’s ready.'];
-    let step = 0;
-    const timer = setInterval(() => {
-      if (!bubble.isConnected || !words.isConnected) { clearInterval(timer); return; }
+    let step = 0, typingTimer = null, timer = null, stopped = false;
+    bubble.stopWaiting = () => {
+      stopped = true; clearInterval(timer); clearTimeout(typingTimer);
+      if (!words.isConnected) bubble.removeAttribute('aria-label');
+    };
+    const typeMessage = text => {
+      clearTimeout(typingTimer);
+      bubble.setAttribute('aria-label', text);
+      const characters = Array.from(text);
+      let position = 0;
+      const typeNext = () => {
+        if (stopped || !bubble.isConnected || !words.isConnected) { bubble.stopWaiting(); return; }
+        position = reducedMotion.matches ? characters.length : position + 1;
+        words.textContent = characters.slice(0, position).join('');
+        $('plannerMessages').scrollTop = $('plannerMessages').scrollHeight;
+        if (position < characters.length) typingTimer = setTimeout(typeNext, 35);
+      };
+      typeNext();
+    };
+    typeMessage(messages[0]);
+    timer = setInterval(() => {
+      if (!bubble.isConnected || !words.isConnected) { bubble.stopWaiting(); return; }
       // These are waiting messages, not reports of backend processing stages.
       step += 1;
       const index = step < messages.length ? step : messages.length - 2 + (step % 2);
-      words.textContent = messages[index];
+      typeMessage(messages[index]);
     }, 7000);
-    bubble.stopWaiting = () => clearInterval(timer);
     return bubble;
   }
   function stopPlanVoice() {
