@@ -29,7 +29,9 @@ from eng_curriculum_map_2027 import tree as curriculum_tree, selection as curric
 TABLE = "2027_eng_learning_sessions"
 PROMPT_VERSION = 1
 MODEL = llm_model(os.getenv("ENG_LEARNING_MODEL", "gpt-4o-mini"))
+PLAN_MODEL = llm_model(os.getenv("ENG_CURRICULUM_PLAN_MODEL", "gpt-4.1"))
 REVIEW_MODEL = llm_model(os.getenv("ENG_LEARNING_REVIEW_MODEL", "gpt-4.1"))
+print(f"[eng-learning] curriculum_plan_model={PLAN_MODEL} review_model={REVIEW_MODEL}")
 PLAN_TABLE = "2027_eng_curriculum_plans"
 LESSON_TABLE = "2027_eng_curriculum_lessons"
 LESSON_PROMPT_VERSION = 1
@@ -380,7 +382,7 @@ async def create_learning_plan(body: PlanRequest, authorization: str = Header(No
         raise HTTPException(status_code=422, detail="Choose a topic or describe what you want to learn.")
     if not GRADE_TOPICS.get(grade):
         raise HTTPException(status_code=422, detail="A learning library is not yet available for this grade.")
-    key = hashlib.sha256(json.dumps([PLAN_QUALITY_VERSION, grade, subject.casefold(), topic.casefold(),
+    key = hashlib.sha256(json.dumps([PLAN_QUALITY_VERSION, PLAN_MODEL, grade, subject.casefold(), topic.casefold(),
                                      request_text.casefold(), scope], ensure_ascii=False).encode()).hexdigest()
     query = lambda: (sb.table(PLAN_TABLE).select("id,subject,topic,content,dialogue,revision,ready_at,created_at")
                      .eq("user_id", user_id).eq("child_id", body.kid_id)
@@ -416,7 +418,7 @@ async def create_learning_plan(body: PlanRequest, authorization: str = Header(No
     try:
         await run_in_threadpool(spend_daily_budget, user_id, "model")
         response = await aclient.beta.chat.completions.parse(
-            model=MODEL,
+            model=PLAN_MODEL,
             messages=[{"role": "system", "content": prompt},
                       {"role": "user", "content": "Create the learning plan now."}],
             response_format=CurriculumPlan, max_completion_tokens=10000,
@@ -1190,7 +1192,7 @@ async def reply_to_learning_plan(body: PlanReplyRequest, authorization: str = He
     try:
         await run_in_threadpool(spend_daily_budget, user_id, "model")
         response = await aclient.beta.chat.completions.parse(
-            model=MODEL, messages=messages, response_format=PlannerResponse,
+            model=PLAN_MODEL, messages=messages, response_format=PlannerResponse,
             max_completion_tokens=10000)
         parsed = response.choices[0].message.parsed
         if not parsed:
