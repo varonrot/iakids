@@ -28,10 +28,10 @@ from eng_curriculum_map_2027 import tree as curriculum_tree, selection as curric
 
 TABLE = "2027_eng_learning_sessions"
 PROMPT_VERSION = 1
-MODEL = llm_model(os.getenv("ENG_LEARNING_MODEL", "gpt-4o-mini"))
+MODEL = llm_model(os.getenv("ENG_LEARNING_MODEL", "gpt-5.4"))
 PLAN_MODEL = llm_model(os.getenv("ENG_CURRICULUM_PLAN_MODEL", "gpt-5.4"))
 REVIEW_MODEL = llm_model(os.getenv("ENG_LEARNING_REVIEW_MODEL", "gpt-4.1"))
-print(f"[eng-learning] curriculum_plan_model={PLAN_MODEL} review_model={REVIEW_MODEL}")
+print(f"[eng-learning] curriculum_plan_model={PLAN_MODEL} teaching_model={MODEL} review_model={REVIEW_MODEL}")
 PLAN_TABLE = "2027_eng_curriculum_plans"
 LESSON_TABLE = "2027_eng_curriculum_lessons"
 LESSON_PROMPT_VERSION = 1
@@ -573,7 +573,7 @@ def _recipe_key(plan, unit_index=0, lesson_index=0, prior_context=None):
     unit = plan["content"]["units"][unit_index]
     recipe = {"grade": plan["grade"], "language": "en", "subject": plan["subject"],
               "topic": plan["topic"], "unit": unit, "lesson_index": lesson_index,
-              "teacher_version": LESSON_PROMPT_VERSION, "paragraph_version": PARAGRAPH_VERSION,
+              "teacher_version": LESSON_PROMPT_VERSION, "teacher_model": MODEL, "paragraph_version": PARAGRAPH_VERSION,
               "quality_version": LESSON_QUALITY_VERSION, "prior_context": prior_context or [],
               "curriculum": plan["content"]}
     return _plan_digest(recipe)
