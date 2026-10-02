@@ -179,31 +179,57 @@ const setStatus = (t) => statusEl.textContent = t;
   if (kids && kids.length > 0) {
     console.log("✅ Child exists → redirect to workspace");
 
-    // ניקוי onboarding ישן (חשוב!)
+    // Existing account: onboarding data is no longer needed.
     sessionStorage.clear();
 
     window.location.replace("/workspace/");
-    return; // ⛔ עוצר פה — לא ממשיכים onboarding
+    return;
   }
 
-  // 3️⃣ Create subscription (safe even if already exists with RLS / unique constraint)
+  // A brand-new visitor can reach /onboarding/cuenta directly from "Iniciar sesión".
+  // In that case Google Auth succeeds, but there is no pending child onboarding data.
+  // Do NOT create a subscription/orphan account state. Return them to the normal
+  // onboarding flow and sign out locally so they finish child setup first.
+  const pendingChildName = (sessionStorage.getItem("child_name") || "").trim();
+  const pendingChildAge = Number(sessionStorage.getItem("child_age"));
+  const hasPendingChild = !!pendingChildName && Number.isFinite(pendingChildAge) && pendingChildAge > 0;
+
+  if (!hasPendingChild) {
+    console.log("ℹ️ New Google user without child onboarding data → restart onboarding");
+    setStatus("Let’s set up your child first…");
+    try {
+      await sb.auth.signOut({ scope: "local" });
+    } catch (e) {
+      console.warn("Local sign-out failed before onboarding redirect", e);
+    }
+    window.location.replace("/onboarding/");
+    return;
+  }
+
+  // New account that DID complete the child onboarding steps:
+  // create the free subscription only now, immediately before saving the child.
   setStatus("Activating free plan…");
-  await sb.from("subscriptions").insert({
+  const { error: subscriptionError } = await sb.from("subscriptions").insert({
     user_id: user.id,
     plan: "free",
     status: "active"
   });
 
-// 4️⃣ Finish after animation
-setTimeout(() => {
-  setStatus("Ready!");
+  // Ignore only a duplicate/unique conflict; other errors should stop the flow.
+  if (subscriptionError && subscriptionError.code !== "23505") {
+    console.error("subscription insert failed", subscriptionError);
+    setStatus("We couldn’t finish setting up your account. Please try again.");
+    return;
+  }
 
-  // small pause so user sees "Ready"
+  // Finish after animation
   setTimeout(() => {
-    window.location.href = "/onboarding/complete/";
-  }, 600);
+    setStatus("Ready!");
 
-}, 2800);
+    setTimeout(() => {
+      window.location.href = "/onboarding/complete/";
+    }, 600);
+  }, 2800);
 
 })();
 </script>
