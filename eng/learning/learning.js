@@ -743,7 +743,7 @@
         const scale=bar.scale||1, size=Math.min(cellWidth-60,cellHeight-72)*scale;
         const label=String(bar.label||`${bar.filled}/${bar.parts}`);
         const labelWidth=shaped ? cellWidth-24 : 680;
-        const labelNode=text(cx,shaped?cy+size/2+32:cy-24,label,Math.min(22,Math.max(13,labelWidth/(label.length*.58))));
+        const labelNode=text(cx,shaped?cy+size/2+32:cy-44,label,Math.min(22,Math.max(13,labelWidth/(label.length*.58))));
         if(label.length*13*.58>labelWidth) {labelNode.setAttribute('textLength',labelWidth);labelNode.setAttribute('lengthAdjust','spacingAndGlyphs');}
         svg.append(labelNode);
         if(bar.shape==='circle') {
