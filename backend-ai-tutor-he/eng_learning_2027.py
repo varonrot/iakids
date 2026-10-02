@@ -29,7 +29,7 @@ from eng_curriculum_map_2027 import tree as curriculum_tree, selection as curric
 TABLE = "2027_eng_learning_sessions"
 PROMPT_VERSION = 1
 MODEL = llm_model(os.getenv("ENG_LEARNING_MODEL", "gpt-4o-mini"))
-PLAN_MODEL = llm_model(os.getenv("ENG_CURRICULUM_PLAN_MODEL", "gpt-4.1"))
+PLAN_MODEL = llm_model(os.getenv("ENG_CURRICULUM_PLAN_MODEL", "gpt-5.4"))
 REVIEW_MODEL = llm_model(os.getenv("ENG_LEARNING_REVIEW_MODEL", "gpt-4.1"))
 print(f"[eng-learning] curriculum_plan_model={PLAN_MODEL} review_model={REVIEW_MODEL}")
 PLAN_TABLE = "2027_eng_curriculum_plans"
