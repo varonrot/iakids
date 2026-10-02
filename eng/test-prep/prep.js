@@ -166,7 +166,7 @@
     current.dialogue.forEach((turn, index) => bubble(turn.role, turn.text, fresh && index === current.dialogue.length - 1));
     const last = current.dialogue.at(-1);
     for (const text of last?.options || []) $('suggestions').append(button(text, () => send(text), 'choice'));
-    if (current.mode === 'topics' && current.dialogue.length === 1) for (const text of subjects) $('suggestions').append(button(text, () => send(text), 'choice'));
+    if (current.mode === 'topics' && current.dialogue.length === 1) for (const text of subjects) $('suggestions').append(button(text, () => text === 'Math' ? chooseMath() : send(text), 'choice'));
     if (current.source_name && !current.pack) $('suggestions').append(button('Build exercises from my material', () => send('Build exercises from my uploaded material.'), 'choice'));
     if (pendingSpeech) { $('suggestions').hidden = true; $('composer').hidden = true; speak(pendingSpeech.text); }
     $('conversation').scrollTop = $('conversation').scrollHeight;
@@ -188,10 +188,24 @@
       bubble('assistant', 'Send the material you want to prepare from. I’ll read it and build exercises for you to review.'); lock();
     }
   }
-  async function send(text) {
+  async function chooseMath() {
+    await run('Loading Math topics', async () => {
+      const {domains} = await api(`curriculum-map?kid_id=${encodeURIComponent(child.id)}`);
+      const showDomains = () => {
+        $('suggestions').replaceChildren(...domains.map(domain => button(domain.title, () => {
+          $('suggestions').replaceChildren(...domain.children.map(topic => {
+            const b = button(topic.title, () => send(topic.title, topic.id), 'choice');
+            b.title = topic.children.map(skill => skill.title).join(' · '); return b;
+          }), button('← All Math areas', showDomains, 'choice'));
+        }, 'choice')), button('← Subjects', () => render(), 'choice'));
+      };
+      showDomains();
+    });
+  }
+  async function send(text, curriculumTopicId = '') {
     if (!text.trim() || !current || current.approved_at) return;
     await run('Preparing and checking your exercises', async () => {
-      const next = await api('reply', body({message: text.trim()})); current = next; $('message').value = ''; render(true); await saved();
+      const next = await api('reply', body({message: text.trim(), curriculum_topic_id: curriculumTopicId})); current = next; $('message').value = ''; render(true); await saved();
     });
   }
   function renderExercise() {

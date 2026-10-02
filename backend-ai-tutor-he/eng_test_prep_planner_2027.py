@@ -1,5 +1,6 @@
 """English Test Prep: private, reviewed exercise drafts with explicit approval."""
 import io
+from eng_curriculum_map_2027 import tree as curriculum_tree, selection as curriculum_selection
 import hashlib
 import json
 import os
@@ -36,6 +37,7 @@ class SessionRequest(LimitedRequest):
 
 
 class ReplyRequest(SessionRequest):
+    curriculum_topic_id: str = Field(default="", max_length=200)
     message: str = Field(min_length=1, max_length=1000)
 
 
@@ -146,7 +148,10 @@ async def _pack(row, request, user_id):
     data = {"grade": row["grade"], "topic": row["topic"], "subject": row["subject"],
             "source_material": row.get("source_text", ""), "current_pack": row.get("content"),
             "learner_request": request}
+    if row.get("curriculum_topic_id"):
+        data["curriculum_scope"] = await run_in_threadpool(curriculum_selection, sb, row["curriculum_topic_id"])
     prompt = (
+        "Use the supplied curriculum scope when available to sample relevant skills within the selected topic. "
         "You are a careful primary-school teacher creating an English test-preparation exercise draft. "
         "Use ONLY the one selected topic, or the uploaded source material when supplied. "
         "Create 3–15 varied multiple-choice exercises (usually 6), adapted to the grade and request. "
@@ -209,6 +214,14 @@ async def reply(body: ReplyRequest, authorization: str = Header(None)):
     _check(row, body.revision, editable=True)
     if len(row["dialogue"]) >= 60:
         raise HTTPException(422, "Start a new preparation to continue.")
+    if body.curriculum_topic_id:
+        selected = await run_in_threadpool(curriculum_selection, sb, body.curriculum_topic_id)
+        proposed = {**row, "subject": "Math", "topic": selected["topic"], "curriculum_topic_id": selected["topic_id"]}
+        pack = await _pack(proposed, body.message, user_id)
+        return _public(await run_in_threadpool(_save, row, {
+            "subject": "Math", "topic": selected["topic"], "curriculum_topic_id": selected["topic_id"], "content": pack,
+            "dialogue": row["dialogue"] + [{"role": "user", "text": selected["topic"]},
+                {"role": "assistant", "text": "Your exercises are ready. Review them, ask for changes, or approve to start.", "options": ["Make it easier", "Make it harder"]}]}))
     scope = await _parse(Scope,
         "You are a friendly English test-preparation guide for a primary-school child. "
         "Keep replies to one short sentence. Ask a question ONLY if a concrete topic is missing or multiple "
@@ -247,7 +260,8 @@ async def reply(body: ReplyRequest, authorization: str = Header(None)):
         options = scope.topics[:6]
     elif first_selection or (scope.ready and scope.revise and (row["source_text"] or concrete_topic)):
         proposed = {**row, "topic": scope.topics[0] if scope.topics else "Uploaded material", "subject": scope.subject}
-        changes.update(topic=proposed["topic"], subject=proposed["subject"],
+        proposed["curriculum_topic_id"] = row.get("curriculum_topic_id") if proposed["topic"] == row["topic"] else None
+        changes.update(curriculum_topic_id=proposed["curriculum_topic_id"], topic=proposed["topic"], subject=proposed["subject"],
                        content=await _pack(proposed, body.message, user_id))
         text = "Your exercises are ready. Review them, ask for changes, or approve to start."
         options = ["Make it easier", "Make it harder", "Fewer exercises"]
@@ -382,3 +396,9 @@ async def audio(body: VoiceRequest, authorization: str = Header(None)):
             if not await run_in_threadpool(_cached_narration, path):
                 raise HTTPException(503, "Voice is unavailable. You can keep reading and preparing.")
     return {"url": await run_in_threadpool(signed_url_cached, AUDIO_BUCKET, path, 600)}
+
+
+@app.get("/api/eng/test-prep/curriculum-map")
+async def test_prep_curriculum_map(kid_id: str, authorization: str = Header(None)):
+    await run_in_threadpool(_learner, authorization, kid_id)
+    return {"domains": await run_in_threadpool(curriculum_tree, sb)}

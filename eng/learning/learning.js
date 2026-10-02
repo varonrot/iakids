@@ -12,6 +12,7 @@
   const views = ['loading', 'signin', 'chooseChild', 'path', 'lesson', 'curriculumLesson'];
   let user, children = [], child, catalog = [], library = [], plans = [], subject, unit, recent, current, count = 0, busy = false, generation = 0, activeOptions = [];
   let plannerStage = 'subjects';
+  let mathDomains = [];
   let activePlan = null, introVoice = null, planAudioSerial = 0;
   const curriculumProgress = new Map();
   let curriculumProgressSerial = 0;
@@ -56,7 +57,7 @@
     show('loading');
     try {
       const result = await api(`library?kid_id=${encodeURIComponent(kid.id)}`);
-      library = result.subjects; plans = result.plans;
+      library = result.subjects; plans = result.plans; mathDomains = result.math_domains || [];
       subject = null; unit = null; plannerStage = 'subjects'; renderPath();
     } catch (err) { childPicker(); error(err.message); }
   }
@@ -260,6 +261,12 @@
     subject = item; plannerStage = 'topics';
     if (!fresh) plannerBubble('learner', item.title);
     plannerBubble('guide', `Great. Which ${item.title} topic would you like to explore? You can also describe one in your own words.`, -1, introVoice, true);
+    if (item.title === 'Math' && mathDomains.length) {
+      plannerOptions([...mathDomains.map(domain => plannerButton(domain.title, '✦', () => chooseMathDomain(domain))),
+        plannerButton('← Change subject', '↩', renderPath)]);
+      $('plannerInput').placeholder = 'Or describe a specific Math topic…';
+      playPlanIntro(introVoice, true); return;
+    }
     const buttons = item.topics.map(topic => {
       const saved = plans.find(plan => plan.subject === item.title && plan.topic.toLowerCase() === topic.toLowerCase());
       return plannerButton(saved ? `${topic} · Open saved plan` : topic, saved ? '↗' : '✦',
@@ -268,6 +275,23 @@
     buttons.push(plannerButton('← Change subject', '↩', renderPath)); plannerOptions(buttons);
     $('plannerInput').placeholder = `Or write a ${item.title} topic…`;
     playPlanIntro(introVoice, true);
+  }
+  function chooseMathDomain(domain) {
+    if (busy) return;
+    stopPlanVoice(); introVoice = null; plannerStage = 'math-topics';
+    plannerBubble('learner', domain.title);
+    $('plannerSubtitle').textContent = `Math → ${domain.title}. Choose a topic to build your learning plan.`;
+    $('plannerTree').replaceChildren();
+    const buttons = domain.children.map(topic => {
+      const saved = plans.find(plan => plan.content?.curriculum_scope?.topic_id === topic.id);
+      const button = plannerButton(saved ? `${topic.title} · Open saved plan` : topic.title, saved ? '↗' : '✦',
+        saved ? () => showPlan(saved, true) : () => createPlan('Math', topic.title, '', topic.id));
+      button.title = topic.children.map(skill => skill.title).join(' · ');
+      return button;
+    });
+    buttons.push(plannerButton('← All Math areas', '↩', () => chooseSubject(subject, true)));
+    plannerOptions(buttons);
+    $('plannerInput').placeholder = `Or describe what you want to learn in ${domain.title}…`;
   }
   function startAnotherPlan() {
     if (busy || !activePlan) return;
@@ -417,18 +441,18 @@
       updateCurriculumNavigation();
     } catch(err) { if(!document || token!==curriculumProgressSerial || child.id!==learnerId || activePlan?.id!==plan.id)return;const status=$('plannerResumeStatus');if(status)status.textContent='Your learning plan is saved. Choose Continue learning or open a lesson.'; /* Lessons remain accessible if the status request fails. */ }
   }
-  async function createPlan(chosenSubject, topic, requestText) {
+  async function createPlan(chosenSubject, topic, requestText, curriculumTopicId = '') {
     if (busy) return;
     busy = true; $('plannerSend').disabled = true;
     plannerBubble('learner', topic || requestText);
     plannerOptions([]); const pending = plannerPending('I’m building your learning plan');
     try {
-      const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText}, 90000);
+      const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText, curriculum_topic_id: curriculumTopicId}, 90000);
       plans = [result.plan, ...plans.filter(item => item.id !== result.plan.id)].slice(0, 12);
       renderSavedPlans(); showPlan(result.plan, true, false, true); $('plannerInput').value = '';
     } catch (err) {
       pending.textContent = 'The plan could not be created. Please try again.';
-      error(err.message); plannerOptions([plannerButton('Try again', '↻', () => createPlan(chosenSubject, topic, requestText)),
+      error(err.message); plannerOptions([plannerButton('Try again', '↻', () => createPlan(chosenSubject, topic, requestText, curriculumTopicId)),
         plannerButton('Change subject', '↩', renderPath)]);
     } finally { busy = false; $('plannerSend').disabled = false; }
   }
