@@ -734,9 +734,13 @@
       svg.append(text(400,380,number,36));
     } else if(spec.kind === 'fraction_bars') {
       spec.fraction_bars.forEach((bar,row)=> {
-        const y=60+row*(300/spec.fraction_bars.length), width=520/bar.parts;
-        svg.append(text(100,y+35,bar.label||`${bar.filled}/${bar.parts}`,22));
-        for(let i=0;i<bar.parts;i++) svg.append(svgNode('rect',{x:220+i*width,y,width,height:58,fill:i<bar.filled?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
+        const rowHeight=380/spec.fraction_bars.length, y=35+row*rowHeight, width=640/bar.parts;
+        const label=String(bar.label||`${bar.filled}/${bar.parts}`);
+        const labelNode=text(400,y+22,label,Math.min(22,Math.max(14,1000/label.length)));
+        // Keep descriptive labels inside the canvas instead of beside the bars.
+        if(label.length>70) { labelNode.setAttribute('textLength','680'); labelNode.setAttribute('lengthAdjust','spacingAndGlyphs'); }
+        svg.append(labelNode);
+        for(let i=0;i<bar.parts;i++) svg.append(svgNode('rect',{x:80+i*width,y:y+36,width,height:Math.min(58,rowHeight-48),fill:i<bar.filled?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
       });
     }
     return svg;
