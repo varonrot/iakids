@@ -447,9 +447,9 @@
     if (busy) return;
     busy = true; $('plannerSend').disabled = true;
     plannerBubble('learner', topic || requestText);
-    plannerOptions([]); const pending = plannerPending('I’m building your learning plan');
+    plannerOptions([]); const pending = plannerPending('I’m building and checking your learning plan');
     try {
-      const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText, curriculum_topic_id: curriculumTopicId}, 90000);
+      const result = await api('plan', {kid_id: child.id, subject: chosenSubject, topic, request_text: requestText, curriculum_topic_id: curriculumTopicId}, 180000);
       plans = [result.plan, ...plans.filter(item => item.id !== result.plan.id)].slice(0, 12);
       renderSavedPlans(); showPlan(result.plan, true, false, true); $('plannerInput').value = '';
     } catch (err) {
@@ -466,7 +466,7 @@
     const pending = plannerPending('Thinking about your plan');
     try {
       const result = await api('plan/reply', {kid_id: child.id, plan_id: planId,
-        message, expected_revision: expectedRevision}, 90000);
+        message, expected_revision: expectedRevision}, 180000);
       if (activePlan?.id !== planId) return;
       plans = [result.plan, ...plans.filter(item => item.id !== planId)].slice(0, 12);
       const editing = !!document.querySelector('#plannerTree .planner-edit-tools');

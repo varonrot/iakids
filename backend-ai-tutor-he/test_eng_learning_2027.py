@@ -174,6 +174,9 @@ class LearningTests(unittest.TestCase):
         class Completions:
             async def parse(self, **kwargs):
                 calls.append(kwargs)
+                if kwargs['response_format'] is route.CurriculumPlanReview:
+                    return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(
+                        parsed=route.CurriculumPlanReview(approved=True)))])
                 plan = route.CurriculumPlan(title='Understanding division of fractions',
                     subject='Math', topic='Dividing fractions', units=[
                         route.CurriculumUnit(title='Understand the operation', lessons=[
@@ -187,7 +190,7 @@ class LearningTests(unittest.TestCase):
         second = asyncio.run(route.create_learning_plan(request, 'Bearer token'))
         self.assertFalse(first['reused'])
         self.assertTrue(second['reused'])
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(len(calls), 2)
         self.assertEqual(table.rows[0]['child_id'], 'child-id')
         self.assertEqual(table.rows[0]['grade'], 5)
         self.assertEqual(table.rows[0]['content']['units'][0]['lessons'][0]['title'], 'What division asks')
@@ -206,6 +209,9 @@ class LearningTests(unittest.TestCase):
                            'revision': 0, 'plan_history': []})
         class Completions:
             async def parse(self, **kwargs):
+                if kwargs['response_format'] is route.CurriculumPlanReview:
+                    return types.SimpleNamespace(choices=[types.SimpleNamespace(message=types.SimpleNamespace(
+                        parsed=route.CurriculumPlanReview(approved=True)))])
                 revised = route.CurriculumPlan(title='Fractions', subject='Math',
                     topic='Fractions', units=[route.CurriculumUnit(title='Quick review', lessons=[
                         route.CurriculumLesson(title='Check the basics',
