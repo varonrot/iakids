@@ -158,7 +158,8 @@ class PlanVoiceRequest(LimitedRequest):
 
 class PlanIntroVoiceRequest(LimitedRequest):
     kid_id: str
-    stage: Literal["welcome", "subject"]
+    stage: Literal["welcome", "subject", "domain"]
+    domain_id: str = Field(default="", max_length=200)
     subject: str = Field(default="", max_length=80)
 
 
@@ -1196,6 +1197,13 @@ async def learning_plan_intro_audio(body: PlanIntroVoiceRequest, authorization: 
     if body.stage == "welcome":
         text = (f"Hi {child['child_name']}! What would you like to learn today? "
                 f"Choose a Grade {grade} subject, or write your own idea below.")
+    elif body.stage == "domain":
+        domains = await run_in_threadpool(curriculum_tree, sb)
+        domain = next((item for item in domains if item["id"] == body.domain_id), None)
+        if not domain:
+            raise HTTPException(status_code=422, detail="Choose an available Math area.")
+        text = (f"Great. What would you like to learn in {domain['title']}? "
+                "Choose a topic below, or describe it in your own words.")
     else:
         subject = body.subject.strip()
         if subject not in GRADE_TOPICS.get(grade, {}):

@@ -149,7 +149,7 @@
     $('plannerAudio').pause(); $('plannerVoiceStatus').textContent = 'Preparing the guide’s voice…';
     $('plannerVoiceStatus').hidden = false;
     try {
-      const key = `${kidId}:${context.stage}:${context.subject || ''}`;
+      const key = `${kidId}:${context.stage}:${context.subject || ''}:${context.domain_id || ''}`;
       let cached = planAudioUrls.get(key);
       if (!cached || cached.expiresAt < Date.now()) {
         const result = await api('plan/intro-audio', {kid_id: kidId, ...context}, 120000);
@@ -278,8 +278,9 @@
   }
   function chooseMathDomain(domain) {
     if (busy) return;
-    stopPlanVoice(); introVoice = null; plannerStage = 'math-topics';
+    stopPlanVoice(); introVoice = {stage: 'domain', domain_id: domain.id}; plannerStage = 'math-topics';
     plannerBubble('learner', domain.title);
+    plannerBubble('guide', `Great. What would you like to learn in ${domain.title}? Choose a topic below, or describe it in your own words.`, -1, introVoice, true);
     $('plannerSubtitle').textContent = `Math → ${domain.title}. Choose a topic to build your learning plan.`;
     $('plannerTree').replaceChildren();
     const buttons = domain.children.map(topic => {
@@ -292,6 +293,7 @@
     buttons.push(plannerButton('← All Math areas', '↩', () => chooseSubject(subject, true)));
     plannerOptions(buttons);
     $('plannerInput').placeholder = `Or describe what you want to learn in ${domain.title}…`;
+    playPlanIntro(introVoice, true);
   }
   function startAnotherPlan() {
     if (busy || !activePlan) return;
