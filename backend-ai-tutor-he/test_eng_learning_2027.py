@@ -1,3 +1,4 @@
+import json
 """Checks for the English learning path without live AI or user credentials."""
 import asyncio
 import importlib.util
@@ -774,6 +775,16 @@ class TeachingVisualTests(unittest.TestCase):
         self.assertEqual(first,second);self.assertEqual(parser.calls,1)
         self.assertEqual(first['visual']['grid']['shaded'],3)
         self.assertIn('Three tenths',self.visual_input['messages'][1]['content'])
+        checkpoint_request=self.route.TeachingVisualRequest(expected_content_version=1,
+            kid_id='child-id',lesson_id=lesson['id'],section_index=len(lesson['content']['sections']))
+        asyncio.run(self.route.curriculum_lesson_visual(checkpoint_request))
+        question_input=json.loads(self.visual_input['messages'][1]['content'])['section']
+        self.assertEqual(set(question_input), {'question'})
+        self.assertEqual(question_input['question'], lesson['content']['checkpoint']['question'])
+        self.assertIn('Do not solve it',self.visual_input['messages'][0]['content'])
+        self.assertEqual(parser.calls,2)
+        asyncio.run(self.route.curriculum_lesson_visual(checkpoint_request))
+        self.assertEqual(parser.calls,2)
         with self.assertRaises(self.route.HTTPException):
             asyncio.run(self.route.curriculum_lesson_visual(self.route.TeachingVisualRequest(expected_content_version=1, 
                 kid_id='another-child',lesson_id=lesson['id'],section_index=0)))

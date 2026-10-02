@@ -28,3 +28,8 @@
 .plan-approval-back{background:#fff;color:#286170;border:1px solid #b8dcd6}
 .plan-approval-actions button:focus-visible{outline:3px solid #153b54;outline-offset:3px}
 @media(max-width:500px){.plan-approval-dialog{padding:24px}.plan-approval-dialog h2{font-size:24px}}
+
+/* Keep question models beside the prompt and leave answers scrollable. */
+.teaching-check-art{flex:none;width:100%;height:clamp(190px,27vh,300px);min-height:190px;margin:12px 0}
+.teaching-art[hidden]{display:none}
+.teaching-art svg{align-self:center}

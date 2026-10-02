@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./learning.css?v=20261001-stable-dots">
-  <link rel="stylesheet" href="./curriculum.css?v=20261001-stable-dots">
+  <link rel="stylesheet" href="./curriculum.css?v=20261002-question-visuals">
 </head>
 <body>
   <header class="topbar">
@@ -28,7 +28,7 @@
     </section>
     <section id="curriculumLesson" class="teaching-lesson" hidden aria-label="Your narrated lesson">
       <div id="curriculumLoading" class="lesson-live-loading" role="status" hidden><span class="spinner" aria-hidden="true"></span><strong class="lesson-preparing">Your lesson is being created live</strong><p>Preparing your teacher’s voice and illustrations.<br>Your lesson will start automatically when ready.</p></div><aside class="teaching-sidebar"><button id="curriculumBack" class="back-button" type="button">← Your learning plan</button><span class="eyebrow">YOUR LESSON</span><h1 id="curriculumTitle"></h1><p id="curriculumMeta"></p><div class="teaching-course-nav"><label for="curriculumLessonSelect">YOUR LESSONS</label><select id="curriculumLessonSelect" aria-label="Choose a lesson"></select><div class="teaching-course-buttons"><button id="curriculumPreviousLesson" type="button">← Previous lesson</button><button id="curriculumNextLesson" type="button">Next lesson →</button></div><small id="curriculumCourseProgress" role="status"></small></div><nav class="teaching-stages" aria-label="Lesson stages"><button id="curriculumOverview" type="button"><span>1</span><strong>What we’ll learn</strong><small>Your unit and lesson goals</small></button><button id="curriculumExplain" type="button"><span>2</span><strong>Learn the idea</strong><small>Listen and watch the explanation</small></button><button id="curriculumCheckJump" type="button" disabled><span>3</span><strong>Check understanding</strong><small>One question at the end</small></button></nav><p id="curriculumProgressLabel" class="teaching-progress-label"></p><div id="curriculumProgress" class="teaching-progress" aria-label="Explanation slides"></div></aside>
-      <div class="teaching-center"><header class="teaching-scene-head"><span id="curriculumEyebrow" class="eyebrow">WHAT WE WILL LEARN</span><span id="curriculumCounter"></span><h2 id="curriculumSceneTitle"></h2></header><div id="curriculumArt" class="teaching-art" aria-label="Lesson illustration" aria-busy="false"></div><p id="curriculumCaption" class="teaching-caption"></p><div id="curriculumCheck" class="teaching-check" hidden><h2 id="curriculumQuestion"></h2><div id="curriculumAnswers" class="choice-grid"></div><p id="curriculumFeedback" role="status"></p><button id="curriculumContinueLesson" class="primary" type="button" hidden>Continue to next lesson →</button></div><footer class="teaching-navigation"><button id="curriculumPrevious" class="back-button" type="button">← Previous</button><button id="curriculumNext" class="primary" type="button">Next →</button></footer></div>
+      <div class="teaching-center"><header class="teaching-scene-head"><span id="curriculumEyebrow" class="eyebrow">WHAT WE WILL LEARN</span><span id="curriculumCounter"></span><h2 id="curriculumSceneTitle"></h2></header><div id="curriculumArt" class="teaching-art" aria-label="Lesson illustration" aria-busy="false"></div><p id="curriculumCaption" class="teaching-caption"></p><div id="curriculumCheck" class="teaching-check" hidden><h2 id="curriculumQuestion"></h2><div id="curriculumCheckArt" class="teaching-art teaching-check-art" aria-label="Question illustration" aria-busy="false"></div><div id="curriculumAnswers" class="choice-grid"></div><p id="curriculumFeedback" role="status"></p><button id="curriculumContinueLesson" class="primary" type="button" hidden>Continue to next lesson →</button></div><footer class="teaching-navigation"><button id="curriculumPrevious" class="back-button" type="button">← Previous</button><button id="curriculumNext" class="primary" type="button">Next →</button></footer></div>
       <aside class="teaching-guide"><div class="teaching-guide-head"><img src="../assets/lesson/english-teacher.png" alt="Your learning guide"><div><strong>Your learning guide</strong><small>Listen and watch the idea unfold</small></div></div><div class="teaching-controls"><button id="curriculumVoiceToggle" type="button" aria-pressed="true">🔊 Voice on</button><button id="curriculumListen" type="button">↻ Replay</button><button id="curriculumPause" type="button">Ⅱ Pause</button></div><p id="curriculumVoiceStatus" class="voice-status" role="status"></p><div id="curriculumNarration" class="teaching-narration"></div><p id="curriculumGuideNote" class="teaching-guide-note">The explanation moves forward automatically with the voice.</p></aside><audio id="curriculumAudio" preload="none"></audio>
     </section>
     <section id="lesson" class="lesson" hidden>
@@ -53,9 +53,10 @@
     </form>
   </dialog>
   <script src="../js/vendor/supabase-2.57.4.js" defer></script>
-  <script src="./learning.js?v=20261002-fraction-label-fit" defer></script>
+  <script src="./learning.js?v=20261002-question-visuals" defer></script>
 </body>
 </html>
+
 
 
 

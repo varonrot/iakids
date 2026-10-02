@@ -733,21 +733,41 @@
       });
       svg.append(text(400,380,number,36));
     } else if(spec.kind === 'fraction_bars') {
-      spec.fraction_bars.forEach((bar,row)=> {
-        const rowHeight=380/spec.fraction_bars.length, y=35+row*rowHeight, width=640/bar.parts;
+      const bars=spec.fraction_bars, count=bars.length;
+      const shaped=bars.some(bar=>bar.shape && bar.shape!=='bar');
+      bars.forEach((bar,row)=> {
+        const columns=count===1?1:2, rows=Math.ceil(count/columns);
+        const cellWidth=760/columns, cellHeight=400/rows;
+        const cx=shaped ? 20+cellWidth*(row%columns+.5) : 400;
+        const cy=shaped ? 20+cellHeight*(Math.floor(row/columns)+.5) : 225+(row-(count-1)/2)*Math.min(135,360/count);
+        const scale=bar.scale||1, size=Math.min(cellWidth-60,cellHeight-72)*scale;
         const label=String(bar.label||`${bar.filled}/${bar.parts}`);
-        const labelNode=text(400,y+22,label,Math.min(22,Math.max(14,1000/label.length)));
-        // Keep descriptive labels inside the canvas instead of beside the bars.
-        if(label.length>70) { labelNode.setAttribute('textLength','680'); labelNode.setAttribute('lengthAdjust','spacingAndGlyphs'); }
+        const labelWidth=shaped ? cellWidth-24 : 680;
+        const labelNode=text(cx,shaped?cy+size/2+32:cy-24,label,Math.min(22,Math.max(13,labelWidth/(label.length*.58))));
+        if(label.length*13*.58>labelWidth) {labelNode.setAttribute('textLength',labelWidth);labelNode.setAttribute('lengthAdjust','spacingAndGlyphs');}
         svg.append(labelNode);
-        for(let i=0;i<bar.parts;i++) svg.append(svgNode('rect',{x:80+i*width,y:y+36,width,height:Math.min(58,rowHeight-48),fill:i<bar.filled?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
+        if(bar.shape==='circle') {
+          const radius=size/2;
+          if(bar.parts===1) svg.append(svgNode('circle',{cx,cy,r:radius,fill:bar.filled?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
+          else for(let i=0;i<bar.parts;i++) {
+            const a=-Math.PI/2+2*Math.PI*i/bar.parts,b=a+2*Math.PI/bar.parts;
+            svg.append(svgNode('path',{d:`M ${cx} ${cy} L ${cx+radius*Math.cos(a)} ${cy+radius*Math.sin(a)} A ${radius} ${radius} 0 ${b-a>Math.PI?1:0} 1 ${cx+radius*Math.cos(b)} ${cy+radius*Math.sin(b)} Z`,fill:i<bar.filled?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
+          }
+        } else {
+          const square=bar.shape==='square', w=square?size:(shaped?cellWidth-50:640)*scale, h=square?size:58*scale;
+          let cols=bar.parts;
+          if(square) for(let n=Math.floor(Math.sqrt(bar.parts));n>=1;n--) if(bar.parts%n===0){cols=bar.parts/n;break;}
+          const rows=bar.parts/cols;
+          for(let i=0;i<bar.parts;i++) svg.append(svgNode('rect',{x:cx-w/2+(i%cols)*w/cols,y:cy-h/2+Math.floor(i/cols)*h/rows,width:w/cols,height:h/rows,fill:i<bar.filled?'#0cb2ae':'#dceee8',stroke:'#267478','stroke-width':2}));
+        }
       });
     }
     return svg;
   }
   async function displayTeachingVisual(index) {
     const serial=++teachingVisualSerial, lessonId=teachingLesson.id;
-    const art=$('curriculumArt'); art.setAttribute('aria-busy','true');
+    const check=index===teachingLesson.content.sections.length;
+    const art=$(check?'curriculumCheckArt':'curriculumArt'); art.setAttribute('aria-busy','true');
     // Keep the current illustration visible until its replacement is ready.
     try {
       const result=await loadTeachingMedia('visual',index);
@@ -762,14 +782,14 @@
         if(serial!==teachingVisualSerial || teachingLesson?.id!==lessonId || teachingSection!==index) return;
         dissolveTeachingContent(art,[picture]);
       } else dissolveTeachingContent(art,[drawTeachingVisual(result.visual)]);
-      $('curriculumCaption').textContent=result.visual.caption;
+      if(!check) $('curriculumCaption').textContent=result.visual.caption;
     } catch(err) {
       if(serial===teachingVisualSerial && teachingLesson?.id===lessonId && teachingSection===index && !$('curriculumLesson').hidden) visualError(err.message);
     } finally { if(serial===teachingVisualSerial) art.setAttribute('aria-busy','false'); }
     function visualError(message) {
       art.replaceChildren(); const label=document.createElement('p'); label.textContent=message;
       const retry=document.createElement('button'); retry.type='button';retry.className='primary';retry.textContent='Retry illustration';
-      retry.onclick=()=> { teachingVisuals.delete(`${lessonId}:${index}`);displayTeachingVisual(index); };
+      retry.onclick=()=> { teachingVisuals.delete(`${lessonId}:${teachingLesson.content_token || 'legacy'}:${index}`);displayTeachingVisual(index); };
       const wrapper=document.createElement('div'); wrapper.className='teaching-art-pending'; wrapper.append(label,retry);art.append(wrapper);
     }
   }
@@ -781,13 +801,14 @@
       // Keep the previous text and picture on screen during background preparation.
       const requests=[];
       if(narrate)requests.push(loadTeachingMedia('audio',index));
-      if(index>=0 && index<teachingLesson.content.sections.length)requests.push(loadTeachingMedia('visual',index));
+      if(index>=0 && index<=teachingLesson.content.sections.length)requests.push(loadTeachingMedia('visual',index));
       await Promise.allSettled(requests);
       if(serial!==teachingAudioSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden)return;
     }
     teachingSection=index;
     const content=teachingLesson.content, total=content.sections.length, intro=index===-1, check=index===total;
     if(!intro && !check) teachingSeen.add(index);
+    if(check) $('curriculumCheckArt').replaceChildren();
     $('curriculumCheck').hidden=!check; $('curriculumArt').hidden=check;
     $('curriculumCaption').hidden=intro||check;
     $('curriculumArt').setAttribute('aria-busy','false');
@@ -829,7 +850,7 @@
     $('curriculumNext').textContent=intro?'Start explanation →':index===total-1?'Check understanding →':'Next →';
     $('curriculumVoiceStatus').textContent=voiceEnabled?'Preparing your teacher’s voice…':'Voice off. Use Next to move through the explanation.';
     $('curriculumGuideNote').textContent=check?'Choose an answer when you’re ready.':'The explanation moves forward automatically with the voice. You can pause or replay.';
-    if(!intro&&!check)displayTeachingVisual(index);
+    if(!intro)displayTeachingVisual(index);
     if(narrate)playCurriculumSection(index);
     else {dissolveTeachingContent($('curriculumNarration'),[...$('curriculumNarration').childNodes],teachingPreviousNarration);teachingPreviousNarration=null;}
   }
@@ -841,7 +862,7 @@
     try {
       $('curriculumVoiceStatus').textContent='Preparing this paragraph’s picture and voice…';
       const [result]=await Promise.all([loadTeachingMedia('audio',index),
-        index>=0 && index<teachingLesson.content.sections.length ? loadTeachingMedia('visual',index) : Promise.resolve(null)]);
+        index>=0 && index<=teachingLesson.content.sections.length ? loadTeachingMedia('visual',index) : Promise.resolve(null)]);
       if(serial!==teachingAudioSerial || teachingLesson?.id!==lessonId || $('curriculumLesson').hidden) return;
       prepareTeachingTyping(index);
       audio.src=result.url;
@@ -1120,3 +1141,4 @@
   }
   initialize();
 })();
+
